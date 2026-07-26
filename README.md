@@ -1,4 +1,4 @@
-# 🌿 SentiMental - Mental Health Helpline Management System
+# SentiMental
 
 SentiMental is a comprehensive web application designed to streamline mental health helpline operations. It provides role-based dashboards for Helpline Managers (Admins) and Responders, real-time call documentation, AI-assisted summarization, geographic heatmapping, analytics, and shift scheduling.
 
