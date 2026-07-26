@@ -37,7 +37,7 @@ The Google Drive folder contains:
 
 ```bash
 git clone https://github.com/zumorinkashi17/sentimental-app.git
-cd your-repository
+cd sentimental
 ```
 
 ---
