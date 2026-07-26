@@ -89,16 +89,7 @@ SentiMental/
 
 ---
 
-## 5. Apply Database Migrations
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
----
-
-## 6. Run the Development Server
+## 5. Run the Development Server
 
 ```bash
 python manage.py runserver
