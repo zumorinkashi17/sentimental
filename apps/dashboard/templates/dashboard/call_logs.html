@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Call Logs - Sentimental{% endblock %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Call Logs</h1>
+                <p class="text-gray-500">Review recent conversations and risk assessments.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <input type="text" placeholder="Search calls..." class="form-input w-full sm:w-64 text-sm">
+                <select class="form-input w-full sm:w-auto text-sm">
+                    <option>All Risk Levels</option>
+                    <option>High Risk</option>
+                    <option>Medium Risk</option>
+                    <option>Low Risk</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="table-scroll">
+                <table class="w-full text-left border-separate border-spacing-0">
+                    <thead class="bg-gray-50 text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                        <tr>
+                            <th class="p-4">Session</th>
+                            <th class="p-4">Caller</th>
+                            <th class="p-4">Risk Level</th>
+                            <th class="p-4">Duration</th>
+                            <th class="p-4">Handled By</th>
+                            <th class="p-4">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-semibold">TPCB10-4899</td>
+                            <td class="p-4">Maria S.</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High</span></td>
+                            <td class="p-4">27 mins</td>
+                            <td class="p-4">Quev Cruz</td>
+                            <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">View</button></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-semibold">TPCB10-4896</td>
+                            <td class="p-4">Carlos R.</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-orange-100 text-orange-700 text-[10px] uppercase rounded-full font-bold">Medium</span></td>
+                            <td class="p-4">19 mins</td>
+                            <td class="p-4">Maria S.</td>
+                            <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">View</button></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-4 font-semibold">TPCB10-4888</td>
+                            <td class="p-4">Anonymous</td>
+                            <td class="p-4"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High</span></td>
+                            <td class="p-4">33 mins</td>
+                            <td class="p-4">Carlos R.</td>
+                            <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

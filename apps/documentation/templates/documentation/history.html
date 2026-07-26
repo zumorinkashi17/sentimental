@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Call Logs & History</h1>
+                <p class="text-gray-500">Review past documented sessions and transcripts.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option>This Month</option>
+                    <option>Last 30 Days</option>
+                    <option>All Time</option>
+                </select>
+                <button type="button" class="px-4 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-funnel"></i> Filter
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                        <th scope="col" class="p-4 font-bold">Session ID</th>
+                        <th scope="col" class="p-4 font-bold">Date & Time</th>
+                        <th scope="col" class="p-4 font-bold">Risk Level</th>
+                        <th scope="col" class="p-4 font-bold text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-4892</td>
+                        <td class="p-4">Oct 04, 2024 • 06:12 PM</td>
+                        <td class="p-4"><span class="text-yellow-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> Medium Risk</span></td>
+                        <td class="p-4 text-center">
+                            <button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20"><i class="ph-bold ph-file-text"></i> View Docs</button>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-4888</td>
+                        <td class="p-4">Oct 01, 2024 • 11:45 PM</td>
+                        <td class="p-4"><span class="text-red-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> High Risk</span></td>
+                        <td class="p-4 text-center">
+                            <button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20"><i class="ph-bold ph-file-text"></i> View Docs</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

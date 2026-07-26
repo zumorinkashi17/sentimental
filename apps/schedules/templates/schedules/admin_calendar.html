@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Shift Schedules & Staffing</h1>
+                <p class="text-gray-500">Manage schedules, approve leaves, and view AI recommendations.</p>
+            </div>
+            <div class="flex gap-2">
+                <button type="button" onclick="openModal('modal-assign-shift')" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark shadow-sm w-full sm:w-auto">
+                    <i class="ph-bold ph-calendar-plus text-lg"></i> Assign New Shift
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Recommendation Banner -->
+        <div class="bg-red-50 border border-red-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
+            <div class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+                <i class="ph-fill ph-sparkle text-xl"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-red-800">AI Staffing Prediction: Shortage Detected</h3>
+                <p class="text-sm text-red-700 mt-1">A 40% surge in high-risk calls is predicted for <b>Friday (Oct 25)</b>. Recommendation: Deny non-urgent leave requests and assign multiple responders in shorter <b>4-hour consecutive shifts</b> to maintain continuous active coverage and prevent fatigue.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <!-- Current Active Roster -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[400px]">
+                <div class="flex justify-between items-center mb-4 gap-2">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase">Today's Roster (Oct 24)</h2>
+                    <select class="form-input bg-gray-50 w-auto py-1 text-xs border-gray-200">
+                        <option>All Shifts</option>
+                        <option>Morning (06:00 - 14:00)</option>
+                        <option>Afternoon (14:00 - 22:00)</option>
+                        <option>Night (22:00 - 06:00)</option>
+                    </select>
+                </div>
+                <div class="overflow-y-auto flex-1 custom-scrollbar pr-2">
+                    <div class="space-y-3">
+                        <div class="p-3 border border-brand/20 bg-brand-light/20 rounded-lg flex justify-between items-center gap-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-brand-light text-brand font-bold flex items-center justify-center flex-shrink-0">Q</div>
+                                <div class="min-w-0"><p class="font-bold text-gray-800 text-sm truncate">Quev C.</p><p class="text-[10px] text-brand uppercase">Afternoon Shift (Active)</p></div>
+                            </div>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold flex-shrink-0">Online</span>
+                        </div>
+                        <div class="p-3 border border-gray-100 bg-gray-50 rounded-lg flex justify-between items-center gap-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 font-bold flex items-center justify-center flex-shrink-0">M</div>
+                                <div class="min-w-0"><p class="font-bold text-gray-800 text-sm truncate">Maria S.</p><p class="text-[10px] text-gray-500 uppercase">Night Shift (Upcoming)</p></div>
+                            </div>
+                            <span class="px-2 py-1 bg-gray-200 text-gray-600 text-[10px] rounded-full font-bold flex-shrink-0">Offline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Leaves Table -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm h-[400px] flex flex-col">
+                <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase">Pending Day Offs</h2>
+                <div class="overflow-y-auto flex-1 custom-scrollbar">
+                    <div class="space-y-4" id="leave-requests-container">
+                        <div id="leave-row-1" class="border border-gray-100 p-3 rounded-lg bg-gray-50">
+                            <div class="flex justify-between items-start mb-2 gap-2">
+                                <span class="font-bold text-sm text-gray-800">Quev Cruz</span>
+                                <span class="text-xs font-bold text-gray-500 whitespace-nowrap">Oct 25</span>
+                            </div>
+                            <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold uppercase mb-2 inline-block">Conflict: High Volume predicted</span>
+                            <p class="text-xs text-gray-500 mb-3">Reason: Personal Emergency</p>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="approveLeave('leave-row-1')" class="flex-1 bg-brand text-white py-1.5 rounded text-xs font-bold hover:bg-brand-dark">Approve</button>
+                                <button type="button" onclick="approveLeave('leave-row-1')" class="flex-1 bg-red-500 text-white py-1.5 rounded text-xs font-bold hover:bg-red-600">Deny</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+<!-- PERSISTENT RIGHT PANEL (FIXED DOCUMENTATION) -->
+<aside id="persistent-panel" class="w-full lg:w-[420px] h-auto lg:h-screen min-h-0 bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.03)] border-t border-gray-100 lg:border-t-0 lg:border-l flex-col flex-shrink-0 z-20 transition-all duration-300 flex order-last lg:order-none overflow-hidden" aria-label="Call documentation panel">
+
+    <!-- Documentation Mode Toggles -->
+    <div class="flex border-b border-gray-100 bg-gray-50 px-4 sm:px-6 pt-4 shrink-0 overflow-x-auto">
+        <button type="button" id="tab-doc-form" onclick="toggleDocMode('form')" class="text-brand font-bold text-xs border-b-2 border-brand pb-2 mr-6 transition-colors whitespace-nowrap">Clinical Documentation</button>
+        <button type="button" id="tab-doc-manual" onclick="toggleDocMode('manual')" class="text-gray-400 hover:text-gray-600 font-bold text-xs pb-2 transition-colors whitespace-nowrap">Manual Script Notes</button>
+    </div>
+
+    <!-- Panel 1: Clinical Documentation (AI Form) -->
+    <div id="panel-doc-form" class="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-6">
+        <!-- Call Info Section -->
+        <div>
+            <h3 class="text-brand font-bold text-sm text-center tracking-wider mb-4 uppercase">Call Information</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="form-label" for="callSessionNo">Call Session No:</label>
+                    <input id="callSessionNo" type="text" class="form-input bg-gray-50 font-mono text-gray-500" value="TPCB10-XXXX" readonly>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="form-label" for="callDate">Date:</label><input id="callDate" type="text" class="form-input" value="October 04, 2024"></div>
+                    <div>
+                        <label class="form-label" for="callShift">Shift:</label>
+                        <select id="callShift" class="form-input bg-white appearance-none">
+                            <option>02:00 PM - 10:00 PM</option>
+                            <option>10:00 PM - 06:00 AM</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="form-label" for="timeCalled">Time Called:</label><input id="timeCalled" type="text" class="form-input" value="06:12 PM"></div>
+                    <div><label class="form-label" for="timeEnded">Time Ended:</label><input id="timeEnded" type="text" class="form-input" value="06:42 PM"></div>
+                </div>
+            </div>
+        </div>
+        <div class="h-px w-full bg-gray-100"></div>
+
+        <!-- Caller Info Section -->
+        <div>
+            <h3 class="text-brand font-bold text-sm text-center tracking-wider mb-4 uppercase">Caller Information</h3>
+            <div class="space-y-4">
+                <div><label class="form-label" for="aiName">Name:</label><input type="text" id="aiName" class="form-input" placeholder="Juan Dela Cruz"></div>
+                <div class="grid grid-cols-1 xs:grid-cols-[1fr_1fr_80px] sm:grid-cols-[1fr_1fr_80px] gap-4">
+                    <div><label class="form-label" for="aiGender">Gender:</label><select id="aiGender" class="form-input bg-white"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+                    <div><label class="form-label" for="aiStatus">Civil Status:</label><select id="aiStatus" class="form-input bg-white"><option value="">Select</option><option>Single</option><option>Married</option></select></div>
+                    <div><label class="form-label" for="aiAge">Age:</label><input type="text" id="aiAge" class="form-input" placeholder="29"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div><label class="form-label" for="aiLocation">Location:</label><input type="text" id="aiLocation" class="form-input" placeholder="Cebu City"></div>
+                    <div><label class="form-label" for="aiReason">Reason For Calling:</label><select id="aiReason" class="form-input bg-white"><option value="">Select</option><option>Relationship</option><option>Academic</option><option>Financial</option></select></div>
+                </div>
+                <div><label class="form-label" for="aiRisk">Risk Assessment:</label><select id="aiRisk" class="form-input bg-white"><option value="">Select</option><option>Low Risk</option><option>Medium Risk</option><option class="text-red-600 font-bold">High Risk</option></select></div>
+                <div><label class="form-label" for="aiIntervention">Intervention:</label><textarea id="aiIntervention" class="form-input h-20 resize-none"></textarea></div>
+                <div><label class="form-label" for="aiComments">Additional Comments:</label><textarea id="aiComments" class="form-input h-20 resize-none"></textarea></div>
+            </div>
+        </div>
+        
+        <!-- AI Summary Container -->
+        <div id="ai-summary-container" class="hidden border-t border-brand/20 pt-6 mt-2">
+            <h3 class="text-brand font-bold text-sm text-center tracking-wider mb-3 uppercase flex items-center justify-center gap-2"><i class="ph-fill ph-sparkle"></i> AI Generated Summary</h3>
+            <label for="aiGeneratedSummary" class="sr-only">AI Generated Summary</label>
+            <textarea id="aiGeneratedSummary" class="form-input h-32 resize-none bg-brand-light/30 border-brand/50 text-gray-800 font-medium" readonly></textarea>
+        </div>
+    </div>
+
+    <!-- Panel 2: Manual Script Notes -->
+    <div id="panel-doc-manual" class="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-4 hidden bg-gray-50">
+        <div class="text-center">
+            <h3 class="text-brand font-bold text-sm tracking-wider uppercase mb-1">Live Conversation Script</h3>
+            <p class="text-xs text-gray-500">Manually type caller responses and notes below.</p>
+        </div>
+        <label for="manual-script-textarea" class="sr-only">Manual script notes</label>
+        <textarea id="manual-script-textarea" class="form-input flex-1 resize-none bg-white text-sm p-4 leading-relaxed shadow-sm border-gray-200 focus:ring-brand focus:border-brand" placeholder="Start typing manual script notes here..."></textarea>
+    </div>
+
+    <!-- Action Button (Pinned to bottom) -->
+    <div class="p-4 border-t border-gray-100 shrink-0 bg-white sticky bottom-0 z-30">
+        <button type="button" id="ai-action-btn" onclick="triggerAI()" class="w-full bg-brand text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-all active:scale-[0.98] shadow-md group">
+            <i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i>
+            <span id="ai-btn-text">SUMMARIZE</span>
+        </button>
+    </div>
+</aside>

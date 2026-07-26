@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentimental - Helpline Manager</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config for Custom Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            light: '#e6f7f4',
+                            DEFAULT: '#00a67e',
+                            dark: '#007a5d',
+                            accent: '#10b981'
+                        },
+                        bgLight: '#f8fcfb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+<body class="bg-bgLight text-slate-800 min-h-screen overflow-x-hidden lg:overflow-hidden relative">
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-container" class="min-h-screen w-full flex">
+        
+        <div id="sidebar-backdrop" onclick="closeSidebar()" class="fixed inset-0 z-30 hidden bg-slate-900/40 md:hidden"></div>
+
+        <!-- SIDEBAR -->
+        <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col items-center py-6 shadow-[2px_0_8px_rgba(0,0,0,0.02)] flex-shrink-0 overflow-y-auto custom-scrollbar transition-all duration-300 -translate-x-full md:translate-x-0 md:w-20" aria-label="Main navigation">
+            
+            <div class="sidebar-logo-container mb-8 flex items-center gap-3 px-4 w-full overflow-hidden">
+                <img src="{% static 'images/Sentimental-logo.png' %}" alt="SentiMental" class="w-9 h-9 object-contain flex-shrink-0">
+                <span id="sidebar-brand-name" class="text-brand font-bold text-base whitespace-nowrap hidden">SentiMental</span>
+            </div>
+
+            <!-- Nav Icons (Dynamic Routing) -->
+            <nav class="flex-1 w-full flex flex-col gap-6 items-center mt-2">
+                {% if request.session.user_role == 'Admin' %}
+                    <!-- ADMIN SIDEBAR -->
+                    <a href="{% url 'dashboard:admin_index' %}" class="nav-btn nav-admin text-brand relative group flex items-center justify-center" aria-label="Admin Dashboard">
+                        <i class="ph-fill ph-cards text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Dashboard</div>
+                    </a>
+                    <a href="{% url 'forecast:prediction' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Call Volume Forecast">
+                        <i class="ph ph-chart-line-up text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Call Volume Forecast</div>
+                    </a>
+                    <a href="{% url 'heatmap:map' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Geographic Risk Heatmap">
+                        <i class="ph ph-map-trifold text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Geographic Risk Heatmap</div>
+                    </a>
+                    <a href="{% url 'schedules:admin_calendar' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Shift Schedules">
+                        <i class="ph ph-calendar-blank text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Shift Schedules</div>
+                    </a>
+                    <a href="{% url 'accounts:manage' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Manage Users">
+                        <i class="ph ph-user-gear text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Manage Users</div>
+                    </a>
+                    <a href="{% url 'referrals:manage' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Manage Referral Directory">
+                        <i class="ph ph-address-book text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Manage Referral Directory</div>
+                    </a>
+                    <a href="{% url 'callers:database' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Callers Database">
+                        <i class="ph ph-users text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Callers Database</div>
+                    </a>
+                    <a href="{% url 'documentation:master_history' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="All Call Logs and History">
+                        <i class="ph ph-folder-open text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">All Call Logs & History</div>
+                    </a>
+                    <a href="{% url 'reports:generate' %}" class="nav-btn nav-admin text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Reports Generation">
+                        <i class="ph ph-file-text text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Reports Generation</div>
+                    </a>
+                {% else %}
+                    <!-- RESPONDER SIDEBAR -->
+                    <a href="{% url 'dashboard:index' %}" class="nav-btn nav-responder text-brand relative group flex items-center justify-center" aria-label="Dashboard">
+                        <i class="ph-fill ph-cards text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Dashboard</div>
+                    </a>
+                    <a href="{% url 'schedules:calendar' %}" class="nav-btn nav-responder text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="My Shift Schedules">
+                        <i class="ph ph-calendar-blank text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">My Shift Schedules</div>
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" class="nav-btn nav-responder text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Profile">
+                        <i class="ph ph-user text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Profile</div>
+                    </a>
+                    <a href="{% url 'referrals:directory' %}" class="nav-btn nav-responder text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Referral Directory">
+                        <i class="ph ph-address-book text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Referral Directory</div>
+                    </a>
+                    <a href="{% url 'callers:list' %}" class="nav-btn nav-responder text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Callers">
+                        <i class="ph ph-users text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Callers</div>
+                    </a>
+                    <a href="{% url 'documentation:history' %}" class="nav-btn nav-responder text-gray-400 hover:text-brand transition-colors relative group flex items-center justify-center" aria-label="Call Logs and History">
+                        <i class="ph ph-folder-open text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Call Logs & History</div>
+                    </a>
+                {% endif %}
+            </nav>
+
+            <div class="logout-container mt-auto pt-4 mb-4 w-full flex justify-center">
+                <a href="{% url 'accounts:logout' %}" onclick="confirmLogout(event)" class="logout-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Logout">
+                    <i class="ph-bold ph-sign-out text-xl"></i>
+                    <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Logout</div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT WRAPPER -->
+        <main class="flex-1 flex flex-col min-h-screen lg:h-screen relative overflow-visible lg:overflow-hidden w-full min-w-0 md:pl-20">
+            
+            <!-- TOP BAR -->
+            <header class="min-h-[64px] sm:h-[72px] glass-panel border-b border-gray-100 flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 md:px-8 py-2 sm:py-0 z-30 flex-shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 w-full min-w-0">
+                    <button type="button" id="sidebarToggle" onclick="toggleSidebar()" class="md:hidden w-10 h-10 sm:w-12 sm:h-12 rounded-2xl border border-gray-200 bg-white text-gray-700 flex items-center justify-center hover:bg-gray-100 transition-colors flex-shrink-0" aria-label="Open navigation menu">
+                        <i class="ph ph-list text-xl"></i>
+                    </button>
+                    <!-- Search -->
+                    <div class="relative flex-1 max-w-[500px] w-full min-w-0">
+                        <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        <input type="text" placeholder="Search..." class="w-full pl-11 pr-4 py-2 rounded-full border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 text-sm transition-all placeholder-gray-400">
+                    </div>
+                </div>
+
+                <!-- User Info -->
+                <div class="flex items-center gap-2 sm:gap-5 relative flex-shrink-0">
+                    <div class="relative">
+                        <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors border border-brand/20">
+                            <i class="ph ph-bell text-xl pointer-events-none"></i>
+                            <span class="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="h-8 w-px bg-gray-200 hidden sm:block"></div>
+                    
+                    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 sm:gap-3 group cursor-pointer">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-brand overflow-hidden flex items-center justify-center text-brand bg-brand-light font-bold text-lg flex-shrink-0">
+                            {% if user_profile.user_image %}
+                                <img src="{{ user_profile.user_image }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ request.session.user_name|slice:":1"|upper|default:"U" }}
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:block">
+                            <p class="text-sm font-bold text-gray-800 leading-tight">
+                                {{ request.session.user_name|default:"Guest User" }}
+                            </p>
+                            <p class="text-[10px] font-bold tracking-wider text-brand uppercase">
+                                {% if request.session.user_role == 'Admin' %}Helpline Manager{% else %}Responder{% endif %}
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <div class="flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden bg-bgLight min-w-0">
+                
+                <!-- DYNAMIC TABS CONTAINER -->
+                <div class="lg:flex-1 lg:h-full min-h-0 overflow-hidden lg:overflow-auto relative min-w-0" id="tab-content-container">
+                    {% block content %}
+                    {% endblock %}
+                </div> 
+
+                <!-- Include Persistent Panel Component (For Documentation App Integration) -->
+                <!-- {% include 'components/persistent_panel.html' %} -->
+            </div>
+        </main>
+    </div>
+
+    {% include 'partials/modals.html' %}
+
+    <!-- Script assets -->
+    <script src="{% static 'js/main.js' %}?v=15"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

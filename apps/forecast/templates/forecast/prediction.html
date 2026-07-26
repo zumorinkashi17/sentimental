@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Call Volume Forecast</h1>
+                <p class="text-gray-500">Data-driven AI predictive insights for call surging.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
+                    <option>Next 7 Days</option>
+                    <option>Next 14 Days</option>
+                    <option>Next Month</option>
+                </select>
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
+                    <option>All Regions</option>
+                    <option>Cebu Province</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Line Chart Forecast -->
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm h-[420px] sm:h-[500px] flex flex-col">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-6">
+                <h2 class="text-sm font-bold text-gray-700 uppercase">7-Day Volume Trend & AI Prediction</h2>
+                <button type="button" class="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 self-start sm:self-auto"><i class="ph-bold ph-export"></i> Export Data</button>
+            </div>
+            <div class="relative flex-1 w-full min-h-0"><canvas id="chartAdminForecast"></canvas></div>
+        </div>
+        
+        <!-- Forecast Insights Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-red-50 border border-red-100 p-4 rounded-xl">
+                <p class="text-[10px] font-bold text-red-600 uppercase">Predicted Peak</p>
+                <h4 class="text-lg font-bold text-red-800">Friday 10:00 PM</h4>
+                <p class="text-xs text-red-700 mt-1">Est. 245 calls/hour</p>
+            </div>
+            <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Confidence Score</p>
+                <h4 class="text-lg font-bold text-gray-800">92%</h4>
+                <p class="text-xs text-gray-500 mt-1">Based on historical patterns</p>
+            </div>
+            <div class="bg-brand-light/30 border border-brand/20 p-4 rounded-xl">
+                <p class="text-[10px] font-bold text-brand uppercase">Suggested Action</p>
+                <h4 class="text-sm font-bold text-gray-800 mt-1">Assign shorter 4-hour consecutive shifts on Friday.</h4>
+                <a href="{% url 'schedules:admin_calendar' %}" class="text-xs text-brand font-bold hover:underline mt-1 block">Go to Schedules &rarr;</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

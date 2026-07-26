@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentimental - Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            light: '#e6f7f4',
+                            DEFAULT: '#00a67e',
+                            dark: '#007a5d',
+                            accent: '#10b981'
+                        },
+                        bgLight: '#f8fcfb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        html, body {
+            font-family: 'Inter', sans-serif;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .form-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #334155;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #00a67e;
+            box-shadow: 0 0 0 2px rgba(0, 166, 126, 0.1);
+        }
+        .form-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-brand-light to-bgLight min-h-screen flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-brand/10 w-full max-w-md flex flex-col items-center my-auto">
+        <div class="mb-4">
+            <img src="{% static 'images/Sentimental-logo.png' %}" alt="Sentimental" class="w-14 h-14 sm:w-16 sm:h-16 object-contain mx-auto">
+        </div>
+        
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Sentimental</h1>
+        <p class="text-sm text-gray-500 mb-8 text-center">Mental Health Helpline</p>
+
+        <form method="POST" action="{% url 'accounts:login' %}" class="w-full space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <div>
+                <label class="form-label" for="login-email">Email Address</label>
+                <input id="login-email" type="email" name="email" class="form-input" placeholder="user@tawagpaglaum.org" required>
+            </div>
+            <div>
+                <label class="form-label" for="login-password">Password</label>
+                <div class="password-toggle-wrapper">
+                    <input id="login-password" type="password" name="password" class="form-input" placeholder="••••••••" required>
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">👁</button>
+                </div>
+            </div>
+
+            <div class="flex justify-end items-center text-sm text-brand font-semibold">
+                <a href="{% url 'accounts:password_reset' %}" class="hover:text-brand-dark hover:underline">
+                    Forgot Password?
+                </a>
+            </div>
+
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors shadow-md mt-6">
+                Login
+            </button>
+        </form>
+    </div>
+
+    <!-- SweetAlert2 & Django Messages Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const pageMessages = [
+            /* {% for message in messages %} */
+            {
+                text: "{{ message|escapejs }}",
+                type: "{{ message.tags }}"
+            },
+            /* {% endfor %} */
+        ];
+
+        if (pageMessages.length > 0 && pageMessages[0].text) {
+            // Configure SweetAlert2 to be a small modal in the center
+            const CenterAlert = Swal.mixin({
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                width: '24rem', // Keeps the popup small
+                padding: '1.5rem',
+                customClass: {
+                    popup: 'rounded-2xl shadow-xl border border-gray-100 text-sm',
+                    title: 'text-gray-800 font-semibold text-base m-0',
+                    icon: 'text-brand' 
+                },
+                didOpen: (popup) => {
+                    popup.addEventListener('mouseenter', Swal.stopTimer)
+                    popup.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            pageMessages.forEach(msg => {
+                if (!msg.text) return;
+                let icon = 'info';
+                if (msg.type.includes('error')) icon = 'error';
+                else if (msg.type.includes('success')) icon = 'success';
+                else if (msg.type.includes('warning')) icon = 'warning';
+
+                CenterAlert.fire({
+                    icon: icon,
+                    title: msg.text
+                });
+            });
+        }
+    </script>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

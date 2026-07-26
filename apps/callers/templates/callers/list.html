@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Callers Database</h1>
+                <p class="text-gray-500">Find past callers and view their documented risk profiles.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
+                    <option>All Time</option>
+                    <option>Today</option>
+                    <option>This Week</option>
+                    <option>This Month</option>
+                </select>
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
+                    <option>All Risk Levels</option>
+                    <option>High Risk</option>
+                    <option>Medium Risk</option>
+                    <option>Low Risk</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+            <div class="relative w-full">
+                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+                <label for="caller-search" class="sr-only">Search callers</label>
+                <input id="caller-search" type="text" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+            </div>
+
+            <div class="space-y-3">
+                <div class="p-4 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 transition-all group">
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg flex-shrink-0"><i class="ph-fill ph-user"></i></div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-gray-800 group-hover:text-brand transition-colors truncate">Maria Santos</p>
+                            <p class="text-xs text-gray-500 truncate">ID: TPCB10-4892 • Last Call: Oct 04, 2024</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full uppercase">Medium Risk</span>
+                        <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs whitespace-nowrap">View Details</button>
+                    </div>
+                </div>
+                <div class="p-4 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 transition-all group">
+                    <div class="flex items-center gap-4 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-lg flex-shrink-0"><i class="ph-fill ph-user-focus"></i></div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-gray-800 group-hover:text-brand transition-colors truncate">Anonymous (Male, 29)</p>
+                            <p class="text-xs text-gray-500 truncate">ID: TPCB10-4888 • Last Call: Oct 01, 2024</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <span class="px-3 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-full uppercase">High Risk</span>
+                        <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs whitespace-nowrap">View Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

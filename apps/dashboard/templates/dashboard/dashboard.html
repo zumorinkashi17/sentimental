@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sentimental{% endblock %}
+
+{% block extra_css %}
+<style>
+    canvas { max-width: 100%; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto p-4 sm:p-6 gap-6 overflow-y-auto custom-scrollbar flex flex-col">
+    <div class="flex-1 overflow-y-auto custom-scrollbar pr-0 sm:pr-2 flex flex-col gap-6 min-w-0">
+        
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-xl font-bold text-brand">Welcome <span id="dash-greeting-name">{{ session_username|default:"Responder" }}</span>,</h1>
+                <p class="text-sm text-gray-500">Ready to save lives?</p>
+            </div>
+            <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
+                <option>Today</option>
+                <option>This Week</option>
+                <option>This Month</option>
+            </select>
+        </div>
+        
+        <!-- Grid: 3 Cards (Reasons, Callers, Suicide) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Card 1: Reasons for Calling (Doughnut Chart) -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Reasons for Calling</h2>
+                <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+                    <canvas id="chartReasons" height="140"></canvas>
+                    <div class="absolute left-2 top-10 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">RELATIONSHIPS</div>
+                    <div class="absolute right-0 bottom-10 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">OTHERS</div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-xl font-bold text-slate-800">2,102</span>
+                        <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Calls</span>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#00a67e]"></span>Relationships</div><span>20%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#fbbf24]"></span>Suicidal Crisis</div><span>20%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#34d399]"></span>Career</div><span>20%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#047857]"></span>Others</div><span>20%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 2: Callers Demographics (Doughnut Chart) -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Callers</h2>
+                <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+                    <canvas id="chartCallers" height="140"></canvas>
+                    <div class="absolute left-2 top-8 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">MEN</div>
+                    <div class="absolute right-0 bottom-8 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">WOMEN</div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-xl font-bold text-slate-800">2,102</span>
+                        <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Callers</span>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-3">
+                    <div class="flex items-center gap-3 text-xs text-gray-500">
+                        <div class="w-16 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#00a67e]"></span>Men</div>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-[#00a67e] w-[25%]"></div></div>
+                        <span class="w-6 text-right font-medium">523</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-500">
+                        <div class="w-16 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#34d399]"></span>Women</div>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-[#34d399] w-[70%]"></div></div>
+                        <span class="w-6 text-right font-medium">1,484</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-gray-500">
+                        <div class="w-16 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#a7f3d0]"></span>LGBTQIA</div>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-[#a7f3d0] w-[5%]"></div></div>
+                        <span class="w-6 text-right font-medium">95</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 3: Suicide-Related Calls (Gauge Chart) -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col relative overflow-hidden sm:col-span-2 xl:col-span-1">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Suicide-Related Calls</h2>
+                <div class="relative flex-1 flex flex-col items-center justify-end pb-4">
+                    <div class="w-full relative h-[120px]">
+                        <canvas id="chartSuicide"></canvas>
+                        <div class="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center">
+                            <span class="text-3xl font-bold text-brand">32%</span>
+                            <span class="text-[10px] font-bold text-brand uppercase">High Level of<br>Suicidality</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-auto flex justify-center">
+                    <button type="button" class="px-4 py-1.5 border border-gray-200 rounded-full text-xs text-gray-500 font-medium flex items-center gap-1 hover:bg-gray-50">
+                        2024 <i class="ph ph-caret-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Section: Call Volume & Referrals -->
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex-1 min-w-0">
+                <h2 class="text-xs font-bold text-gray-600 mb-1 uppercase">Call Volume</h2>
+                <div class="flex items-end gap-2 mb-6">
+                    <span class="text-2xl font-bold text-slate-800">5%</span>
+                    <i class="ph-bold ph-arrow-down text-brand text-xl mb-1"></i>
+                    <span class="text-[10px] text-gray-400 mb-1.5 ml-1">vs. previous month</span>
+                </div>
+                <div class="h-40 w-full"><canvas id="chartVolume"></canvas></div>
+            </div>
+            <div class="w-full md:w-48 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between flex-shrink-0">
+                <h2 class="text-xs font-bold text-gray-600 uppercase mb-2">Referrals</h2>
+                <div class="mb-3">
+                    <p class="text-[10px] font-bold text-gray-800 uppercase">Psychiatrists</p>
+                    <p class="text-brand font-bold">816</p>
+                    <div class="w-full h-0.5 bg-gray-100 mt-1"><div class="w-[80%] h-full bg-brand"></div></div>
+                </div>
+                <div class="mb-3">
+                    <p class="text-[10px] font-bold text-gray-800 uppercase">Psychologists</p>
+                    <p class="text-brand font-bold">253</p>
+                    <div class="w-full h-0.5 bg-gray-100 mt-1"><div class="w-[60%] h-full bg-brand"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Quick Referral Contacts -->
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xs font-bold text-gray-600 uppercase">Quick Referral Contacts</h2>
+                <a href="{% url 'referrals:directory' %}" class="text-xs font-semibold text-brand hover:underline">VIEW FULL DIRECTORY</a>
+            </div>
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[9px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                        <th scope="col" class="pb-3 font-semibold w-[25%]">Name</th>
+                        <th scope="col" class="pb-3 font-semibold w-[15%]">Gender</th>
+                        <th scope="col" class="pb-3 font-semibold w-[15%]">Location</th>
+                        <th scope="col" class="pb-3 font-semibold w-[25%]">Email Address</th>
+                        <th scope="col" class="pb-3 font-semibold w-[15%]">Affiliated Institution</th>
+                    </tr>
+                </thead>
+                <tbody class="text-xs text-gray-700">
+                    <tr class="border-b border-gray-50">
+                        <td class="py-3 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"><i class="ph-fill ph-user"></i></div>
+                            <span class="font-bold text-gray-800">Ibrahim Yekeni</span>
+                        </td>
+                        <td class="py-3">Male</td>
+                        <td class="py-3">Cebu City</td>
+                        <td class="py-3">ibrahim.yekeni@email.com</td>
+                        <td class="py-3">MindPeace Inc.</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initDashboardCharts();
+});
+
+function initDashboardCharts() {
+    // Reasons for Calling (Doughnut)
+    new Chart(document.getElementById('chartReasons'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Relationships', 'Suicidal Crisis', 'Career', 'Others'],
+            datasets: [{
+                data: [25, 25, 25, 25],
+                backgroundColor: ['#00a67e', '#fbbf24', '#34d399', '#047857'],
+                borderWidth: 0,
+                cutout: '75%',
+                borderRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            animation: { animateScale: true }
+        }
+    });
+
+    // Callers Demographics (Doughnut)
+    new Chart(document.getElementById('chartCallers'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Men', 'Women', 'LGBTQIA'],
+            datasets: [{
+                data: [25, 70, 5],
+                backgroundColor: ['#00a67e', '#34d399', '#a7f3d0'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                cutout: '80%',
+                borderRadius: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            layout: { padding: 10 }
+        }
+    });
+
+    // Suicide-Related Calls (Doughnut/Gauge)
+    new Chart(document.getElementById('chartSuicide'), {
+        type: 'doughnut',
+        data: {
+            labels: ['High Suicidality', 'Other'],
+            datasets: [{
+                data: [32, 68],
+                backgroundColor: ['#ef4444', '#e5e7eb'],
+                borderWidth: 0,
+                cutout: '85%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            }
+        }
+    });
+
+    // Call Volume (Line Chart)
+    new Chart(document.getElementById('chartVolume'), {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Calls',
+                data: [120, 132, 101, 164, 150, 140, 120],
+                borderColor: '#00a67e',
+                backgroundColor: 'rgba(0, 166, 126, 0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' },
+                filler: { propagate: true }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

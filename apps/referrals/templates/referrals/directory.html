@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-5xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Referral Directory</h1>
+                <p class="text-gray-500">Database of external psychologists, psychiatrists, and partner clinics.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option>All Specializations</option>
+                    <option>Psychiatry</option>
+                    <option>Clinical Psychology</option>
+                </select>
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option>All Locations</option>
+                    <option>Cebu City</option>
+                    <option>Mandaue</option>
+                    <option>Talisay</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+            <div class="relative w-full">
+                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+                <label for="referral-search" class="sr-only">Search referral directory</label>
+                <input id="referral-search" type="text" placeholder="Search by clinic name, specialization, or location..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+            </div>
+            
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                        <th scope="col" class="pb-3 font-semibold w-[25%]">Name</th>
+                        <th scope="col" class="pb-3 font-semibold w-[15%]">Gender</th>
+                        <th scope="col" class="pb-3 font-semibold w-[15%]">Location</th>
+                        <th scope="col" class="pb-3 font-semibold w-[25%]">Contact</th>
+                        <th scope="col" class="pb-3 font-semibold w-[20%]">Affiliated Institution</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand font-bold"><i class="ph-fill ph-user-md text-xl"></i></div>
+                            <div>
+                                <span class="font-bold text-gray-800 block">Dr. Ibrahim Yekeni</span>
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">Psychiatrist</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-gray-600">Male</td>
+                        <td class="py-4 text-gray-600">Cebu City</td>
+                        <td class="py-4 text-gray-600">ibrahim.yekeni@email.com</td>
+                        <td class="py-4 text-brand font-medium">MindPeace Cebu</td>
+                    </tr>
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand font-bold"><i class="ph-fill ph-user-md text-xl"></i></div>
+                            <div>
+                                <span class="font-bold text-gray-800 block">Dr. Bridget Olowojeje</span>
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">Clinical Psychologist</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-gray-600">Female</td>
+                        <td class="py-4 text-gray-600">Mandaue City</td>
+                        <td class="py-4 text-gray-600">bridget.olowojeje@email.com</td>
+                        <td class="py-4 text-brand font-medium">PyschHub Co.</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

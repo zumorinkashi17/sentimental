@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Referral Directory Manager</h1>
+                <p class="text-gray-500">Manage external clinics and professionals.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option>All Specializations</option>
+                    <option>Psychiatry</option>
+                    <option>Clinical Psychology</option>
+                </select>
+                <button type="button" onclick="openModal('modal-add-edit-referral')" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark"><i class="ph-bold ph-plus"></i> Add Entry</button>
+            </div>
+        </div>
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <label for="admin-directory-search" class="sr-only">Search clinics or doctors</label>
+            <input id="admin-directory-search" type="text" placeholder="Search clinics or doctors..." class="form-input w-full sm:w-64 text-sm mb-4">
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                        <th scope="col" class="p-3 font-bold">Institution / Name</th>
+                        <th scope="col" class="p-3 font-bold">Category</th>
+                        <th scope="col" class="p-3 font-bold">Location</th>
+                        <th scope="col" class="p-3 font-bold">Contact</th>
+                        <th scope="col" class="p-3 font-bold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tr>
+                        <td class="p-3 font-bold">MindPeace Cebu</td>
+                        <td class="p-3">Psychiatry</td>
+                        <td class="p-3">Cebu City</td>
+                        <td class="p-3">0917-123-4567</td>
+                        <td class="p-3 text-right"><button type="button" onclick="openModal('modal-add-edit-referral')" class="text-brand hover:underline font-semibold text-xs">Edit</button></td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold">PsychHub Co.</td>
+                        <td class="p-3">Clinical Psychology</td>
+                        <td class="p-3">Mandaue City</td>
+                        <td class="p-3">0918-987-6543</td>
+                        <td class="p-3 text-right"><button type="button" onclick="openModal('modal-add-edit-referral')" class="text-brand hover:underline font-semibold text-xs">Edit</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

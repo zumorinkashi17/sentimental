@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-4xl mx-auto w-full space-y-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">{% if session_role == 'Admin' %}Manager Profile{% else %}Responder Profile{% endif %}</h1>
+            <p class="text-gray-500">Manage personal information and system settings.</p>
+        </div>
+        
+        <form id="profile-form" method="POST" action="{% url 'accounts:profile' %}" class="bg-white p-5 sm:p-8 rounded-2xl border border-gray-100 shadow-sm flex flex-col lg:flex-row gap-8 items-center lg:items-start" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="flex flex-col items-center gap-4 w-full lg:w-56 border-b lg:border-b-0 lg:border-r border-gray-100 pb-6 lg:pb-0 lg:pr-8">
+
+                <!-- Avatar with hover-to-upload -->
+                <div class="relative group cursor-pointer" onclick="document.getElementById('avatar-input').click()">
+                    <div class="relative w-24 h-24 rounded-full border-4 border-brand-light overflow-hidden shadow-sm">
+                        <span id="avatar-initials" class="absolute inset-0 flex items-center justify-center bg-brand-light/50 text-brand font-bold text-4xl {% if user.user_image %}hidden{% endif %}">{{ user.user_first_name|default:"U"|slice:":1"|upper }}</span>
+                        <img id="avatar-img" src="{% if user.user_image %}{{ user.user_image }}{% endif %}" alt="" class="absolute inset-0 w-full h-full object-cover {% if not user.user_image %}hidden{% endif %}" onerror="this.classList.add('hidden'); document.getElementById('avatar-initials').classList.remove('hidden');">
+                    </div>
+                    <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i class="ph-bold ph-camera text-white text-xl"></i>
+                    </div>
+                </div>
+                <input id="avatar-input" type="file" name="user_image" accept="image/*" class="hidden">
+
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-gray-800">{{ user.user_first_name }} {{ user.user_last_name }}</h2>
+                    <p class="text-xs text-brand font-bold uppercase tracking-wider">{% if session_role == 'Admin' %}Manager{% else %}Responder{% endif %}</p>
+                </div>
+                <div class="w-full h-px bg-gray-100 my-1"></div>
+                <div class="w-full text-center space-y-3">
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Calls Handled</p>
+                        <p class="text-2xl font-bold text-gray-700">{{ calls_count|intcomma }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Status</p>
+                        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-bold">Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 w-full space-y-6">
+                <h3 class="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2">Account Details</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label" for="profile-firstname">First Name</label>
+                        <input id="profile-firstname" name="first_name" type="text" class="form-input" value="{{ user.user_first_name|default:'' }}" placeholder="First Name">
+                    </div>
+                    <div>
+                        <label class="form-label" for="profile-lastname">Last Name</label>
+                        <input id="profile-lastname" name="last_name" type="text" class="form-input" value="{{ user.user_last_name|default:'' }}" placeholder="Last Name">
+                    </div>
+                    <div>
+                        <label class="form-label" for="profile-email">Email Address</label>
+                        <input id="profile-email" type="email" class="form-input bg-gray-50" value="{{ user.user_email }}" readonly>
+                    </div>
+                    <div>
+                        <label class="form-label" for="profile-phone">Phone Number</label>
+                        <input id="profile-phone" name="user_number" type="text" class="form-input" value="{{ user.user_number|default:'' }}" placeholder="+63 912 345 6789">
+                    </div>
+                    
+                    <!-- TEXT INPUT FOR ADDRESS -->
+                    <div class="sm:col-span-2">
+                        <label class="form-label" for="profile-location">Address</label>
+                        <input id="profile-location" name="user_location" type="text" class="form-input" value="{{ user.user_location|default:'' }}" placeholder="Enter your full address">
+                    </div>
+                </div>
+                
+                <!-- SECURITY SECTION -->
+                <h3 class="text-sm font-bold text-gray-700 uppercase border-b border-gray-100 pb-2 mt-4">Security</h3>
+                <div class="pt-2 flex justify-start">
+                    <button type="button" onclick="document.getElementById('modal-change-password').classList.remove('hidden')" class="px-6 py-2.5 bg-gray-100 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors shadow-sm flex items-center gap-2">
+                        <i class="ph-bold ph-key text-lg"></i> Change Password
+                    </button>
+                </div>
+                
+                <div class="pt-4 flex justify-end">
+                    <button id="profile-save-btn" type="button" class="w-full sm:w-auto px-6 py-2.5 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors shadow-sm">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="modal-change-password" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl my-auto">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10 rounded-t-2xl">
+            <h3 class="font-bold text-gray-800 text-lg">Change Password</h3>
+            <button type="button" onclick="document.getElementById('modal-change-password').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
+            <form id="change-password-form" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="form-label" for="old_password">Old Password</label>
+                    <div class="password-toggle-wrapper">
+                        <input type="password" name="old_password" id="old_password" class="form-input" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password"></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" for="new_password">New Password</label>
+                    <div class="password-toggle-wrapper">
+                        <input type="password" name="new_password" id="new_password" class="form-input" placeholder="••••••••" required minlength="8">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password"></button>
+                    </div>
+                    
+                    <!-- Password Requirements Checklist -->
+                    <div id="password-requirements" class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs space-y-1.5 text-gray-500">
+                        <p class="font-bold text-gray-600 mb-1.5">Password must contain:</p>
+                        <p id="req-length" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Minimum 8 characters</p>
+                        <p id="req-upper" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Uppercase letter (A-Z)</p>
+                        <p id="req-lower" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Lowercase letter (a-z)</p>
+                        <p id="req-number" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Number (0-9)</p>
+                        <p id="req-symbol" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Symbol (!@#$%^&*)</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    <div class="password-toggle-wrapper">
+                        <input type="password" name="confirm_password" id="confirm_password" class="form-input" placeholder="••••••••" required minlength="8">
+                        <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password"></button>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 mt-2">
+                    Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Wait for the page to fully load
+document.addEventListener('DOMContentLoaded', function () {
+    
+    // --- Avatar Image Preview ---
+    const avatarInput = document.getElementById('avatar-input');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('avatar-img');
+                const initials = document.getElementById('avatar-initials');
+                
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                if (initials) {
+                    initials.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // --- SweetAlert Mixin ---
+    const CenterAlert = Swal.mixin({
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        width: '24rem',
+        padding: '1.5rem',
+        customClass: {
+            popup: 'rounded-2xl shadow-xl border border-gray-100 text-sm',
+            title: 'text-gray-800 font-semibold text-base m-0',
+            icon: 'text-brand' 
+        },
+        didOpen: (popup) => {
+            popup.addEventListener('mouseenter', Swal.stopTimer)
+            popup.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    // --- Profile Form Submit ---
+    const saveBtn = document.getElementById('profile-save-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+            const form = document.getElementById('profile-form');
+            const btn = this;
+            const original = btn.textContent;
+            btn.textContent = 'Saving...';
+            btn.disabled = true;
+
+            fetch('{% url "accounts:profile" %}', {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    CenterAlert.fire({ icon: 'success', title: data.message });
+                    if (data.user_image) {
+                        const img = document.getElementById('avatar-img');
+                        const initials = document.getElementById('avatar-initials');
+                        img.src = data.user_image;
+                        img.classList.remove('hidden');
+                        if (initials) initials.classList.add('hidden');
+                    }
+                } else {
+                    CenterAlert.fire({ icon: 'error', title: data.message || 'Something went wrong.' });
+                }
+            })
+            .catch(() => {
+                CenterAlert.fire({ icon: 'error', title: 'An unexpected error occurred.' });
+            })
+            .finally(() => { btn.textContent = original; btn.disabled = false; });
+        });
+    }
+
+    // --- Password Requirements Validation ---
+    const newPasswordInput = document.getElementById('new_password');
+    
+    function validateModalPassword() {
+        const password = newPasswordInput.value;
+        const checks = {
+            length: password.length >= 8,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            symbol: /[^A-Za-z0-9]/.test(password)
+        };
+
+        Object.keys(checks).forEach(key => {
+            const el = document.getElementById(`req-${key}`);
+            if (!el) return;
+            const icon = el.querySelector('i');
+            if (checks[key]) {
+                el.classList.remove('text-gray-500');
+                el.classList.add('text-green-600');
+                icon.classList.remove('ph-x-circle');
+                icon.classList.add('ph-check-circle');
+            } else {
+                el.classList.remove('text-green-600');
+                el.classList.add('text-gray-500');
+                icon.classList.remove('ph-check-circle');
+                icon.classList.add('ph-x-circle');
+            }
+        });
+
+        return Object.values(checks).every(v => v === true);
+    }
+
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', validateModalPassword);
+    }
+
+    // --- Change Password Form Submit ---
+    const passForm = document.getElementById('change-password-form');
+    if (passForm) {
+        passForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const newPass = document.getElementById('new_password').value;
+            const confirmPass = document.getElementById('confirm_password').value;
+
+            // Check if all password requirements are met
+            if (!validateModalPassword()) {
+                CenterAlert.fire({ icon: 'error', title: 'Please meet all password requirements.' });
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                CenterAlert.fire({ icon: 'error', title: 'New passwords do not match.' });
+                return;
+            }
+
+            fetch('{% url "accounts:change_password" %}', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    CenterAlert.fire({ icon: 'success', title: data.message });
+                    document.getElementById('modal-change-password').classList.add('hidden');
+                    this.reset();
+                    
+                    // Reset checklist state visually
+                    document.querySelectorAll('#password-requirements p').forEach(p => {
+                        p.classList.remove('text-green-600');
+                        p.classList.add('text-gray-500');
+                        p.querySelector('i').classList.remove('ph-check-circle');
+                        p.querySelector('i').classList.add('ph-x-circle');
+                    });
+                } else {
+                    CenterAlert.fire({ icon: 'error', title: data.message || 'Something went wrong.' });
+                }
+            })
+            .catch(() => {
+                CenterAlert.fire({ icon: 'error', title: 'An unexpected error occurred.' });
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Up Your Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Phosphor Icons for the eye toggle -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: { light: '#e6f7f4', DEFAULT: '#00a67e', dark: '#007a5d' } } } }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-input { width: 100%; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #334155; transition: all 0.2s; }
+        .form-input:focus { outline: none; border-color: #00a67e; box-shadow: 0 0 0 2px rgba(0, 166, 126, 0.1); }
+        .form-label { display: block; font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 0.25rem; text-transform: uppercase; }
+        
+        .password-toggle-wrapper { position: relative; width: 100%; }
+        .password-toggle-wrapper input { padding-right: 2.5rem; }
+        .password-toggle-btn {
+            position: absolute; top: 50%; right: 0.75rem; transform: translateY(-50%);
+            border: none; background: transparent; color: #475569; cursor: pointer;
+            width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;
+        }
+        .password-toggle-btn:hover { color: #0f766e; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-brand-light to-white min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-3xl shadow-xl border border-brand/10 w-full max-w-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-1">Welcome to Sentimental</h1>
+        <p class="text-sm text-gray-500 mb-6">Please fill in your details to activate your account.</p>
+        
+        <form id="setup-form" class="space-y-4">
+             {% csrf_token %}
+            <input type="hidden" name="token" value="{{ token }}">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-input" placeholder="e.g., Juan" required>
+                </div>
+                <div>
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-input" placeholder="e.g., Dela Cruz" required>
+                </div>
+            </div>
+            <div>
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="user_number" class="form-input" placeholder="e.g., 09123456789">
+            </div>
+            
+            <!-- TEXT INPUT FOR ADDRESS -->
+            <div>
+                <label class="form-label" for="user_location">Address</label>
+                <input type="text" name="user_location" id="user_location" class="form-input" placeholder="e.g., 123 Maharlika St, Brgy. Lahug, Cebu City" required>
+            </div>
+            
+            <!-- Password Field with Toggle -->
+            <div>
+                <label class="form-label">Create Password</label>
+                <div class="password-toggle-wrapper">
+                    <input type="password" name="password" id="password" class="form-input" placeholder="••••••••" required minlength="8">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                        <i class="ph-bold ph-eye"></i>
+                    </button>
+                </div>
+                
+                <!-- Password Requirements Checklist -->
+                <div id="password-requirements" class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs space-y-1.5 text-gray-500">
+                    <p class="font-bold text-gray-600 mb-1.5">Password must contain:</p>
+                    <p id="req-length" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Minimum 8 characters</p>
+                    <p id="req-upper" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Uppercase letter (A-Z)</p>
+                    <p id="req-lower" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Lowercase letter (a-z)</p>
+                    <p id="req-number" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Number (0-9)</p>
+                    <p id="req-symbol" class="flex items-center gap-1.5 transition-colors"><i class="ph-fill ph-x-circle"></i> Symbol (!@#$%^&*)</p>
+                </div>
+            </div>
+
+            <!-- Confirm Password Field with Toggle -->
+            <div>
+                <label class="form-label">Confirm Password</label>
+                <div class="password-toggle-wrapper">
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-input" placeholder="••••••••" required minlength="8">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password" title="Show password">
+                        <i class="ph-bold ph-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors shadow-md mt-4">
+                Activate Account
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Consistent SweetAlert Mixin
+        const CenterAlert = Swal.mixin({
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            width: '24rem',
+            padding: '1.5rem',
+            customClass: {
+                popup: 'rounded-2xl shadow-xl border border-gray-100 text-sm',
+                title: 'text-gray-800 font-semibold text-base m-0',
+                icon: 'text-brand' 
+            },
+            didOpen: (popup) => {
+                popup.addEventListener('mouseenter', Swal.stopTimer)
+                popup.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        // Password Toggle Logic
+        document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.parentElement.querySelector('input');
+                const icon = this.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('ph-eye');
+                    icon.classList.add('ph-eye-slash');
+                    this.setAttribute('aria-label', 'Hide password');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('ph-eye-slash');
+                    icon.classList.add('ph-eye');
+                    this.setAttribute('aria-label', 'Show password');
+                }
+            });
+        });
+
+        // Password Requirements Validation
+        const passwordInput = document.getElementById('password');
+        
+        function validatePassword() {
+            const password = passwordInput.value;
+            const checks = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                symbol: /[^A-Za-z0-9]/.test(password)
+            };
+
+            Object.keys(checks).forEach(key => {
+                const el = document.getElementById(`req-${key}`);
+                const icon = el.querySelector('i');
+                if (checks[key]) {
+                    el.classList.remove('text-gray-500');
+                    el.classList.add('text-green-600');
+                    icon.classList.remove('ph-x-circle');
+                    icon.classList.add('ph-check-circle');
+                } else {
+                    el.classList.remove('text-green-600');
+                    el.classList.add('text-gray-500');
+                    icon.classList.remove('ph-check-circle');
+                    icon.classList.add('ph-x-circle');
+                }
+            });
+
+            // Returns true only if ALL checks pass
+            return Object.values(checks).every(v => v === true);
+        }
+
+        // Update checklist live as they type
+        passwordInput.addEventListener('input', validatePassword);
+
+        // Form Submission Logic
+        document.getElementById('setup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = passwordInput.value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const location = document.getElementById('user_location').value;
+
+            // Check if location is selected
+            if (!location) {
+                CenterAlert.fire({ icon: 'error', title: 'Please enter your address.' });
+                return;
+            }
+
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                CenterAlert.fire({ icon: 'error', title: 'Passwords do not match.' });
+                return;
+            }
+
+            // Check if all password requirements are met
+            if (!validatePassword()) {
+                CenterAlert.fire({ icon: 'error', title: 'Please meet all password requirements.' });
+                return;
+            }
+
+            const formData = new FormData(this);
+            
+            fetch('/accounts/setup/process/', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    CenterAlert.fire({
+                        icon: 'success',
+                        title: 'Account Activated!',
+                        text: 'Redirecting to login...'
+                    }).then(() => {
+                        window.location.href = data.redirect_url;
+                    });
+                } else {
+                    CenterAlert.fire({
+                        icon: 'error',
+                        title: data.message || 'Something went wrong.'
+                    });
+                }
+            })
+            .catch(() => {
+                CenterAlert.fire({ icon: 'error', title: 'Network error. Please try again.' });
+            });
+        });
+    </script>
+</body>
+</html>

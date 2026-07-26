@@ -1,0 +1,349 @@
+<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
+    <!-- Caller Details Modal -->
+    <div id="modal-caller-details" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+            <h3 class="font-bold text-gray-800 text-lg">Caller Details</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-2xl flex-shrink-0"><i class="ph-fill ph-user"></i></div>
+                <div>
+                    <h4 class="font-bold text-lg text-gray-800">Maria Santos</h4>
+                    <p class="text-xs text-gray-500">Caller ID: TPCB10-4892</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm mt-4">
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Phone Number</span><span class="font-medium text-gray-800">+63 917 123 4567</span></div>
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Location</span><span class="font-medium text-gray-800">Cebu City</span></div>
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Gender</span><span class="font-medium text-gray-800">Female</span></div>
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Age</span><span class="font-medium text-gray-800">22</span></div>
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Civil Status</span><span class="font-medium text-gray-800">Single</span></div>
+                <div><span class="text-[10px] text-gray-400 font-bold uppercase block">Total Calls</span><span class="font-medium text-gray-800">3 Sessions</span></div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-[10px] text-gray-400 font-bold uppercase block mb-2">Latest Call Summary</span>
+                <p class="text-xs text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">Relationship conflict leading to emotional distress. Recommended breathing exercises and referred to PsychHub Co. (Medium Risk).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Leave Modal -->
+    <div id="modal-request-leave" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+            <h3 class="font-bold text-gray-800 text-lg">Request Day Off</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div>
+                <label class="form-label" for="leaveDate">Select Date</label>
+                <input id="leaveDate" type="date" class="form-input">
+            </div>
+            <div>
+                <label class="form-label" for="leaveReason">Reason</label>
+                <select id="leaveReason" class="form-input bg-white">
+                    <option>Sick Leave</option>
+                    <option>Personal Emergency</option>
+                    <option>Vacation</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="leaveNotes">Additional Notes</label>
+                <textarea id="leaveNotes" class="form-input h-20 resize-none" placeholder="Provide details..."></textarea>
+            </div>
+            <button type="button" onclick="submitModalAction(this, 'Request Submitted!')" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors mt-2">
+                Submit Request
+            </button>
+        </div>
+    </div>
+
+    <!-- Assign Shift Modal -->
+    <div id="modal-assign-shift" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+            <h3 class="font-bold text-gray-800 text-lg">Assign New Shift</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div>
+                <label class="form-label" for="assignResponder">Select Responder</label>
+                <select id="assignResponder" class="form-input bg-white">
+                    <option>Quev Cruz</option>
+                    <option>Maria Santos</option>
+                    <option>Carlos Reyes</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label" for="assignDate">Select Date</label>
+                <input id="assignDate" type="date" class="form-input">
+            </div>
+            <div>
+                <label class="form-label" for="assignShiftSelect">Select Shift</label>
+                <select id="assignShiftSelect" class="form-input bg-white">
+                    <option>Morning (06:00 AM - 02:00 PM)</option>
+                    <option>Whole Day (08:00 AM - 04:00 PM)</option>
+                    <option>Afternoon (02:00 PM - 10:00 PM)</option>
+                    <option>Night (10:00 PM - 06:00 AM)</option>
+                </select>
+            </div>
+            <button type="button" onclick="submitModalAction(this, 'Shift Assigned Successfully!')" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors mt-4">
+                Confirm Assignment
+            </button>
+        </div>
+    </div>
+
+<!-- Add Responder Modal (email only) -->
+<div id="modal-add-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-sm shadow-2xl">
+    <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="font-bold text-gray-800 text-lg">Add Responder</h3>
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+    </div>
+    <div class="p-4 sm:p-6">
+        <form id="add-responder-form" class="space-y-4">
+            {% csrf_token %}
+            <p class="text-xs text-gray-500">An invitation email will be sent to this address. The responder will use the secure link to set their password and complete their profile details.</p>
+            <div>
+                <label class="form-label" for="add-email">Email Address *</label>
+                <input id="add-email" name="email" type="email" class="form-input" placeholder="email@tawagpaglaum.org" required>
+            </div>
+            <button id="add-submit-btn" type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2">
+                Send Invitation
+            </button>
+        </form>
+    </div>
+</div>
+
+    <!-- View Responder Details Modal -->
+    <div id="modal-view-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-y-auto custom-scrollbar max-h-[90vh]">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+            <h3 class="font-bold text-gray-800 text-lg">Responder Details</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div class="flex flex-col items-center gap-2 pb-4 border-b border-gray-100">
+                <div id="vr-image-wrap" class="w-20 h-20 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <img id="vr-image" src="" alt="" class="w-full h-full object-cover hidden">
+                    <i id="vr-image-placeholder" class="ph-fill ph-user text-3xl text-gray-400"></i>
+                </div>
+                <div class="text-center">
+                    <p id="vr-name" class="font-bold text-gray-800 text-base"></p>
+                    <p id="vr-role" class="text-[10px] text-brand font-bold uppercase tracking-wide"></p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase w-16 shrink-0">Email</span>
+                    <span id="vr-email" class="text-xs font-medium text-gray-800 truncate"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase w-16 shrink-0">Phone</span>
+                    <span id="vr-number" class="text-xs font-medium text-gray-800"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase w-16 shrink-0">Location</span>
+                    <span id="vr-location" class="text-xs font-medium text-gray-800"></span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase w-16 shrink-0">Status</span>
+                    <span id="vr-status"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Edit Responder Modal (status & role only) -->
+<div id="modal-add-edit-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-2xl">
+    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10 rounded-t-2xl">
+        <h3 id="modal-title" class="font-bold text-gray-800 text-lg">User Settings</h3>
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors" aria-label="Close">
+            <i class="ph-bold ph-x text-xl"></i>
+        </button>
+    </div>
+    <div class="p-6">
+        <form id="responder-form" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" id="profile_id" name="profile_id" value="">
+            <input type="hidden" id="user_status" name="user_status" value="Active">
+            <input type="hidden" id="user_role" name="user_role" value="Responder">
+            
+            <!-- Status Selection (Selectable Cards) -->
+            <div>
+                <p class="form-label mb-3 text-gray-600">Account Status</p>
+                <div class="space-y-2">
+                    <button type="button" data-toggle="user_status" data-value="Active"
+                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-green-500 bg-green-50 text-green-700 shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                            <i class="ph-bold ph-power text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">Activate Account</p>
+                            <p class="text-xs text-green-600/80">User can log in and access the system.</p>
+                        </div>
+                        <i class="ph-bold ph-check-circle-fill text-xl text-green-500"></i>
+                    </button>
+                    
+                    <button type="button" data-toggle="user_status" data-value="Inactive"
+                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-gray-200 bg-white text-gray-500 hover:border-gray-300">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <i class="ph-bold ph-power-off text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">Deactivate Account</p>
+                            <p class="text-xs text-gray-400">User will be locked out and cannot log in.</p>
+                        </div>
+                        <i class="ph-bold ph-check-circle-fill text-xl text-gray-300 hidden"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-6"></div>
+            
+            <!-- Role Selection (Selectable Cards) -->
+            <div>
+                <p class="form-label mb-3 text-gray-600">System Role</p>
+                <div class="space-y-2">
+                    <button type="button" data-toggle="user_role" data-value="Responder"
+                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-brand bg-brand-light text-brand-dark shadow-sm">
+                        <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
+                            <i class="ph-bold ph-headset text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">Responder</p>
+                            <p class="text-xs text-brand/80">Handles incoming calls and documentation.</p>
+                        </div>
+                        <i class="ph-bold ph-check-circle-fill text-xl text-brand"></i>
+                    </button>
+                    
+                    <!-- data-value is 'Admin' so it saves correctly to DB -->
+                    <button type="button" data-toggle="user_role" data-value="Admin"
+                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-gray-200 bg-white text-gray-500 hover:border-gray-300">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <i class="ph-bold ph-shield-star text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-bold">Helpline Manager</p>
+                            <p class="text-xs text-gray-400">Full access to reports, users, and settings.</p>
+                        </div>
+                        <i class="ph-bold ph-check-circle-fill text-xl text-gray-300 hidden"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <button id="submit-btn" type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 shadow-md mt-2">
+                <i class="ph-bold ph-floppy-disk"></i> Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+    <!-- Referral Modal -->
+    <div id="modal-add-edit-referral" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+            <h3 class="font-bold text-gray-800 text-lg">Referral Entry</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-4">
+            <div>
+                <label class="form-label" for="referralName">Institution / Professional Name</label>
+                <input id="referralName" type="text" class="form-input" placeholder="Enter name">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label" for="referralCategory">Category</label>
+                    <select id="referralCategory" class="form-input bg-white">
+                        <option>Psychiatry</option>
+                        <option>Clinical Psychology</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="referralGender">Professional Gender</label>
+                    <select id="referralGender" class="form-input bg-white">
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="referralLocation">Location Base</label>
+                    <input id="referralLocation" type="text" class="form-input" placeholder="e.g. Cebu City">
+                </div>
+                <div>
+                    <label class="form-label" for="referralContact">Contact Details</label>
+                    <input id="referralContact" type="text" class="form-input" placeholder="Email / Phone">
+                </div>
+            </div>
+            <button type="button" onclick="submitModalAction(this, 'Directory Updated!')" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors mt-2">
+                Save Entry
+            </button>
+        </div>
+    </div>
+
+    <!-- View Docs Modal -->
+    <div id="modal-view-docs" class="modal-content hidden bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <h3 class="font-bold text-gray-800 text-base sm:text-lg">Session Document: TPCB10-4892</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Date & Time</span>
+                    <span class="font-medium text-gray-800">Oct 04, 2024 • 06:12 PM</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Responder on Duty</span>
+                    <span class="font-medium text-gray-800">Quev C.</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Caller Name</span>
+                    <span class="font-medium text-gray-800">Maria Santos</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Risk Assessment</span>
+                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full font-bold inline-block">Medium Risk</span>
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Reason for Calling</span>
+                <p class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm">Relationship conflict leading to emotional distress and feelings of hopelessness.</p>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Intervention & Notes</span>
+                <p class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line">Active listening provided. Validated feelings regarding conflict with partner. Conducted standard risk assessment; no immediate plan but high emotional distress. Recommended breathing exercises.</p>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-sparkle"></i> AI Suggested Referrals Provided</span>
+                <div class="bg-brand-light/30 border border-brand/20 p-3 rounded-lg flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white flex-shrink-0"><i class="ph-bold ph-hospital"></i></div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">PsychHub Co. (Dr. Bridget Olowojeje)</p>
+                        <p class="text-xs text-gray-500">Cebu City • Contact: bridget.olowojeje@email.com</p>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-waveform"></i> AI Audio Transcript</span>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 h-[300px] overflow-y-auto custom-scrollbar space-y-4 text-sm">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 ml-2">06:12 PM - Quev C. (Responder)</span>
+                        <div class="bg-brand text-white p-3 rounded-2xl rounded-tl-sm self-start max-w-[90%] sm:max-w-[80%] shadow-sm">
+                            Tawag Paglaum, maayong gabii. Unsaon nako pag tabang nimo karon?
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 mr-2">06:13 PM - Maria Santos (Caller)</span>
+                        <div class="bg-white border border-gray-200 text-gray-800 p-3 rounded-2xl rounded-tr-sm self-end max-w-[90%] sm:max-w-[80%] shadow-sm">
+                            Hello... uhm, naglisod lang gyud ko karon. I feel so overwhelmed sa school and sige mig away sa ako partner. Dili na nako kaya...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-4 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 mt-4">
+                <button type="button" class="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-printer"></i> Print Record
+                </button>
+                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors">
+                    Close Document
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

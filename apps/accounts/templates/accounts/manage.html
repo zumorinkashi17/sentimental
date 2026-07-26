@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Manage Users</h1>
+                <p class="text-gray-500">Add, edit, or manage responder accounts.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+                <button type="button" onclick="openAddResponderModal()" class="bg-brand text-white text-sm font-bold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark shadow-sm transition-colors w-full sm:w-auto">
+                    <i class="ph-bold ph-plus text-lg"></i> Add Responder
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <form id="filter-form" method="get" class="mb-4 flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1 sm:max-w-xs">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input id="responder-search" type="text" name="search" value="{{ search_query }}" placeholder="Search by name, email..." class="form-input pl-9 w-full text-sm" autocomplete="off">
+                </div>
+                <select name="status" class="form-input bg-white w-full sm:w-auto py-2.5 text-sm text-gray-600" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+                </select>
+            </form>
+
+            <div class="table-scroll">
+                <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th scope="col" class="p-3 font-bold">Name & Role</th>
+                            <th scope="col" class="p-3 font-bold">Email</th>
+                            <th scope="col" class="p-3 font-bold">Status</th>
+                            <th scope="col" class="p-3 font-bold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for user in users %}
+                        <tr>
+                            <td class="p-3 font-bold">
+                                {{ user.user_first_name }} {{ user.user_last_name }}
+                                <span class="text-[10px] text-gray-400 uppercase tracking-wide block font-normal">
+                                    {% if user.user_role == 'Admin' %}Helpline Manager{% else %}{{ user.user_role|default:"Responder" }}{% endif %}
+                                </span>
+                            </td>
+                            <td class="p-3">{{ user.user_email }}</td>
+                            <td class="p-3">
+                                {% if user.user_status|lower == 'active' %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">Active</span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button type="button" onclick="openViewResponderModal('{{ user.user_id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-brand hover:bg-brand-light transition-colors" title="View Details">
+                                        <i class="ph-bold ph-eye text-base"></i>
+                                    </button>
+                                    <button type="button" onclick="openEditResponderModal('{{ user.user_id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-brand hover:bg-brand-light transition-colors" title="Edit">
+                                        <i class="ph-bold ph-pencil-simple text-base"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="p-6 text-center text-gray-400 text-sm">No responders found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

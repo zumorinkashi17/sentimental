@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Reports Generation</h1>
+                <p class="text-gray-500">Generate formatted exports for DOH and stakeholders.</p>
+            </div>
+            <div class="flex gap-2">
+                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option>All Report Types</option>
+                    <option>Compliance</option>
+                    <option>Security/Incidents</option>
+                    <option>Analytics</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                        <th scope="col" class="p-3 font-bold">Report Title</th>
+                        <th scope="col" class="p-3 font-bold">Generated Date</th>
+                        <th scope="col" class="p-3 font-bold">Type</th>
+                        <th scope="col" class="p-3 font-bold text-right">Download Options</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tr>
+                        <td class="p-3 font-bold text-gray-800">DOH Monthly Call Volume - Oct 2024</td>
+                        <td class="p-3 text-gray-600">Nov 01, 2024</td>
+                        <td class="p-3"><span class="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-full font-bold">Compliance</span></td>
+                        <td class="p-3 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
+                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold text-gray-800">High Risk Incidents Log - Q3 2024</td>
+                        <td class="p-3 text-gray-600">Oct 05, 2024</td>
+                        <td class="p-3"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">Security</span></td>
+                        <td class="p-3 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
+                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold text-gray-800">Forecast vs. Actuals Performance</td>
+                        <td class="p-3 text-gray-600">Oct 01, 2024</td>
+                        <td class="p-3"><span class="px-2 py-1 bg-purple-100 text-purple-700 text-[10px] rounded-full font-bold">Analytics</span></td>
+                        <td class="p-3 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
+                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

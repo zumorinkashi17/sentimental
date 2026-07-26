@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Call Logs - Sentimental{% endblock %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Admin Call Logs</h1>
+                <p class="text-gray-500">Monitor all responder sessions and review flagged cases.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <input type="text" placeholder="Search sessions..." class="form-input w-full sm:w-64 text-sm">
+                <button type="button" class="form-input bg-brand text-white border-brand hover:bg-brand-dark transition-colors">Export</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-[1.3fr_0.7fr] gap-6">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="table-scroll">
+                    <table class="w-full text-left border-separate border-spacing-0">
+                        <thead class="bg-gray-50 text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                            <tr>
+                                <th class="p-4">Session</th>
+                                <th class="p-4">Responder</th>
+                                <th class="p-4">Risk</th>
+                                <th class="p-4">Duration</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4 font-semibold">TPCB10-4899</td>
+                                <td class="p-4">Quev Cruz</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High</span></td>
+                                <td class="p-4">27 mins</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] uppercase rounded-full font-bold">Closed</span></td>
+                                <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">Inspect</button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4 font-semibold">TPCB10-4896</td>
+                                <td class="p-4">Maria S.</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-orange-100 text-orange-700 text-[10px] uppercase rounded-full font-bold">Medium</span></td>
+                                <td class="p-4">19 mins</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] uppercase rounded-full font-bold">Closed</span></td>
+                                <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">Inspect</button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4 font-semibold">TPCB10-4888</td>
+                                <td class="p-4">Carlos R.</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High</span></td>
+                                <td class="p-4">33 mins</td>
+                                <td class="p-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] uppercase rounded-full font-bold">Pending</span></td>
+                                <td class="p-4"><button type="button" class="text-brand font-semibold text-xs hover:underline">Inspect</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                <div>
+                    <p class="text-xs uppercase text-gray-400 font-bold tracking-wider">Overview</p>
+                    <h2 class="text-xl font-bold text-gray-800">Active Investigations</h2>
+                </div>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <p><span class="font-semibold text-gray-800">6</span> sessions need review.</p>
+                    <p><span class="font-semibold text-gray-800">2</span> cases escalated for follow-up.</p>
+                    <p><span class="font-semibold text-gray-800">85%</span> of high-risk calls were flagged.</p>
+                </div>
+                <button type="button" class="w-full py-2.5 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors">View Case Summary</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

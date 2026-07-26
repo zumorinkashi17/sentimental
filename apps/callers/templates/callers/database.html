@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Callers Database</h1>
+                <p class="text-gray-500">View caller history and handling responder information.</p>
+            </div>
+            <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                <option>All Risk Levels</option>
+                <option>High Risk</option>
+                <option>Medium Risk</option>
+                <option>Low Risk</option>
+            </select>
+        </div>
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
+            <div class="relative w-full">
+                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+                <label for="admin-caller-search" class="sr-only">Search by caller name or ID</label>
+                <input id="admin-caller-search" type="text" placeholder="Search by caller name or ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+            </div>
+            <div class="table-scroll">
+            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                        <th scope="col" class="p-3 font-bold">Caller / ID</th>
+                        <th scope="col" class="p-3 font-bold">Risk Level</th>
+                        <th scope="col" class="p-3 font-bold">Last Call</th>
+                        <th scope="col" class="p-3 font-bold">Handled By</th>
+                        <th scope="col" class="p-3 font-bold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tr>
+                        <td class="p-3 font-bold">Maria Santos <span class="text-xs text-gray-400 font-normal block">TPCB10-4892</span></td>
+                        <td class="p-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold">Medium</span></td>
+                        <td class="p-3 text-gray-600">Oct 04, 2024</td>
+                        <td class="p-3 font-bold text-brand">Quev C.</td>
+                        <td class="p-3 text-right">
+                            <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs">View Details</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold">Anonymous (Male, 29) <span class="text-xs text-gray-400 font-normal block">TPCB10-4888</span></td>
+                        <td class="p-3"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">High</span></td>
+                        <td class="p-3 text-gray-600">Oct 01, 2024</td>
+                        <td class="p-3 font-bold text-brand">Maria S.</td>
+                        <td class="p-3 text-right">
+                            <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs">View Details</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

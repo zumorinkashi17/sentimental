@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- TAB: RESPONDER DASHBOARD -->
+<div class="view-section lg:h-full h-auto flex p-4 sm:p-6 gap-6 overflow-hidden">
+    <div class="flex-1 overflow-y-auto custom-scrollbar pr-0 sm:pr-2 flex flex-col gap-6 min-w-0">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-xl font-bold text-brand">Welcome <span>{{ session_username|default:"Responder" }}</span>,</h1>
+                <p class="text-sm text-gray-500">Ready to save lives?</p>
+            </div>
+            <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
+                <option>Today</option>
+                <option>This Week</option>
+                <option>This Month</option>
+            </select>
+        </div>
+
+        <!-- Top 3 Charts Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Card 1 -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Reasons for Calling</h2>
+                <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+                    <canvas id="chartReasons" height="140"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-xl font-bold text-slate-800">2,102</span>
+                        <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Calls</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card 2 -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Callers</h2>
+                <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+                    <canvas id="chartCallers" height="140"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-xl font-bold text-slate-800">2,102</span>
+                        <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Callers</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col relative overflow-hidden sm:col-span-2 xl:col-span-1">
+                <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Suicide-Related Calls</h2>
+                <div class="relative flex-1 flex flex-col items-center justify-end pb-4">
+                    <div class="w-full relative h-[120px]">
+                        <canvas id="chartSuicide"></canvas>
+                        <div class="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center">
+                            <span class="text-3xl font-bold text-brand">32%</span>
+                            <span class="text-[10px] font-bold text-brand uppercase">High Level of<br>Suicidality</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Section: Call Volume & Referrals -->
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex-1 min-w-0">
+                <h2 class="text-xs font-bold text-gray-600 mb-1 uppercase">Call Volume</h2>
+                <div class="flex items-end gap-2 mb-6">
+                    <span class="text-2xl font-bold text-slate-800">5%</span>
+                    <i class="ph-bold ph-arrow-down text-brand text-xl mb-1"></i>
+                    <span class="text-[10px] text-gray-400 mb-1.5 ml-1">vs. previous month</span>
+                </div>
+                <div class="h-40 w-full"><canvas id="chartVolume"></canvas></div>
+            </div>
+            
+            <div class="w-full md:w-48 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between flex-shrink-0">
+                <h2 class="text-xs font-bold text-gray-600 uppercase mb-2">Referrals</h2>
+                <div class="mb-3">
+                    <p class="text-[10px] font-bold text-gray-800 uppercase">Psychiatrists</p>
+                    <p class="text-brand font-bold">816</p>
+                    <div class="w-full h-0.5 bg-gray-100 mt-1"><div class="w-[80%] h-full bg-brand"></div></div>
+                </div>
+                <div class="mb-3">
+                    <p class="text-[10px] font-bold text-gray-800 uppercase">Psychologists</p>
+                    <p class="text-brand font-bold">253</p>
+                    <div class="w-full h-0.5 bg-gray-100 mt-1"><div class="w-[60%] h-full bg-brand"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize chart instances specifically for the dashboard when loaded via template
+    document.addEventListener("DOMContentLoaded", function() {
+        if(typeof initCharts === 'function') {
+            initCharts();
+        }
+    });
+</script>
+{% endblock %}
