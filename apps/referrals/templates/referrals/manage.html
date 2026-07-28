@@ -3,54 +3,541 @@
 
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
-    <div class="max-w-6xl mx-auto w-full space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+    <div class="max-w-6xl mx-auto w-full space-y-8">
+        
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Referral Directory Manager</h1>
-                <p class="text-gray-500">Manage external clinics and professionals.</p>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option>All Specializations</option>
-                    <option>Psychiatry</option>
-                    <option>Clinical Psychology</option>
-                </select>
-                <button type="button" onclick="openModal('modal-add-edit-referral')" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark"><i class="ph-bold ph-plus"></i> Add Entry</button>
+                <p class="text-gray-500 text-sm sm:text-base">Manage external clinics and professionals.</p>
             </div>
         </div>
+
+        <!-- INSTITUTIONS SECTION -->
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <label for="admin-directory-search" class="sr-only">Search clinics or doctors</label>
-            <input id="admin-directory-search" type="text" placeholder="Search clinics or doctors..." class="form-input w-full sm:w-64 text-sm mb-4">
-            <div class="table-scroll">
-            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
-                <thead>
-                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
-                        <th scope="col" class="p-3 font-bold">Institution / Name</th>
-                        <th scope="col" class="p-3 font-bold">Category</th>
-                        <th scope="col" class="p-3 font-bold">Location</th>
-                        <th scope="col" class="p-3 font-bold">Contact</th>
-                        <th scope="col" class="p-3 font-bold text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
-                    <tr>
-                        <td class="p-3 font-bold">MindPeace Cebu</td>
-                        <td class="p-3">Psychiatry</td>
-                        <td class="p-3">Cebu City</td>
-                        <td class="p-3">0917-123-4567</td>
-                        <td class="p-3 text-right"><button type="button" onclick="openModal('modal-add-edit-referral')" class="text-brand hover:underline font-semibold text-xs">Edit</button></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 font-bold">PsychHub Co.</td>
-                        <td class="p-3">Clinical Psychology</td>
-                        <td class="p-3">Mandaue City</td>
-                        <td class="p-3">0918-987-6543</td>
-                        <td class="p-3 text-right"><button type="button" onclick="openModal('modal-add-edit-referral')" class="text-brand hover:underline font-semibold text-xs">Edit</button></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex-shrink-0"><i class="ph-fill ph-buildings text-brand mr-2"></i>Institutions / Clinics</h2>
+                
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <!-- Search Institutions -->
+                    <div class="relative w-full sm:w-64">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="search-manage-inst" placeholder="Search institutions..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                    </div>
+                    <button type="button" id="btn-add-inst" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap w-full sm:w-auto">
+                        <i class="ph-bold ph-plus"></i> Add Institution
+                    </button>
+                </div>
+            </div>
+            <div class="md:max-h-36 sm:max-h-96 overflow-auto rounded-lg border border-gray-100">
+                <table class="w-full min-w-[800px] table-fixed text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-50 z-10">
+                        <tr class="text-[10px] uppercase text-gray-500">
+                            <th class="p-3 font-bold w-[25%]">Institution Name</th>
+                            <th class="p-3 font-bold w-[25%]">Location</th>
+                            <th class="p-3 font-bold w-[25%]">Contacts</th>
+                            <th class="p-3 font-bold w-[15%] text-center">Status</th>
+                            <th class="p-3 font-bold w-[10%] text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-manage-inst" class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for inst in institutions %}
+                        <tr class="inst-row" data-search="{{ inst.institution_name|lower }} {{ inst.institution_location|lower }}">
+                            <td class="p-3 font-bold text-gray-800 truncate">{{ inst.institution_name }}</td>
+                            <td class="p-3 truncate">{{ inst.institution_location }}</td>
+                            <td class="p-3">
+                                {% for contact in inst.institutioncontact_set.all %}
+                                    <div class="text-xs truncate"><span class="font-semibold text-gray-500">{{ contact.institution_contact_type }}:</span> {{ contact.institution_contact_number }}</div>
+                                {% empty %}
+                                    <span class="text-gray-400 italic text-xs">No contacts</span>
+                                {% endfor %}
+                            </td>
+                            <td class="p-3 text-center">
+                                {% if inst.institution_status == 'Inactive' %}
+                                    <span class="bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Inactive</span>
+                                {% else %}
+                                    <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right">
+                                <button type="button" class="btn-edit-inst text-brand hover:underline font-semibold text-xs" 
+                                    data-id="{{ inst.institution_id }}" 
+                                    data-name="{{ inst.institution_name|escapejs }}" 
+                                    data-loc="{{ inst.institution_location|escapejs }}" 
+                                    data-status="{{ inst.institution_status|default:'Active'|escapejs }}"
+                                    data-contacts="{% for c in inst.institutioncontact_set.all %}{{ c.institution_contact_type }}::{{ c.institution_contact_number|escapejs }}{% if not forloop.last %}~~{% endif %}{% endfor %}">Edit</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr id="empty-inst"><td colspan="5" class="p-4 text-center text-gray-400">No institutions found.</td></tr>
+                        {% endfor %}
+                        <tr id="no-match-inst" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching institutions found.</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
+
+        <!-- PROFESSIONALS SECTION -->
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex-shrink-0"><i class="ph-fill ph-user text-brand mr-2"></i>Professionals </h2>
+                
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <!-- Filter Specialization -->
+                    <select id="filter-manage-spec" class="form-input bg-gray-50 border-gray-200 text-sm py-2 rounded-lg w-full sm:w-auto focus:bg-white">
+                        <option value="All">All Specializations</option>
+                        {% for value, label in specialization_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <!-- Search Professionals -->
+                    <div class="relative w-full sm:w-56">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="search-manage-prof" placeholder="Search name or clinic..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                    </div>
+                    <button type="button" id="btn-add-prof" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap w-full sm:w-auto">
+                        <i class="ph-bold ph-plus"></i> Add Professional
+                    </button>
+                </div>
+            </div>
+            <div class="md:max-h-48 sm:max-h-96 overflow-auto rounded-lg border border-gray-100">
+                <table class="w-full min-w-[950px] table-fixed text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-50 z-10">
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th class="p-3 font-bold w-[25%]">Name</th>
+                            <th class="p-3 font-bold w-[25%]">Contacts</th>
+                            <th class="p-3 font-bold w-[25%]">Affiliations & Schedules</th>
+                            <th class="p-3 font-bold w-[15%] text-center">Status</th>
+                            <th class="p-3 font-bold w-[10%] text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-manage-prof" class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for prof in professionals %}
+                        <tr class="prof-row" data-spec="{{ prof.professional_specialization }}" data-search="{{ prof.professional_name|lower }} {% if prof.institution and prof.institution.institution_status != 'Inactive' %}{{ prof.institution.institution_name|lower }} {{ prof.institution.institution_location|lower }}{% endif %} {% for aff in prof.affiliation_set.all %}{% if aff.institution.institution_status != 'Inactive' %}{{ aff.institution.institution_name|lower }} {{ aff.institution.institution_location|lower }} {% endif %}{% endfor %}">
+                            <td class="p-3">
+                                <div class="font-bold text-gray-800 truncate">{{ prof.professional_name }}</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mt-0.5 truncate">
+                                    {{ prof.professional_specialization }}
+                                </div>
+                            </td>
+                            <td class="p-3 text-xs font-semibold text-gray-500">
+                                {% for contact in prof.professionalcontact_set.all %}
+                                    <div class="truncate">{{ contact.contact_type }}: {{ contact.contact_number }}</div>
+                                {% empty %}
+                                    <span class="text-gray-400 italic text-xs font-normal">No contacts</span>
+                                {% endfor %}
+                            </td>
+                            <td class="p-3">
+                                {% if prof.institution and prof.institution.institution_status != 'Inactive' %}
+                                    <div class="text-xs mb-1.5 truncate">
+                                        <span class="font-bold text-brand">{{ prof.institution.institution_name }}</span>
+                                        <span class="bg-brand/10 text-brand text-[9px] px-1 py-0.5 rounded uppercase font-bold tracking-wider ml-1">Primary</span><br>
+                                        <span class="text-gray-500">{{ prof.institution.institution_location|default:"No location set" }}</span>
+                                    </div>
+                                {% endif %}
+                                {% for aff in prof.affiliation_set.all %}
+                                    {% if aff.institution.institution_status != 'Inactive' %}
+                                        <div class="text-xs mb-1.5 truncate">
+                                            <span class="font-bold text-brand">{{ aff.institution.institution_name }}</span><br>
+                                            <span class="text-gray-500">{{ aff.schedule|default:"No schedule set" }}</span>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not prof.institution and not prof.affiliation_set.all %}
+                                    <span class="text-gray-400 italic text-xs">No affiliations</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-center">
+                                {% if prof.professional_status == 'Inactive' %}
+                                    <span class="bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Inactive</span>
+                                {% else %}
+                                    <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right">
+                                <button type="button" class="btn-edit-prof text-brand hover:underline font-semibold text-xs"
+                                    data-id="{{ prof.professional_id }}" 
+                                    data-name="{{ prof.professional_name|escapejs }}" 
+                                    data-gender="{{ prof.professional_gender|escapejs }}" 
+                                    data-spec="{{ prof.professional_specialization|escapejs }}" 
+                                    data-inst="{% if prof.institution %}{{ prof.institution.institution_id }}{% endif %}" 
+                                    data-status="{{ prof.professional_status|default:'Active'|escapejs }}"
+                                    data-contacts="{% for c in prof.professionalcontact_set.all %}{{ c.contact_type }}::{{ c.contact_number|escapejs }}{% if not forloop.last %}~~{% endif %}{% endfor %}"
+                                    data-affils="{% for aff in prof.affiliation_set.all %}{{ aff.institution.institution_id }}::{{ aff.schedule|escapejs }}{% if not forloop.last %}~~{% endif %}{% endfor %}">Edit</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr id="empty-prof"><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
+                        {% endfor %}
+                        <tr id="no-match-prof" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching professionals found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<!-- HIDDEN TEMPLATE FOR JS DROPDOWNS -->
+<template id="inst-options-template">
+    <option value="">-- Select Institution --</option>
+    {% for inst in institutions %}
+        <option value="{{ inst.institution_id }}" {% if inst.institution_status == 'Inactive' %}class="hidden" disabled{% endif %}>
+            {{ inst.institution_name }} {% if inst.institution_status == 'Inactive' %}(Inactive){% endif %}
+        </option>
+    {% endfor %}
+</template>
+
+<!-- MODAL: ADD/EDIT INSTITUTION -->
+<div id="modal-institution" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
+    <!-- Adjusted width for mobile w-[95%] -->
+    <div class="bg-white rounded-2xl shadow-xl w-[95%] sm:w-full max-w-md overflow-hidden flex flex-col">
+        <div class="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800" id="inst-modal-title">Add Institution</h3>
+            <button type="button" class="btn-close-modal text-gray-400 hover:text-gray-600"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'referrals:manage' %}" class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto max-h-[75vh]">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_institution">
+            <input type="hidden" name="institution_id" id="inst_id">
+            
+            <!-- Switched to grid-cols-1 for mobile, sm:grid-cols-2 for desktop -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="col-span-1 sm:col-span-2"><label class="form-label">Institution Name</label><input type="text" name="institution_name" id="inst_name" class="form-input" required></div>
+                <div class="col-span-1 sm:col-span-2"><label class="form-label">Location (Address/City)</label><input type="text" name="institution_location" id="inst_loc" class="form-input"></div>
+                
+                <div class="col-span-1 sm:col-span-2 hidden" id="inst_status_container">
+                    <label class="form-label">Status</label>
+                    <select name="institution_status" id="inst_status" class="form-input">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label flex justify-between">Contact Numbers <button type="button" id="btn-add-inst-contact" class="text-brand text-xs font-bold">+ Add Row</button></label>
+                <div id="inst-contacts" class="space-y-2 mt-2">
+                    <!-- JS Rows here -->
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark mt-4">Save Institution</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: ADD/EDIT PROFESSIONAL -->
+<div id="modal-professional" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
+    <!-- Adjusted width for mobile w-[95%] -->
+    <div class="bg-white rounded-2xl shadow-xl w-[95%] sm:w-full max-w-lg overflow-hidden flex flex-col">
+        <div class="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800" id="prof-modal-title">Add Professional</h3>
+            <button type="button" class="btn-close-modal text-gray-400 hover:text-gray-600"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'referrals:manage' %}" class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto max-h-[75vh]">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_professional">
+            <input type="hidden" name="professional_id" id="prof_id">
+            
+            <!-- Switched to grid-cols-1 for mobile, sm:grid-cols-2 for desktop -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="col-span-1 sm:col-span-2"><label class="form-label">Full Name</label><input type="text" name="professional_name" id="prof_name" class="form-input" required></div>
+                <div>
+                    <label class="form-label">Gender</label>
+                    <select name="professional_gender" id="prof_gender" class="form-input">
+                        <option value="Male">Male</option><option value="Female">Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Specialization</label>
+                    <select name="professional_specialization" id="prof_spec" class="form-input">
+                        {% for value, label in specialization_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-span-1 sm:col-span-2 hidden" id="prof_status_container">
+                    <label class="form-label">Status</label>
+                    <select name="professional_status" id="prof_status" class="form-input">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-span-1 sm:col-span-2">
+                    <label class="form-label">Primary Institution</label>
+                    <select name="institution_id" id="prof_inst" class="form-input" required>
+                        <!-- Loaded via JS from template -->
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-2 border-t border-gray-100 pt-4">
+                <label class="form-label flex justify-between text-brand">Affiliations & Schedules <button type="button" id="btn-add-prof-affil" class="text-brand text-xs font-bold">+ Add Affiliation</button></label>
+                <div id="prof-affiliations" class="space-y-3 mt-2">
+                    <!-- Rows added via JS -->
+                </div>
+            </div>
+
+            <div class="mt-2 border-t border-gray-100 pt-4">
+                <label class="form-label flex justify-between">Contact Details <button type="button" id="btn-add-prof-contact" class="text-brand text-xs font-bold">+ Add Contact</button></label>
+                <div id="prof-contacts" class="space-y-2 mt-2">
+                    <!-- Rows added via JS -->
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark mt-4">Save Professional</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const searchManageInst = document.getElementById('search-manage-inst');
+        if (searchManageInst) searchManageInst.addEventListener('keyup', filterManageInst);
+
+        const searchManageProf = document.getElementById('search-manage-prof');
+        const filterManageSpec = document.getElementById('filter-manage-spec');
+        if (searchManageProf) searchManageProf.addEventListener('keyup', filterManageProf);
+        if (filterManageSpec) filterManageSpec.addEventListener('change', filterManageProf);
+
+        function filterManageInst() {
+            const query = searchManageInst.value.toLowerCase();
+            const rows = document.querySelectorAll('.inst-row');
+            let visibleCount = 0;
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search');
+                if (text.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            const noMatchRow = document.getElementById('no-match-inst');
+            if (noMatchRow) noMatchRow.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        function filterManageProf() {
+            const query = searchManageProf.value.toLowerCase();
+            const spec = filterManageSpec.value;
+            const rows = document.querySelectorAll('.prof-row');
+            let visibleCount = 0;
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search');
+                const rowSpec = row.getAttribute('data-spec');
+                const matchesSearch = text.includes(query);
+                const matchesSpec = (spec === 'All' || spec === rowSpec);
+                if (matchesSearch && matchesSpec) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            const noMatchRow = document.getElementById('no-match-prof');
+            if (noMatchRow) noMatchRow.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        function closeModals() {
+            document.getElementById('modal-institution')?.classList.remove('flex');
+            document.getElementById('modal-institution')?.classList.add('hidden');
+            document.getElementById('modal-professional')?.classList.remove('flex');
+            document.getElementById('modal-professional')?.classList.add('hidden');
+        }
+
+        function addContactRow(containerId, type = 'Mobile', number = '') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const row = document.createElement('div');
+            row.className = 'flex flex-col sm:flex-row gap-2 mt-2';
+            const safeNumber = number.replace(/"/g, '&quot;');
+            
+            row.innerHTML = `
+                <div class="flex gap-2 w-full">
+                    <select name="contact_type[]" class="form-input w-[40%] sm:w-1/3">
+                        {% for value, label in contact_type_choices %}
+                            <option value="{{ value }}" ${type === '{{ value }}' ? 'selected' : ''}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" name="contact_number[]" value="${safeNumber}" placeholder="Number/Email" class="form-input w-[60%] sm:w-2/3 flex-1" required>
+                    <button type="button" class="btn-remove-row text-red-500 font-bold px-2 hover:bg-red-50 rounded shrink-0">X</button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function addAffiliationRow(containerId, instId = '', schedule = '') {
+            const container = document.getElementById(containerId);
+            const template = document.getElementById('inst-options-template');
+            if (!container || !template) return;
+            
+            const safeSchedule = schedule.replace(/"/g, '&quot;');
+            
+            const tempSelect = document.createElement('select');
+            tempSelect.innerHTML = template.innerHTML;
+            
+            if (instId) {
+                const opt = tempSelect.querySelector(`option[value="${instId}"]`);
+                if (opt) {
+                    opt.classList.remove('hidden');
+                    opt.removeAttribute('disabled');
+                    opt.setAttribute('selected', 'selected'); 
+                }
+            }
+            
+            const row = document.createElement('div');
+            row.className = 'flex flex-col gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100 relative mt-2';
+            row.innerHTML = `
+                <button type="button" class="btn-remove-row absolute top-2 right-2 text-red-500 font-bold text-xs hover:bg-red-100 px-1.5 py-0.5 rounded transition-colors">Remove</button>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500">Institution</label>
+                    <select name="affiliation_inst_id[]" class="form-input text-sm">
+                        ${tempSelect.innerHTML}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-bold text-gray-500">Schedule</label>
+                    <input type="text" name="affiliation_schedule[]" value="${safeSchedule}" placeholder="e.g. Mon, Wed, Fri (9AM - 5PM)" class="form-input text-sm">
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function openInstModal(id='', name='', loc='', status='Active', contactsStr='') {
+            document.getElementById('inst_id').value = id;
+            document.getElementById('inst_name').value = name;
+            document.getElementById('inst_loc').value = loc;
+            document.getElementById('inst_status').value = status || 'Active';
+            
+            if (id) {
+                document.getElementById('inst-modal-title').innerText = 'Edit Institution';
+                document.getElementById('inst_status_container').classList.remove('hidden');
+            } else {
+                document.getElementById('inst-modal-title').innerText = 'Add Institution';
+                document.getElementById('inst_status_container').classList.add('hidden');
+            }
+            
+            document.getElementById('inst-contacts').innerHTML = '';
+            if (contactsStr && contactsStr.trim() !== '') {
+                contactsStr.split('~~').forEach(c => {
+                    const parts = c.split('::');
+                    addContactRow('inst-contacts', parts[0], parts[1]);
+                });
+            } else {
+                addContactRow('inst-contacts');
+            }
+
+            const modal = document.getElementById('modal-institution');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openProfModal(id='', name='', gender='Male', spec='Psychiatry', primaryInst='', status='Active', contactsStr='', affilsStr='') {
+            document.getElementById('prof_id').value = id;
+            document.getElementById('prof_name').value = name;
+            document.getElementById('prof_gender').value = gender;
+            document.getElementById('prof_spec').value = spec;
+            document.getElementById('prof_status').value = status || 'Active';
+            
+            const instSelect = document.getElementById('prof_inst');
+            const template = document.getElementById('inst-options-template');
+            
+            if(instSelect && template) {
+                const tempSelect = document.createElement('select');
+                tempSelect.innerHTML = template.innerHTML;
+                
+                if (primaryInst) {
+                    const opt = tempSelect.querySelector(`option[value="${primaryInst}"]`);
+                    if (opt) {
+                        opt.classList.remove('hidden');
+                        opt.removeAttribute('disabled');
+                    }
+                }
+                instSelect.innerHTML = tempSelect.innerHTML;
+                instSelect.value = primaryInst;
+            }
+            
+            if (id) {
+                document.getElementById('prof-modal-title').innerText = 'Edit Professional';
+                document.getElementById('prof_status_container').classList.remove('hidden');
+            } else {
+                document.getElementById('prof-modal-title').innerText = 'Add Professional';
+                document.getElementById('prof_status_container').classList.add('hidden');
+            }
+            
+            document.getElementById('prof-contacts').innerHTML = '';
+            if (contactsStr && contactsStr.trim() !== '') {
+                contactsStr.split('~~').forEach(c => {
+                    const parts = c.split('::');
+                    addContactRow('prof-contacts', parts[0], parts[1]);
+                });
+            } else {
+                addContactRow('prof-contacts');
+            }
+
+            document.getElementById('prof-affiliations').innerHTML = '';
+            if (affilsStr && affilsStr.trim() !== '') {
+                affilsStr.split('~~').forEach(a => {
+                    const parts = a.split('::');
+                    addAffiliationRow('prof-affiliations', parts[0], parts[1]);
+                });
+            } else {
+                addAffiliationRow('prof-affiliations');
+            }
+
+            const modal = document.getElementById('modal-professional');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        const btnAddInst = document.getElementById('btn-add-inst');
+        if (btnAddInst) btnAddInst.addEventListener('click', () => openInstModal());
+        
+        const btnAddProf = document.getElementById('btn-add-prof');
+        if (btnAddProf) btnAddProf.addEventListener('click', () => openProfModal());
+
+        document.getElementById('btn-add-inst-contact')?.addEventListener('click', () => addContactRow('inst-contacts'));
+        document.getElementById('btn-add-prof-contact')?.addEventListener('click', () => addContactRow('prof-contacts'));
+        document.getElementById('btn-add-prof-affil')?.addEventListener('click', () => addAffiliationRow('prof-affiliations'));
+
+        document.querySelectorAll('.btn-edit-inst').forEach(btn => {
+            btn.addEventListener('click', function() {
+                openInstModal(
+                    this.dataset.id, 
+                    this.dataset.name, 
+                    this.dataset.loc, 
+                    this.dataset.status,
+                    this.dataset.contacts
+                );
+            });
+        });
+
+        document.querySelectorAll('.btn-edit-prof').forEach(btn => {
+            btn.addEventListener('click', function() {
+                openProfModal(
+                    this.dataset.id, 
+                    this.dataset.name, 
+                    this.dataset.gender, 
+                    this.dataset.spec, 
+                    this.dataset.inst, 
+                    this.dataset.status,
+                    this.dataset.contacts,
+                    this.dataset.affils
+                );
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.closest('.btn-close-modal')) {
+                closeModals();
+            }
+            if (e.target && e.target.classList.contains('btn-remove-row')) {
+                e.target.closest('.flex').remove();
+            }
+        });
+    });
+</script>
 {% endblock %}

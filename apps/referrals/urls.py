@@ -1,9 +1,9 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from . import views
 
 app_name = 'referrals'
 
 urlpatterns = [
-    path('directory/', TemplateView.as_view(template_name='referrals/directory.html'), name='directory'),
-    path('manage/', TemplateView.as_view(template_name='referrals/manage.html'), name='manage'),
+    path('directory/', views.directory_view, name='directory'),
+    path('manage/', views.manage_view, name='manage'),
 ]

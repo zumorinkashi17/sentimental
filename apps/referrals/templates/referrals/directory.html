@@ -7,71 +7,115 @@
         <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Referral Directory</h1>
-                <p class="text-gray-500">Database of external psychologists, psychiatrists, and partner clinics.</p>
+                <p class="text-gray-500 text-sm sm:text-base">Database of external psychologists, psychiatrists, and partner clinics.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option>All Specializations</option>
-                    <option>Psychiatry</option>
-                    <option>Clinical Psychology</option>
-                </select>
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option>All Locations</option>
-                    <option>Cebu City</option>
-                    <option>Mandaue</option>
-                    <option>Talisay</option>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <select id="filter-dir-spec" class="form-input bg-white w-full sm:w-auto py-2 text-sm text-gray-600 border-gray-200 shadow-sm rounded-lg">
+                    <option value="All">All Specializations</option>
+                    {% for value, label in specialization_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
+        
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
-                <label for="referral-search" class="sr-only">Search referral directory</label>
-                <input id="referral-search" type="text" placeholder="Search by clinic name, specialization, or location..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+                <input type="text" id="search-dir-prof" placeholder="Search by clinic name, or location..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
             
-            <div class="table-scroll">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="text-[10px] uppercase tracking-wider text-gray-500 border-b border-gray-100">
-                        <th scope="col" class="pb-3 font-semibold w-[25%]">Name</th>
-                        <th scope="col" class="pb-3 font-semibold w-[15%]">Gender</th>
-                        <th scope="col" class="pb-3 font-semibold w-[15%]">Location</th>
-                        <th scope="col" class="pb-3 font-semibold w-[25%]">Contact</th>
-                        <th scope="col" class="pb-3 font-semibold w-[20%]">Affiliated Institution</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-4 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand font-bold"><i class="ph-fill ph-user-md text-xl"></i></div>
-                            <div>
-                                <span class="font-bold text-gray-800 block">Dr. Ibrahim Yekeni</span>
-                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">Psychiatrist</span>
-                            </div>
-                        </td>
-                        <td class="py-4 text-gray-600">Male</td>
-                        <td class="py-4 text-gray-600">Cebu City</td>
-                        <td class="py-4 text-gray-600">ibrahim.yekeni@email.com</td>
-                        <td class="py-4 text-brand font-medium">MindPeace Cebu</td>
-                    </tr>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="py-4 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-brand-light flex items-center justify-center text-brand font-bold"><i class="ph-fill ph-user-md text-xl"></i></div>
-                            <div>
-                                <span class="font-bold text-gray-800 block">Dr. Bridget Olowojeje</span>
-                                <span class="text-[10px] text-gray-400 uppercase tracking-wide">Clinical Psychologist</span>
-                            </div>
-                        </td>
-                        <td class="py-4 text-gray-600">Female</td>
-                        <td class="py-4 text-gray-600">Mandaue City</td>
-                        <td class="py-4 text-gray-600">bridget.olowojeje@email.com</td>
-                        <td class="py-4 text-brand font-medium">PyschHub Co.</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="md:max-h-76 sm:max-h-96 overflow-auto rounded-lg border border-gray-100">
+                <table class="w-full min-w-[950px] table-fixed text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-50 z-10">
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th class="p-3 font-bold w-[33%]">Name</th>
+                            <th class="p-3 font-bold w-[33%]">Contacts</th>
+                            <th class="p-3 font-bold w-[34%]">Affiliations & Schedules</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-manage-prof" class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for prof in professionals %}
+                        <tr class="dir-row" data-spec="{{ prof.professional_specialization }}" data-search="{{ prof.professional_name|lower }} {% if prof.institution and prof.institution.institution_status != 'Inactive' %}{{ prof.institution.institution_name|lower }} {{ prof.institution.institution_location|lower }}{% endif %} {% for aff in prof.affiliation_set.all %}{% if aff.institution.institution_status != 'Inactive' %}{{ aff.institution.institution_name|lower }} {{ aff.institution.institution_location|lower }} {% endif %}{% endfor %}">
+                            <td class="p-3">
+                                <div class="font-bold text-gray-800 truncate">{{ prof.professional_name }}</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mt-0.5 truncate">
+                                    {{ prof.professional_specialization }}
+                                </div>
+                            </td>
+                            <td class="p-3 text-xs font-semibold text-gray-500">
+                                {% for contact in prof.professionalcontact_set.all %}
+                                    <div class="truncate">{{ contact.contact_type }}: {{ contact.contact_number }}</div>
+                                {% empty %}
+                                    <span class="text-gray-400 italic text-xs font-normal">No contacts</span>
+                                {% endfor %}
+                            </td>
+                            <td class="p-3">
+                                {% if prof.institution and prof.institution.institution_status != 'Inactive' %}
+                                    <div class="text-xs mb-1.5 truncate">
+                                        <span class="font-bold text-brand">{{ prof.institution.institution_name }}</span>
+                                        <span class="bg-brand/10 text-brand text-[9px] px-1 py-0.5 rounded uppercase font-bold tracking-wider ml-1">Primary</span><br>
+                                        <span class="text-gray-500">{{ prof.institution.institution_location|default:"No location set" }}</span>
+                                    </div>
+                                {% endif %}
+                                {% for aff in prof.affiliation_set.all %}
+                                    {% if aff.institution.institution_status != 'Inactive' %}
+                                        <div class="text-xs mb-1.5 truncate">
+                                            <span class="font-bold text-brand">{{ aff.institution.institution_name }}</span><br>
+                                            <span class="text-gray-500">{{ aff.schedule|default:"No schedule set" }}</span>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if not prof.institution and not prof.affiliation_set.all %}
+                                    <span class="text-gray-400 italic text-xs">No affiliations</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr id="empty-prof"><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
+                        {% endfor %}
+                        <tr id="no-match-dir" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching professionals found.</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchDirProf = document.getElementById('search-dir-prof');
+        const filterDirSpec = document.getElementById('filter-dir-spec');
+
+        if (searchDirProf) searchDirProf.addEventListener('keyup', filterDirectory);
+        if (filterDirSpec) filterDirSpec.addEventListener('change', filterDirectory);
+
+        function filterDirectory() {
+            const query = searchDirProf.value.toLowerCase();
+            const spec = filterDirSpec.value;
+            const rows = document.querySelectorAll('.dir-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search');
+                const rowSpec = row.getAttribute('data-spec');
+                
+                const matchesSearch = text.includes(query);
+                const matchesSpec = (spec === 'All' || spec === rowSpec);
+
+                if (matchesSearch && matchesSpec) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const noMatchRow = document.getElementById('no-match-dir');
+            if (noMatchRow) {
+                noMatchRow.classList.toggle('hidden', visibleCount > 0);
+            }
+        }
+    });
+</script>
 {% endblock %}
