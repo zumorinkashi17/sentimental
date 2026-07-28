@@ -91,6 +91,31 @@ def manage_view(request):
                 primary_inst_id = request.POST.get('institution_id')
                 status = request.POST.get('professional_status') or Professional.StatusChoices.ACTIVE
                 
+                # --- PROFESSIONAL DUPLICATE PREVENTION ---
+                duplicate_prof_query = Professional.objects.filter(
+                    professional_name__iexact=name,
+                    professional_specialization=specialization
+                )
+                if prof_id:
+                    duplicate_prof_query = duplicate_prof_query.exclude(pk=prof_id)
+                
+                if duplicate_prof_query.exists():
+                    messages.error(request, f'A professional named "{name}" with this specialization already exists.')
+                    return redirect('referrals:manage')
+                # -----------------------------------------
+
+                # --- DUPLICATE AFFILIATIONS CHECK ---
+                affil_inst_ids = request.POST.getlist('affiliation_inst_id[]')
+                affil_schedules = request.POST.getlist('affiliation_schedule[]')
+                
+                # Filter out empty strings to only check actual selected affiliations
+                valid_affil_ids = [aid for aid in affil_inst_ids if aid.strip()]
+                
+                if len(valid_affil_ids) != len(set(valid_affil_ids)):
+                    messages.error(request, 'You cannot add the same institution multiple times in the affiliations list.')
+                    return redirect('referrals:manage')
+                # ------------------------------------
+
                 primary_institution = Institution.objects.get(pk=primary_inst_id) if primary_inst_id else None
 
                 if prof_id:
@@ -126,10 +151,8 @@ def manage_view(request):
                             contact_last_updated=timezone.now()
                         )
                         
-                affil_inst_ids = request.POST.getlist('affiliation_inst_id[]')
-                affil_schedules = request.POST.getlist('affiliation_schedule[]')
                 for a_inst_id, a_sched in zip(affil_inst_ids, affil_schedules):
-                    if a_inst_id:
+                    if a_inst_id.strip():
                         affil_inst = Institution.objects.get(pk=a_inst_id)
                         Affiliation.objects.create(
                             professional=prof,
