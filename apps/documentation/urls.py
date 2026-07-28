@@ -1,10 +1,11 @@
 from django.urls import path
 from django.views.generic import TemplateView
+from . import views
 
 app_name = 'documentation'
 
 urlpatterns = [
-    path('history/', TemplateView.as_view(template_name='documentation/history.html'), name='history'),
-    path('master/', TemplateView.as_view(template_name='documentation/master_history.html'), name='master_history'),
-    path('admin-history/', TemplateView.as_view(template_name='documentation/master_history.html'), name='admin_history'),
+    path('history/', views.user_history_view, name='history'),
+    path('master/', views.history_list_view, name='master_history'),
+    path('admin-history/', views.history_list_view, name='admin_history'),
 ]

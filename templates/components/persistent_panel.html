@@ -1,5 +1,8 @@
 <!-- PERSISTENT RIGHT PANEL (FIXED DOCUMENTATION) -->
-<aside id="persistent-panel" class="w-full lg:w-[420px] h-auto lg:h-screen min-h-0 bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.03)] border-t border-gray-100 lg:border-t-0 lg:border-l flex-col flex-shrink-0 z-20 transition-all duration-300 flex order-last lg:order-none overflow-hidden" aria-label="Call documentation panel">
+{% csrf_token %}
+{% block content %}
+
+<aside id="persistent-panel" class="w-full lg:w-[420px] h-auto lg:h-[calc(100vh-64px)] min-h-0 bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.03)] border-t border-gray-100 lg:border-t-0 lg:border-l flex-col flex-shrink-0 z-20 transition-all duration-300 flex order-last lg:order-none overflow-hidden" aria-label="Call documentation panel">
 
     <!-- Documentation Mode Toggles -->
     <div class="flex border-b border-gray-100 bg-gray-50 px-4 sm:px-6 pt-4 shrink-0 overflow-x-auto">
@@ -15,15 +18,21 @@
             <div class="space-y-4">
                 <div>
                     <label class="form-label" for="callSessionNo">Call Session No:</label>
-                    <input id="callSessionNo" type="text" class="form-input bg-gray-50 font-mono text-gray-500" value="TPCB10-XXXX" readonly>
+                    <input id="callSessionNo" type="text" class="form-input bg-gray-50 font-mono text-gray-500" value="{{ next_session_id|default:'TPCB10-XXXX' }}" readonly>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="form-label" for="callDate">Date:</label><input id="callDate" type="text" class="form-input" value="October 04, 2024"></div>
                     <div>
                         <label class="form-label" for="callShift">Shift:</label>
                         <select id="callShift" class="form-input bg-white appearance-none">
-                            <option>02:00 PM - 10:00 PM</option>
-                            <option>10:00 PM - 06:00 AM</option>
+                            <option value="">Select a Shift</option>
+                            {% for shift in shifts %}
+                                <option value="{{ shift.shift_id }}">
+                                    {{ shift.shift_name }} ({{ shift.shift_start_time|time:"h:i A" }} - {{ shift.shift_end_time|time:"h:i A" }})
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>No shifts available</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -75,9 +84,184 @@
 
     <!-- Action Button (Pinned to bottom) -->
     <div class="p-4 border-t border-gray-100 shrink-0 bg-white sticky bottom-0 z-30">
+        <!-- Changed ID to ai-action-btn and onclick to triggerAI() -->
         <button type="button" id="ai-action-btn" onclick="triggerAI()" class="w-full bg-brand text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-all active:scale-[0.98] shadow-md group">
             <i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i>
-            <span id="ai-btn-text">SUMMARIZE</span>
+            <span id="ai-btn-text">AUTO-FILL FORM</span>
         </button>
     </div>
 </aside>
+
+<script>
+    // Function to get CSRF token from Django cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function triggerAI() {
+       const shiftInput = document.getElementById('callShift');
+        if (!shiftInput.value || shiftInput.value.trim() === "") {
+            // Highlight the dropdown in red to grab their attention
+            shiftInput.classList.add('border-red-600', 'ring-1', 'ring-red-600');
+            
+            // Show a SweetAlert
+            Swal.fire({
+                title: 'Shift Required',
+                text: 'Please select a Shift before continuing to the next step.',
+                icon: 'warning',
+                confirmButtonColor: '#10b981', // This matches the greenish brand color from your UI
+                confirmButtonText: 'Okay'
+            });
+            
+            // Remove the red highlight after 3 seconds
+            setTimeout(() => {
+                shiftInput.classList.remove('border-red-600', 'ring-1', 'ring-red-600');
+            }, 3000);
+            
+            // Stop the function completely so it doesn't process the save
+            return; 
+        }
+
+        const btn = document.getElementById('ai-action-btn');
+        if (!btn) return;
+
+        // STEP 0: AUTO-FILL
+        if (aiStep === 0) {
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> AUTO-FILLING...';
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            setTimeout(() => {
+                if(document.getElementById('aiName')) document.getElementById('aiName').value = 'Maria Santos';
+                if(document.getElementById('aiGender')) document.getElementById('aiGender').value = 'Female';
+                if(document.getElementById('aiStatus')) document.getElementById('aiStatus').value = 'Single';
+                if(document.getElementById('aiAge')) document.getElementById('aiAge').value = '22';
+                if(document.getElementById('aiLocation')) document.getElementById('aiLocation').value = 'Mandaue City';
+                if(document.getElementById('aiReason')) document.getElementById('aiReason').value = 'Relationship';
+                if(document.getElementById('aiRisk')) document.getElementById('aiRisk').value = 'Medium Risk';
+                if(document.getElementById('aiIntervention')) document.getElementById('aiIntervention').value = 'Active listening provided. Validated feelings regarding conflict with partner. Conducted standard risk assessment; no immediate plan but high emotional distress. Recommended breathing exercises.';
+                if(document.getElementById('aiComments')) document.getElementById('aiComments').value = 'Caller agreed to follow up with Bridget Olowojeje (PsychHub Co.) located in Cebu City. Texted clinic details to caller.';
+
+                btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">SUMMARIZE</span>';
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+                aiStep = 1;
+            }, 1500);
+
+        // STEP 1: SUMMARIZE
+        } else if (aiStep === 1) {
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SUMMARIZING...';
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            setTimeout(() => {
+                const summaryContainer = document.getElementById('ai-summary-container');
+                const summaryText = document.getElementById('aiGeneratedSummary');
+                
+                if(summaryContainer) summaryContainer.classList.remove('hidden');
+                if(summaryText) summaryText.value = 'AI Summary:\nCaller named Maria Santos (Female, 22, Single) from Mandaue City called due to relationship conflicts. Risk level assessed as Medium Risk. Active listening provided, validated feelings, and recommended breathing exercises. Caller agreed to follow up with PsychHub Co. in Cebu City.';
+
+                btn.innerHTML = '<i class="ph-fill ph-floppy-disk text-xl"></i> <span id="ai-btn-text">SAVE RECORD</span>';
+                btn.classList.remove('opacity-80', 'pointer-events-none');
+                aiStep = 2;
+            }, 1500);
+
+        // STEP 2: ACTUAL DATABASE SAVE
+        } else if (aiStep === 2) {
+            btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SAVING...';
+            btn.classList.add('opacity-80', 'pointer-events-none');
+
+            const payload = {
+                callSessionNo: document.getElementById('callSessionNo').value,
+                callDate: document.getElementById('callDate').value,
+                callShift: document.getElementById('callShift').value,
+                timeCalled: document.getElementById('timeCalled').value,
+                timeEnded: document.getElementById('timeEnded').value,
+                callerName: document.getElementById('aiName').value.trim() || 'Anonymous',
+                callerGender: document.getElementById('aiGender').value,
+                callerStatus: document.getElementById('aiStatus').value,
+                callerAge: document.getElementById('aiAge').value,
+                callerLocation: document.getElementById('aiLocation').value,
+                reasonForCalling: document.getElementById('aiReason').value,
+                riskAssessment: document.getElementById('aiRisk').value,
+                intervention: document.getElementById('aiIntervention').value,
+                additionalComments: document.getElementById('aiComments').value,
+                aiSummary: document.getElementById('aiGeneratedSummary')?.value || '',
+                manualScriptNotes: document.getElementById('manual-script-textarea').value
+            };
+
+            console.log("Form Payload Data:", payload);
+            let isSuccess = false; // Flag to track successful save
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+
+            try {
+                const response = await fetch('{% url "callers:save_session" %}', {
+                    credentials: 'same-origin',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    btn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> APPROVED & SAVED';
+                    btn.classList.remove('bg-brand');
+                    btn.classList.add('bg-blue-600');
+                    
+                    isSuccess = true; // Mark as success
+                } else {
+                    throw new Error(result.message || 'Error saving session');
+                }
+            } catch (error) {
+                console.error('Save failed:', error);
+                btn.innerHTML = '<i class="ph-fill ph-x-circle text-xl"></i> ERROR SAVING';
+                btn.classList.remove('bg-brand');
+                btn.classList.add('bg-red-600');
+            } finally {
+                // Reset to beginning state after 2 seconds
+                setTimeout(() => {
+                    // Reset Button UI
+                    btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">AUTO-FILL FORM</span>';
+                    btn.classList.add('bg-brand');
+                    btn.classList.remove('bg-blue-600', 'bg-red-600', 'opacity-80', 'pointer-events-none');
+                    aiStep = 0; // Reset progression
+                    
+                    // CLEAR FIELDS ON SUCCESS
+                    if (isSuccess) {
+                        const fieldsToClear = [
+                            'aiName', 'aiGender', 'aiStatus', 'aiAge', 
+                            'aiLocation', 'aiReason', 'aiRisk', 
+                            'aiIntervention', 'aiComments', 
+                            'aiGeneratedSummary', 'manual-script-textarea'
+                        ];
+                        
+                        fieldsToClear.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.value = '';
+                        });
+                        
+                        // Hide AI Summary container again
+                        const summaryContainer = document.getElementById('ai-summary-container');
+                        if(summaryContainer) summaryContainer.classList.add('hidden');
+
+                        window.location.reload();
+                    }
+                }, 2000);
+            }
+        }
+    }
+</script>
+{% endblock %}
