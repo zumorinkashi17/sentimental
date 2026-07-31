@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from apps.accounts.models import User
+from apps.schedules.models import ShiftCatalog
+from apps.callers.models import CallSession
 
 def _get_session_user(request, required_role=None):
     """Return (user, None) or (None, redirect_response)."""
@@ -36,19 +38,76 @@ def _get_session_user(request, required_role=None):
     print("DEBUG: User passed all checks. Allowing access.") # <-- ADD THIS
     return user, None
 
+
+def _get_panel_data():
+    """Helper function to get data needed for the persistent right panel."""
+    shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
+
+    prefix = 'TPCB10-'
+    last_session = CallSession.objects.filter(
+        session_id__startswith=prefix
+    ).order_by('-session_id').first()
+    
+    if last_session:
+        last_number = int(last_session.session_id.split('-')[1])
+        new_number = last_number + 1
+    else:
+        new_number = 1
+        
+    next_session_id = f"{prefix}{new_number:04d}"
+    
+    return {
+        "shifts": shifts,
+        "next_session_id": next_session_id
+    }
+
 # --- Main Dashboards ---
 
 def admin_dashboard(request):
     user, redirect_response = _get_session_user(request, required_role=User.RoleChoices.ADMIN)
+    shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
+
+    prefix = 'TPCB10-'
+    last_session = CallSession.objects.filter(
+        session_id__startswith=prefix
+    ).order_by('-session_id').first()
+    
+    if last_session:
+        # Split 'TPCB10-0005' -> grab '0005', make it an int, add 1
+        last_number = int(last_session.session_id.split('-')[1])
+        new_number = last_number + 1
+    else:
+        new_number = 1
+        
+    # Format with leading zeros
+    next_session_id = f"{prefix}{new_number:04d}"
+    
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/admin_dashboard.html", {"user": user})
+    return render(request, "dashboard/admin_dashboard.html", {"user": user, "shifts": shifts, "next_session_id": next_session_id})
 
 def responder_dashboard(request):
     user, redirect_response = _get_session_user(request, required_role=User.RoleChoices.RESPONDER)
+    shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
+    
+    prefix = 'TPCB10-'
+    last_session = CallSession.objects.filter(
+        session_id__startswith=prefix
+    ).order_by('-session_id').first()
+    
+    if last_session:
+        # Split 'TPCB10-0005' -> grab '0005', make it an int, add 1
+        last_number = int(last_session.session_id.split('-')[1])
+        new_number = last_number + 1
+    else:
+        new_number = 1
+        
+    # Format with leading zeros
+    next_session_id = f"{prefix}{new_number:04d}"
+    
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/responder_dashboard.html", {"user": user})
+    return render(request, "dashboard/responder_dashboard.html", {"user": user, "shifts": shifts, "next_session_id": next_session_id})
 
 # --- Other Pages ---
 
@@ -56,27 +115,46 @@ def index(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/index.html", {"user": user})
+        
+    context = {"user": user}
+    context.update(_get_panel_data()) # <-- Add the panel data to context
+    return render(request, "dashboard/index.html", context)
 
 def dashboard_general(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/dashboard.html", {"user": user})
+        
+    context = {"user": user}
+    context.update(_get_panel_data()) 
+    return render(request, "dashboard/dashboard.html", context)
 
 def admin_index(request):
     user, redirect_response = _get_session_user(request, required_role=User.RoleChoices.ADMIN)
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/admin_index.html", {"user": user})
+        
+    context = {"user": user}
+    context.update(_get_panel_data()) 
+    return render(request, "dashboard/admin_index.html", context)
 
 def call_logs(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-    return render(request, "dashboard/call_logs.html", {"user": user})
+        
+    context = {"user": user}
+    context.update(_get_panel_data()) # <-- Add the panel data to context
+    return render(request, "dashboard/call_logs.html", context)
 
 def call_logs_admin(request):
+    user, redirect_response = _get_session_user(request, required_role=User.RoleChoices.ADMIN)
+    if redirect_response:
+        return redirect_response
+        
+    context = {"user": user}
+    context.update(_get_panel_data()) 
+    return render(request, "dashboard/call_logs_admin.html", context)
     user, redirect_response = _get_session_user(request, required_role=User.RoleChoices.ADMIN)
     if redirect_response:
         return redirect_response

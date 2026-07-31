@@ -23,39 +23,168 @@
                 <input id="admin-caller-search" type="text" placeholder="Search by caller name or ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
             <div class="table-scroll">
-            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
-                <thead>
-                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
-                        <th scope="col" class="p-3 font-bold">Caller / ID</th>
-                        <th scope="col" class="p-3 font-bold">Risk Level</th>
-                        <th scope="col" class="p-3 font-bold">Last Call</th>
-                        <th scope="col" class="p-3 font-bold">Handled By</th>
-                        <th scope="col" class="p-3 font-bold text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
-                    <tr>
-                        <td class="p-3 font-bold">Maria Santos <span class="text-xs text-gray-400 font-normal block">TPCB10-4892</span></td>
-                        <td class="p-3"><span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold">Medium</span></td>
-                        <td class="p-3 text-gray-600">Oct 04, 2024</td>
-                        <td class="p-3 font-bold text-brand">Quev C.</td>
-                        <td class="p-3 text-right">
-                            <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs">View Details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 font-bold">Anonymous (Male, 29) <span class="text-xs text-gray-400 font-normal block">TPCB10-4888</span></td>
-                        <td class="p-3"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">High</span></td>
-                        <td class="p-3 text-gray-600">Oct 01, 2024</td>
-                        <td class="p-3 font-bold text-brand">Maria S.</td>
-                        <td class="p-3 text-right">
-                            <button type="button" onclick="openModal('modal-caller-details')" class="text-brand hover:underline font-bold text-xs">View Details</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th scope="col" class="p-3 font-bold">Caller / ID</th>
+                            <th scope="col" class="p-3 font-bold">Risk Level</th>
+                            <th scope="col" class="p-3 font-bold">Last Call</th>
+                            <th scope="col" class="p-3 font-bold">Handled By</th>
+                            <th scope="col" class="p-3 font-bold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for item in caller_list %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-3 font-bold">
+                                {{ item.caller.caller_name|default:"Anonymous" }} 
+                                {% if item.caller.caller_gender or item.caller.caller_age %}
+                                    <span class="text-xs font-normal text-gray-500">({{ item.caller.caller_gender|default:"N/A" }}, {{ item.caller.caller_age|default:"N/A" }})</span>
+                                {% endif %}
+                                <span class="text-xs text-gray-400 font-normal block">TPCB10-{{ item.caller.caller_id }}</span>
+                            </td>
+                            
+                            <td class="p-3">
+                                {% if item.latest_session.session_risk_assessment == 'High' or item.latest_session.session_risk_assessment == 'High Risk' %}
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">High</span>
+                                {% elif item.latest_session.session_risk_assessment == 'Medium' or item.latest_session.session_risk_assessment == 'Medium Risk' %}
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold">Medium</span>
+                                {% elif item.latest_session %}
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">Low</span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-[10px] rounded-full font-bold">None</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="p-3 text-gray-600">
+                                {{ item.latest_session.session_call_date|date:"M d, Y"|default:"No calls yet" }}
+                            </td>
+                            
+                            <td class="p-3 font-bold text-brand">
+                                {{ item.latest_session.user.user_first_name|default:"—" }}
+                            </td>
+                            
+                            <td class="p-3 text-right">
+                                <button type="button" 
+                                    onclick="viewCallerDetails(this)" 
+                                    data-name="{{ item.caller.caller_name|default:'Anonymous' }}"
+                                    data-id="TPCB10-{{ item.caller.caller_id }}"
+                                    data-number="{{ item.caller.caller_number|default:'N/A' }}"
+                                    data-location="{{ item.caller.caller_location|default:'N/A' }}"
+                                    data-gender="{{ item.caller.caller_gender|default:'N/A' }}"
+                                    data-age="{{ item.caller.caller_age|default:'N/A' }}"
+                                    data-status="{{ item.caller.caller_civil_status|default:'N/A' }}"
+                                    data-total="{{ item.total_sessions }}"
+                                    data-summary="{{ item.latest_session.session_summarization|default:'No summary available for the latest call.' }}"
+                                    class="text-brand hover:underline font-bold text-xs">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="p-4 text-center text-gray-500">No callers found in the database.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- MODALS SECTION -->
+<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
+    
+    <!-- Caller Details Modal -->
+    <div id="modal-caller-details" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-hidden flex flex-col relative">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <h3 class="font-bold text-gray-800 text-base sm:text-lg">Caller Details</h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl flex-shrink-0">
+                    <i class="ph-fill ph-user"></i>
+                </div>
+                <div>
+                    <h4 id="modal-caller-name" class="font-bold text-base text-gray-800"></h4>
+                    <p id="modal-caller-id" class="text-xs text-gray-500"></p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-y-4 gap-x-2 text-sm mt-4">
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Phone Number</span>
+                    <span id="modal-caller-number" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Location</span>
+                    <span id="modal-caller-location" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Gender</span>
+                    <span id="modal-caller-gender" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Age</span>
+                    <span id="modal-caller-age" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Civil Status</span>
+                    <span id="modal-caller-status" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Total Calls</span>
+                    <span id="modal-caller-total" class="font-medium text-gray-800"></span>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-[10px] text-gray-400 font-bold uppercase block mb-2">Latest Call Summary</span>
+                <p id="modal-caller-summary" class="text-sm text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 leading-relaxed"></p>
+            </div>
+
+            <div class="pt-4 flex justify-end border-t border-gray-100 mt-4">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors">
+                    Close Details
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewCallerDetails(buttonElement) {
+        // 1. Extract data from the clicked button's data attributes
+        const name = buttonElement.getAttribute('data-name');
+        const id = buttonElement.getAttribute('data-id');
+        const number = buttonElement.getAttribute('data-number');
+        const location = buttonElement.getAttribute('data-location');
+        const gender = buttonElement.getAttribute('data-gender');
+        const age = buttonElement.getAttribute('data-age');
+        const status = buttonElement.getAttribute('data-status');
+        const total = buttonElement.getAttribute('data-total');
+        const summary = buttonElement.getAttribute('data-summary');
+
+        // 2. Inject text data into modal by referencing explicit IDs
+        document.getElementById('modal-caller-name').textContent = name;
+        document.getElementById('modal-caller-id').textContent = 'Caller ID: ' + id;
+        
+        document.getElementById('modal-caller-number').textContent = number;
+        document.getElementById('modal-caller-location').textContent = location;
+        document.getElementById('modal-caller-gender').textContent = gender;
+        document.getElementById('modal-caller-age').textContent = age;
+        document.getElementById('modal-caller-status').textContent = status;
+        document.getElementById('modal-caller-total').textContent = total + ' Sessions';
+        
+        document.getElementById('modal-caller-summary').textContent = summary;
+
+        // 3. Open the modal (Ensure openModal logic toggles the backdrop properly)
+        openModal('modal-caller-details');
+    }
+</script>
 {% endblock %}

@@ -35,6 +35,30 @@ class CallSession(models.Model):
     session_additional_comments = models.TextField(blank=True, null=True)
     session_summarization = models.TextField()
 
+    def save(self, *args, **kwargs):
+        # Only generate a new ID if this is a new record
+        if not self.session_id:
+            prefix = 'TPCB10-'
+            
+            # Find the most recently created session with this prefix
+            last_session = CallSession.objects.filter(
+                session_id__startswith=prefix
+            ).order_by('-session_id').first()
+            
+            if last_session:
+                # Split 'TPCB10-0005' -> ['TPCB10', '0005']
+                # Grab the '0005', turn into integer, and add 1
+                last_number = int(last_session.session_id.split('-')[1])
+                new_number = last_number + 1
+            else:
+                # If no records exist, start at 1
+                new_number = 1
+                
+            # Format the new number with leading zeros (e.g., 0001, 0002)
+            self.session_id = f"{prefix}{new_number:04d}"
+            
+        super().save(*args, **kwargs)
+        
     class Meta:
         db_table = 'call_session'
 

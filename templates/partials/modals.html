@@ -1,6 +1,6 @@
 <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
     <!-- Caller Details Modal -->
-    <div id="modal-caller-details" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
+    {% comment %} <div id="modal-caller-details" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
         <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
             <h3 class="font-bold text-gray-800 text-lg">Caller Details</h3>
             <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
@@ -26,7 +26,7 @@
                 <p class="text-xs text-gray-600 bg-gray-50 p-3 rounded border border-gray-100">Relationship conflict leading to emotional distress. Recommended breathing exercises and referred to PsychHub Co. (Medium Risk).</p>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     <!-- Request Leave Modal -->
     <div id="modal-request-leave" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
@@ -57,7 +57,7 @@
         </div>
     </div>
 
-    <!-- Assign Shift Modal -->
+    {% comment %} <!-- Assign Shift Modal -->
     <div id="modal-assign-shift" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl overflow-y-auto custom-scrollbar">
         <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
             <h3 class="font-bold text-gray-800 text-lg">Assign New Shift</h3>
@@ -89,7 +89,7 @@
                 Confirm Assignment
             </button>
         </div>
-    </div>
+    </div> {% endcomment %}
 
 <!-- Add Responder Modal (email only) -->
 <div id="modal-add-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-sm shadow-2xl">
@@ -277,7 +277,7 @@
     </div>
 
     <!-- View Docs Modal -->
-    <div id="modal-view-docs" class="modal-content hidden bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
+    {% comment %} <div id="modal-view-docs" class="modal-content hidden bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
         <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
             <h3 class="font-bold text-gray-800 text-base sm:text-lg">Session Document: TPCB10-4892</h3>
             <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
@@ -345,5 +345,5 @@
                 </button>
             </div>
         </div>
-    </div>
+    </div> {% endcomment %}
 </div>

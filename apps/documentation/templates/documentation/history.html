@@ -4,22 +4,28 @@
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
     <div class="max-w-6xl mx-auto w-full space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Call Logs & History</h1>
-                <p class="text-gray-500">Review past documented sessions and transcripts.</p>
+        
+        <!-- Form for the Date Filter -->
+        <form method="GET" action="{% url 'documentation:history' %}">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">My Call Logs</h1>
+                    <p class="text-gray-500">Review your past documented sessions and transcripts.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <select name="date_filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                        <option value="">All Time</option>
+                        <option value="this_month" {% if current_date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                        <option value="last_month" {% if current_date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+                    </select>
+                    
+                    <button type="submit" class="px-4 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-funnel"></i> Filter
+                    </button>
+                </div>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option>This Month</option>
-                    <option>Last 30 Days</option>
-                    <option>All Time</option>
-                </select>
-                <button type="button" class="px-4 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-funnel"></i> Filter
-                </button>
-            </div>
-        </div>
+        </form>
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="table-scroll">
@@ -33,26 +39,168 @@
                     </tr>
                 </thead>
                 <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
+                    
+                    {% for session in sessions %}
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-4892</td>
-                        <td class="p-4">Oct 04, 2024 • 06:12 PM</td>
-                        <td class="p-4"><span class="text-yellow-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> Medium Risk</span></td>
+                        <td class="p-4 font-mono text-gray-500 font-bold">{{ session.session_id }}</td>
+                        
+                        <td class="p-4">
+                            {{ session.session_call_date|date:"M d, Y" }} • {{ session.session_time_called|time:"h:i A" }}
+                        </td>
+                        
+                        <td class="p-4">
+                            {% if session.session_risk_assessment == 'High Risk' %}
+                                <span class="text-red-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> High Risk</span>
+                            {% elif session.session_risk_assessment == 'Medium Risk' %}
+                                <span class="text-yellow-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> Medium Risk</span>
+                            {% else %}
+                                <span class="text-green-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-check-circle text-lg"></i> Low Risk</span>
+                            {% endif %}
+                        </td>
+                        
                         <td class="p-4 text-center">
-                            <button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20"><i class="ph-bold ph-file-text"></i> View Docs</button>
+                            <button type="button" 
+                                onclick="populateAndOpenModal(this)" 
+                                data-id="TPCB10-{{ session.session_id }}"
+                                data-datetime="{{ session.session_call_date|date:'M d, Y' }} • {{ session.session_time_called|time:'h:i A' }}"
+                                data-responder="{{ session.user.user_first_name|default:'Unknown' }}"
+                                data-caller="{{ session.caller.caller_name|default:'Unknown Caller' }}"
+                                data-risk="{{ session.session_risk_assessment }}"
+                                data-reason="{{ session.session_reason_for_calling|default:'No reason provided.' }}"
+                                data-intervention="{{ session.session_intervention|default:'No intervention notes provided.' }}"
+                                class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20">
+                                <i class="ph-bold ph-file-text"></i> View Docs
+                            </button>
                         </td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-4888</td>
-                        <td class="p-4">Oct 01, 2024 • 11:45 PM</td>
-                        <td class="p-4"><span class="text-red-600 font-bold flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-lg"></i> High Risk</span></td>
-                        <td class="p-4 text-center">
-                            <button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20"><i class="ph-bold ph-file-text"></i> View Docs</button>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="p-4 text-center text-gray-500 py-8">
+                            You have no call sessions found.
                         </td>
                     </tr>
+                    {% endfor %}
+
                 </tbody>
             </table>
             </div>
         </div>
     </div>
 </div>
+
+<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
+    
+    <!-- View Docs Modal -->
+    <div id="modal-view-docs" class="modal-content hidden bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col relative">
+        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
+            <h3 id="modal-session-id" class="font-bold text-gray-800 text-base sm:text-lg">Session Document: </h3>
+            <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <div class="p-4 sm:p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Date & Time</span>
+                    <span id="modal-datetime" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Responder on Duty</span>
+                    <span id="modal-responder" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Caller Name</span>
+                    <span id="modal-caller" class="font-medium text-gray-800"></span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Risk Assessment</span>
+                    <!-- Container for the risk badge -->
+                    <span id="modal-risk-badge"></span>
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Reason for Calling</span>
+                <p id="modal-reason" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm"></p>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Intervention & Notes</span>
+                <p id="modal-intervention" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
+            </div>
+            
+            <!-- Static AI elements -->
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-sparkle"></i> AI Suggested Referrals Provided</span>
+                <div class="bg-brand-light/30 border border-brand/20 p-3 rounded-lg flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white flex-shrink-0"><i class="ph-bold ph-hospital"></i></div>
+                    <div>
+                        <p class="font-bold text-gray-800 text-sm">PsychHub Co. (Dr. Bridget Olowojeje)</p>
+                        <p class="text-xs text-gray-500">Cebu City • Contact: bridget.olowojeje@email.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-waveform"></i> AI Audio Transcript</span>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 h-[300px] overflow-y-auto custom-scrollbar space-y-4 text-sm">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 ml-2">06:12 PM - Quev C. (Responder)</span>
+                        <div class="bg-brand text-white p-3 rounded-2xl rounded-tl-sm self-start max-w-[90%] sm:max-w-[80%] shadow-sm">
+                            Tawag Paglaum, maayong gabii. Unsaon nako pag tabang nimo karon?
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 mr-2">06:13 PM - Maria Santos (Caller)</span>
+                        <div class="bg-white border border-gray-200 text-gray-800 p-3 rounded-2xl rounded-tr-sm self-end max-w-[90%] sm:max-w-[80%] shadow-sm">
+                            Hello... uhm, naglisod lang gyud ko karon. I feel so overwhelmed sa school and sige mig away sa ako partner. Dili na nako kaya...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 mt-4">
+                <button type="button" class="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-printer"></i> Print Record
+                </button>
+                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors">
+                    Close Document
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- SCRIPTS -->
+<script>
+    function populateAndOpenModal(buttonElement) {
+        // 1. Extract data from the clicked button's data attributes
+        const sessionId = buttonElement.getAttribute('data-id');
+        const datetime = buttonElement.getAttribute('data-datetime');
+        const responder = buttonElement.getAttribute('data-responder');
+        const caller = buttonElement.getAttribute('data-caller');
+        const risk = buttonElement.getAttribute('data-risk');
+        const reason = buttonElement.getAttribute('data-reason');
+        const intervention = buttonElement.getAttribute('data-intervention');
+
+        // 2. Inject text data into modal
+        document.getElementById('modal-session-id').textContent = 'Session Document: ' + sessionId;
+        document.getElementById('modal-datetime').textContent = datetime;
+        document.getElementById('modal-responder').textContent = responder;
+        document.getElementById('modal-caller').textContent = caller;
+        document.getElementById('modal-reason').textContent = reason;
+        document.getElementById('modal-intervention').textContent = intervention;
+
+        // 3. Format Risk Badge based on the data
+        const riskBadgeContainer = document.getElementById('modal-risk-badge');
+        let riskClass = 'bg-green-100 text-green-700'; // Default Low
+        
+        if (risk && risk.includes('High')) {
+            riskClass = 'bg-red-100 text-red-700';
+        } else if (risk && risk.includes('Medium')) {
+            riskClass = 'bg-yellow-100 text-yellow-700';
+        }
+        
+        riskBadgeContainer.innerHTML = `<span class="px-2 py-1 ${riskClass} text-xs rounded-full font-bold inline-block">${risk || 'Unknown'}</span>`;
+
+        openModal('modal-view-docs');
+    }
+</script>
 {% endblock %}

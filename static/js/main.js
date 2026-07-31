@@ -392,64 +392,64 @@ function toggleDocMode(mode) {
 }
 
 // --- Simulated AI Summarization Workflow (Auto-fill -> Summarize -> Save) ---
-function triggerAI() {
-    const btn = document.getElementById('ai-action-btn');
-    if (!btn) return;
+// function triggerAI() {
+//     const btn = document.getElementById('ai-action-btn');
+//     if (!btn) return;
 
-    if (aiStep === 0) {
-        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> AUTO-FILLING...';
-        btn.classList.add('opacity-80', 'pointer-events-none');
+//     if (aiStep === 0) {
+//         btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> AUTO-FILLING...';
+//         btn.classList.add('opacity-80', 'pointer-events-none');
 
-        setTimeout(() => {
-            if(document.getElementById('aiName')) document.getElementById('aiName').value = 'Maria Santos';
-            if(document.getElementById('aiGender')) document.getElementById('aiGender').value = 'Female';
-            if(document.getElementById('aiStatus')) document.getElementById('aiStatus').value = 'Single';
-            if(document.getElementById('aiAge')) document.getElementById('aiAge').value = '22';
-            if(document.getElementById('aiLocation')) document.getElementById('aiLocation').value = 'Mandaue City';
-            if(document.getElementById('aiReason')) document.getElementById('aiReason').value = 'Relationship';
-            if(document.getElementById('aiRisk')) document.getElementById('aiRisk').value = 'Medium Risk';
-            if(document.getElementById('aiIntervention')) document.getElementById('aiIntervention').value = 'Active listening provided. Validated feelings regarding conflict with partner. Conducted standard risk assessment; no immediate plan but high emotional distress. Recommended breathing exercises.';
-            if(document.getElementById('aiComments')) document.getElementById('aiComments').value = 'Caller agreed to follow up with Bridget Olowojeje (PsychHub Co.) located in Cebu City. Texted clinic details to caller.';
+//         setTimeout(() => {
+//             if(document.getElementById('aiName')) document.getElementById('aiName').value = 'Maria Santos';
+//             if(document.getElementById('aiGender')) document.getElementById('aiGender').value = 'Female';
+//             if(document.getElementById('aiStatus')) document.getElementById('aiStatus').value = 'Single';
+//             if(document.getElementById('aiAge')) document.getElementById('aiAge').value = '22';
+//             if(document.getElementById('aiLocation')) document.getElementById('aiLocation').value = 'Mandaue City';
+//             if(document.getElementById('aiReason')) document.getElementById('aiReason').value = 'Relationship';
+//             if(document.getElementById('aiRisk')) document.getElementById('aiRisk').value = 'Medium Risk';
+//             if(document.getElementById('aiIntervention')) document.getElementById('aiIntervention').value = 'Active listening provided. Validated feelings regarding conflict with partner. Conducted standard risk assessment; no immediate plan but high emotional distress. Recommended breathing exercises.';
+//             if(document.getElementById('aiComments')) document.getElementById('aiComments').value = 'Caller agreed to follow up with Bridget Olowojeje (PsychHub Co.) located in Cebu City. Texted clinic details to caller.';
 
-            btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">SUMMARIZE</span>';
-            btn.classList.remove('opacity-80', 'pointer-events-none');
-            aiStep = 1;
-        }, 1500);
+//             btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">SUMMARIZE</span>';
+//             btn.classList.remove('opacity-80', 'pointer-events-none');
+//             aiStep = 1;
+//         }, 1500);
 
-    } else if (aiStep === 1) {
-        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SUMMARIZING...';
-        btn.classList.add('opacity-80', 'pointer-events-none');
+//     } else if (aiStep === 1) {
+//         btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SUMMARIZING...';
+//         btn.classList.add('opacity-80', 'pointer-events-none');
 
-        setTimeout(() => {
-            const summaryContainer = document.getElementById('ai-summary-container');
-            const summaryText = document.getElementById('aiGeneratedSummary');
+//         setTimeout(() => {
+//             const summaryContainer = document.getElementById('ai-summary-container');
+//             const summaryText = document.getElementById('aiGeneratedSummary');
             
-            if(summaryContainer) summaryContainer.classList.remove('hidden');
-            if(summaryText) summaryText.value = 'AI Summary:\nCaller named Maria Santos (Female, 22, Single) from Mandaue City called due to relationship conflicts. Risk level assessed as Medium Risk. Active listening provided, validated feelings, and recommended breathing exercises. Caller agreed to follow up with PsychHub Co. in Cebu City.';
+//             if(summaryContainer) summaryContainer.classList.remove('hidden');
+//             if(summaryText) summaryText.value = 'AI Summary:\nCaller named Maria Santos (Female, 22, Single) from Mandaue City called due to relationship conflicts. Risk level assessed as Medium Risk. Active listening provided, validated feelings, and recommended breathing exercises. Caller agreed to follow up with PsychHub Co. in Cebu City.';
 
-            btn.innerHTML = '<i class="ph-fill ph-floppy-disk text-xl"></i> <span id="ai-btn-text">SAVE RECORD</span>';
-            btn.classList.remove('opacity-80', 'pointer-events-none');
-            aiStep = 2;
-        }, 1500);
+//             btn.innerHTML = '<i class="ph-fill ph-floppy-disk text-xl"></i> <span id="ai-btn-text">SAVE RECORD</span>';
+//             btn.classList.remove('opacity-80', 'pointer-events-none');
+//             aiStep = 2;
+//         }, 1500);
 
-    } else if (aiStep === 2) {
-        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SAVING...';
-        btn.classList.add('opacity-80', 'pointer-events-none');
+//     } else if (aiStep === 2) {
+//         btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-xl"></i> SAVING...';
+//         btn.classList.add('opacity-80', 'pointer-events-none');
 
-        setTimeout(() => {
-            btn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> APPROVED & SAVED';
-            btn.classList.remove('bg-brand');
-            btn.classList.add('bg-blue-600');
+//         setTimeout(() => {
+//             btn.innerHTML = '<i class="ph-fill ph-check-circle text-xl"></i> APPROVED & SAVED';
+//             btn.classList.remove('bg-brand');
+//             btn.classList.add('bg-blue-600');
             
-            setTimeout(() => {
-                btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">SUMMARIZE</span>';
-                btn.classList.add('bg-brand');
-                btn.classList.remove('bg-blue-600', 'opacity-80', 'pointer-events-none');
-                aiStep = 0;
-            }, 2000);
-        }, 1000);
-    }
-}
+//             setTimeout(() => {
+//                 btn.innerHTML = '<i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i> <span id="ai-btn-text">SUMMARIZE</span>';
+//                 btn.classList.add('bg-brand');
+//                 btn.classList.remove('bg-blue-600', 'opacity-80', 'pointer-events-none');
+//                 aiStep = 0;
+//             }, 2000);
+//         }, 1000);
+//     }
+// }
 
 // --- Chart.js Initialization ---
 function initCharts() {
