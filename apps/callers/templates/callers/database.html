@@ -9,17 +9,17 @@
                 <h1 class="text-2xl font-bold text-gray-800">Callers Database</h1>
                 <p class="text-gray-500">View caller history and handling responder information.</p>
             </div>
-            <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                <option>All Risk Levels</option>
-                <option>High Risk</option>
-                <option>Medium Risk</option>
-                <option>Low Risk</option>
+            <select id="risk-filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                <option value="all">All Risk Levels</option>
+                <option value="high">High Risk</option>
+                <option value="medium">Medium Risk</option>
+                <option value="low">Low Risk</option>
             </select>
         </div>
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
-                <label for="admin-caller-search" class="sr-only">Search by caller name or ID</label>
+                <label for="caller-search" class="sr-only">Search by caller name or ID</label>
                 <input id="admin-caller-search" type="text" placeholder="Search by caller name or ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
             <div class="table-scroll">
@@ -186,5 +186,56 @@
         // 3. Open the modal (Ensure openModal logic toggles the backdrop properly)
         openModal('modal-caller-details');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('admin-caller-search');
+        const riskFilter = document.getElementById('risk-filter');
+        
+        // Attach event listeners to BOTH inputs
+        if (searchInput) searchInput.addEventListener('input', filterTable);
+        if (riskFilter) riskFilter.addEventListener('change', filterTable);
+
+        function filterTable() {
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const selectedRisk = riskFilter ? riskFilter.value : 'all';
+            
+            const tableRows = document.querySelectorAll('tbody tr');
+
+            tableRows.forEach(row => {
+                // Skip the "No callers found" empty state row 
+                if (row.cells.length === 1) return;
+
+                // Column 0 contains Name/ID, Column 1 contains Risk Level
+                const callerInfoCell = row.cells[0];
+                const riskLevelCell = row.cells[1];
+                
+                if (callerInfoCell && riskLevelCell) {
+                    const textMatches = callerInfoCell.textContent.toLowerCase().includes(searchTerm);
+                    
+                    // Check if the risk level text inside the badge matches the selected dropdown value
+                    const cellRiskText = riskLevelCell.textContent.toLowerCase().trim();
+                    let riskMatches = false;
+                    
+                    if (selectedRisk === 'all') {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'high' && cellRiskText.includes('high')) {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'medium' && cellRiskText.includes('medium')) {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'low' && cellRiskText.includes('low')) {
+                        riskMatches = true;
+                    }
+
+                    // Show the row ONLY if it matches BOTH the text search and the dropdown filter
+                    if (textMatches && riskMatches) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
+
 </script>
 {% endblock %}

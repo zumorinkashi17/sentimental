@@ -21,7 +21,7 @@
                     <input id="callSessionNo" type="text" class="form-input bg-gray-50 font-mono text-gray-500" value="{{ next_session_id|default:'TPCB10-XXXX' }}" readonly>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="form-label" for="callDate">Date:</label><input id="callDate" type="text" class="form-input" value="October 04, 2024"></div>
+                    <div><label class="form-label" for="callDate">Date:</label><input id="callDate" type="text" class="form-input" readonly></div>
                     <div>
                         <label class="form-label" for="callShift">Shift:</label>
                         <select id="callShift" class="form-input bg-white appearance-none">
@@ -108,6 +108,23 @@
         }
         return cookieValue;
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('callDate');
+        
+        if (dateInput) {
+            // Fetch current date locked to Philippine Time
+            const today = new Date().toLocaleDateString('en-US', {
+                timeZone: 'Asia/Manila',
+                month: 'long',
+                day: '2-digit',
+                year: 'numeric'
+            });
+            
+            // Output will be formatted like "August 02, 2026"
+            dateInput.value = today;
+        }
+    });
 
     async function triggerAI() {
        const shiftInput = document.getElementById('callShift');
