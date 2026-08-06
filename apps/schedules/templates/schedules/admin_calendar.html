@@ -12,12 +12,8 @@
                 <p class="text-gray-500">Manage schedules, approve leaves, and view AI recommendations.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <!-- NEW Add Shift Button -->
-                <button type="button" onclick="openModal('modal-add-shift')" class="bg-white border border-gray-200 text-gray-700 text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 shadow-sm w-full sm:w-auto">
+                <button type="button" onclick="openModal('modal-add-shift')" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark shadow-sm w-full sm:w-auto">
                     <i class="ph-bold ph-plus text-lg"></i> Add Shift
-                </button>
-                <button type="button" onclick="openModal('modal-assign-shift')" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark shadow-sm w-full sm:w-auto">
-                    <i class="ph-bold ph-calendar-plus text-lg"></i> Assign New Shift
                 </button>
             </div>
         </div>
@@ -33,27 +29,105 @@
             </div>
         </div>
 
+        <!-- NEW: Schedule Settings Section -->
         <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-            <!-- Current Active Roster -->
-            <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[400px]">
-                <div class="flex justify-between items-center mb-4 gap-2">
-                    <h2 class="text-sm font-bold text-gray-700 uppercase">Today's Roster (Oct 24)</h2>
-                    <select class="form-input bg-gray-50 w-auto py-1 text-xs border-gray-200">
-                        <option>All Shifts</option>
-                        <option>Morning (06:00 - 14:00)</option>
-                        <option>Afternoon (14:00 - 22:00)</option>
-                        <option>Night (22:00 - 06:00)</option>
-                    </select>
-                </div>
-                <div class="overflow-y-auto flex-1 custom-scrollbar pr-2">
-                    <div class="space-y-3">
-                        <div class="p-3 border border-brand/20 bg-brand-light/20 rounded-lg flex justify-between items-center gap-2">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-brand-light text-brand font-bold flex items-center justify-center flex-shrink-0">Q</div>
-                                <div class="min-w-0"><p class="font-bold text-gray-800 text-sm truncate">Quev C.</p><p class="text-[10px] text-brand uppercase">Afternoon Shift (Active)</p></div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h2 class="text-sm font-bold text-gray-800 mb-5 uppercase">Schedule Settings</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Responder</label>
+                        <select id="responderShift" class="form-input bg-white appearance-none text-sm border-gray-200 py-2 rounded-lg cursor-pointer w-full">
+                            <option value="" disabled selected hidden>Select a Responder</option>
+                            {% for responder in responders %}
+                                <option value="{{ responder.user_id }}">
+                                    {{ responder.user_first_name }} {{ responder.user_last_name }}
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>No responders available</option>
+                            {% endfor %}
+                        </select>
+                        
+                        <!-- NEW: Container for Upcoming Approved Leaves -->
+                        <div id="responderLeavesContainer" class="hidden mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg shadow-sm">
+                            <div class="flex items-center gap-1.5 mb-1.5">
+                                <i class="ph-fill ph-calendar-check text-blue-500"></i>
+                                <p class="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Upcoming Approved Time-Off</p>
                             </div>
-                            <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold flex-shrink-0">Online</span>
+                            <div id="responderLeavesList" class="flex flex-wrap gap-1.5 mt-1">
+                                <!-- JS will inject date pills here -->
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Schedule Period (Start & End) -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Schedule Period</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" id="scheduleStartPeriod" class="form-input bg-white w-full text-sm border-gray-200 py-2 rounded-lg text-gray-700 cursor-pointer" required>
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="date" id="scheduleEndPeriod" class="form-input bg-white w-full text-sm border-gray-200 py-2 rounded-lg text-gray-700 cursor-pointer" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Shift -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Shift</label>
+                        <select id="callShiftSchedule" class="form-input bg-white appearance-none text-sm border-gray-200 py-2 rounded-lg cursor-pointer">
+                            <option value="" disabled selected hidden>Select a Shift</option>
+                            {% for shift in shifts %}
+                                <option value="{{ shift.shift_id }}">
+                                    ({{ shift.shift_start_time|time:"h:i A" }} - {{ shift.shift_end_time|time:"h:i A" }})
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>No shifts available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Day Off Type & Generation -->
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pt-4 border-t border-gray-100">
+                    <!-- Custom Rotation Type: Monday - Sunday (Checkboxes instead of Radio) -->
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-600 mb-2">Off Day</label>
+                        <div class="flex flex-wrap items-center gap-4 text-sm text-gray-700">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="monday" class="text-brand focus:ring-brand rounded" checked>
+                                <span>Monday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="tuesday" class="text-brand focus:ring-brand rounded">
+                                <span>Tuesday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="wednesday" class="text-brand focus:ring-brand rounded">
+                                <span>Wednesday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="thursday" class="text-brand focus:ring-brand rounded">
+                                <span>Thursday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="friday" class="text-brand focus:ring-brand rounded">
+                                <span>Friday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="saturday" class="text-brand focus:ring-brand rounded">
+                                <span>Saturday</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" name="day_off" value="sunday" class="text-brand focus:ring-brand rounded">
+                                <span>Sunday</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div>
+                        <button type="button" id="save-schedule-btn" onclick="saveSchedule()" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark shadow-sm w-full sm:w-auto">
+                            <i class="ph-bold ph-calendar-plus text-lg"></i> Generate Schedule
+                        </button>
                     </div>
                 </div>
             </div>
@@ -63,23 +137,174 @@
                 <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase">Pending Day Offs</h2>
                 <div class="overflow-y-auto flex-1 custom-scrollbar">
                     <div class="space-y-4" id="leave-requests-container">
-                        <div id="leave-row-1" class="border border-gray-100 p-3 rounded-lg bg-gray-50">
-                            <div class="flex justify-between items-start mb-2 gap-2">
-                                <span class="font-bold text-sm text-gray-800">Quev Cruz</span>
-                                <span class="text-xs font-bold text-gray-500 whitespace-nowrap">Oct 25</span>
+                        
+                        <!-- NEW: Dynamic Loop for Pending Leaves -->
+                        {% for leave in pending_leaves %}
+                            <div id="leave-row-{{ leave.request_id }}" class="border border-gray-100 p-3 rounded-lg bg-gray-50 hover:border-brand/30 transition-colors shadow-sm">
+                                <div class="flex justify-between items-start mb-2 gap-2">
+                                    <span class="font-bold text-sm text-gray-800">{{ leave.user.user_first_name }} {{ leave.user.user_last_name }}</span>
+                                    <span class="text-xs font-bold text-brand bg-brand/10 px-2 py-1 rounded whitespace-nowrap">{{ leave.requested_date|date:"M d, Y" }}</span>
+                                </div>
+                                
+                                <p class="text-xs text-gray-600 mb-1"><span class="font-bold text-gray-700">Reason:</span> {{ leave.requested_reason }}</p>
+                                
+                                <!-- Optional Notes -->
+                                {% if leave.requested_additional_notes %}
+                                    <p class="text-[11px] text-gray-500 mb-3 italic bg-white p-2 rounded border border-gray-100">"{{ leave.requested_additional_notes }}"</p>
+                                {% else %}
+                                    <div class="mb-3"></div>
+                                {% endif %}
+                                
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="processDayOff('{{ leave.request_id }}', 'approve')" class="flex-1 bg-brand text-white py-1.5 rounded text-xs font-bold hover:bg-brand-dark transition-colors shadow-sm">Approve</button>
+                                    <button type="button" onclick="processDayOff('{{ leave.request_id }}', 'deny')" class="flex-1 bg-red-500 text-white py-1.5 rounded text-xs font-bold hover:bg-red-600 transition-colors shadow-sm">Deny</button>
+                                </div>
                             </div>
-                            <span class="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold uppercase mb-2 inline-block">Conflict: High Volume predicted</span>
-                            <p class="text-xs text-gray-500 mb-3">Reason: Personal Emergency</p>
-                            <div class="flex gap-2">
-                                <button type="button" class="flex-1 bg-brand text-white py-1.5 rounded text-xs font-bold hover:bg-brand-dark">Approve</button>
-                                <button type="button" class="flex-1 bg-red-500 text-white py-1.5 rounded text-xs font-bold hover:bg-red-600">Deny</button>
+                        {% empty %}
+                            <!-- Empty State if no pending requests -->
+                            <div class="p-6 text-center border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-gray-400 mt-4">
+                                <i class="ph-bold ph-check-circle text-3xl mb-2 text-green-500"></i>
+                                <p class="text-sm font-medium text-gray-500">All caught up!</p>
+                                <p class="text-xs text-gray-400 mt-1">No pending requests.</p>
                             </div>
-                        </div>
+                        {% endfor %}
+                        
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- All Scheduled Responders -->
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[700px]">
+            <div class="flex justify-between items-center mb-4 gap-2">
+                <h2 class="text-sm font-bold text-gray-700 uppercase">Scheduled Responders</h2>
+            </div>
+            <div class="overflow-y-auto flex-1 custom-scrollbar pr-2">
+                <div class="space-y-3">
+                    <!-- Loop through the pre-grouped list from views.py -->
+                    {% for roster in grouped_roster %}
+                    
+                    <!-- Row Design (Grouped by User) -->
+                    <div class="flex justify-between items-center p-4 border border-gray-100 bg-white hover:border-brand/30 transition-all rounded-xl shadow-sm mb-3">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <div class="w-12 h-12 rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center flex-shrink-0 border border-brand/20 text-lg">
+                                {{ roster.user.user_first_name|first|upper }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-gray-800 text-base truncate">
+                                    {{ roster.user.user_first_name }} {{ roster.user.user_last_name }}
+                                </p>
+                                <div class="mt-1 space-y-1">
+                                    {% for schedule in roster.schedules %}
+                                    <p class="text-xs text-gray-500 font-medium flex items-center gap-1.5 flex-wrap">
+                                        <span class="flex items-center gap-1 text-brand bg-brand/10 px-2 py-0.5 rounded-full">
+                                            <i class="ph-bold ph-clock"></i> {{ schedule.shift.shift_start_time|time:"h:i A" }} - {{ schedule.shift.shift_end_time|time:"h:i A" }}
+                                        </span>
+                                        <span class="text-gray-300">|</span>
+                                        <span class="flex items-center gap-1">
+                                            <i class="ph-bold ph-calendar-blank"></i> {{ schedule.shift_start_date|date:"M d" }} to {{ schedule.shift_end_date|date:"M d" }}
+                                        </span>
+                                        <button type="button" onclick="openEditScheduleModal('{{ roster.user.user_id }}', '{{ schedule.daily_statuses_json|escapejs }}', '{{ schedule.shift_start_date|date:'Y-m-d' }}', '{{ schedule.shift_end_date|date:'Y-m-d' }}', '{{ schedule.shift.shift_id }}', '{{ schedule.shift.shift_start_time|time:"h:i A" }} - {{ schedule.shift.shift_end_time|time:"h:i A" }}')" class="text-gray-400 hover:text-brand transition-all ml-2" title="Edit this block">
+                                            <i class="ph-bold ph-pencil-simple"></i>
+                                        </button>
+                                    </p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                            <button type="button" onclick="viewCalendar('{{ roster.user.user_id }}', '{{ roster.user.user_first_name }} {{ roster.user.user_last_name }}')" class="ml-1 sm:ml-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-bold rounded-lg border border-gray-200 transition-all flex items-center gap-1.5 shadow-sm">
+                                <i class="ph-bold ph-calendar"></i> <span class="hidden sm:inline">View Full Calendar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Generate ONE calendar template per user -->
+                    <template id="calendar-data-{{ roster.user.user_id }}">
+                        <div class="bg-white p-3 sm:p-6 rounded-2xl border border-gray-100 shadow-sm overflow-y-auto max-h-[65vh] custom-scrollbar space-y-10">
+                            {% for month_data in roster.months %}
+                            <div>
+                                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2 min-w-[560px]">
+                                    <h2 class="text-lg font-bold text-brand flex items-center gap-2">
+                                        <i class="ph-bold ph-calendar"></i> {{ month_data.month_name }} {{ month_data.year }}
+                                    </h2>
+                                </div>
+                                
+                                <div class="grid grid-cols-7 gap-2 md:gap-4 min-w-[560px]">
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Sun</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Mon</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Tue</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Wed</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Thu</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Fri</div>
+                                    <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Sat</div>
+                                    
+                                    {% for day in month_data.grid %}
+                                        {% if not day.is_current_month %}
+                                            <div class="p-2 sm:p-3 border border-gray-50 rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start bg-gray-50/30 opacity-60">
+                                                <span class="text-xs font-bold text-gray-300">{{ day.day_num }}</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="p-2 sm:p-3 border 
+                                                {% if day.is_today %} border-2 border-brand bg-brand text-white shadow-md
+                                                {% elif day.shift %} border-brand/30 bg-brand-light/20
+                                                {% elif day.is_day_off %} border-blue-100 bg-blue-50/30
+                                                {% else %} border-gray-100 bg-white
+                                                {% endif %} 
+                                                rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start relative transition-all">
+                                                
+                                                <span class="text-xs font-bold {% if day.is_today %} text-white {% elif day.shift %} text-brand {% else %} text-gray-600 {% endif %}">
+                                                    {{ day.day_num }}{% if day.is_today %} (Today){% endif %}
+                                                </span>
+                                                
+                                                {% if day.is_day_off %}
+                                                    <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-400"></div>
+                                                    <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-blue-500{% endif %}">Day Off</span>
+                                               {% elif day.is_leave %}
+                                                    <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-400"></div>
+                                                    <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-orange-500{% endif %}">Leave</span>
+                                                {% elif day.shift %}
+                                                    <span class="mt-auto text-[8px] sm:text-[10px] font-medium text-center {% if day.is_today %}text-white/90{% else %}text-brand{% endif %}">
+                                                        {{ day.shift.shift_start_time|time:"h:i A" }}<br>-<br>{{ day.shift.shift_end_time|time:"h:i A" }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                        </div>
+                    </template>
+                                        
+                    {% empty %}
+                    <div class="p-6 text-center border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-gray-400">
+                        <i class="ph-bold ph-calendar-slash text-3xl mb-2"></i>
+                        <p class="text-sm font-medium text-gray-500">No active schedules found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
+    
+    <!-- Add Shift Modal -->
+    <div id="modal-add-shift" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col relative">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
+            <h3 class="font-bold text-gray-800 text-lg">Add New Shift to Catalog</h3>
+            <button type="button" onclick="closeModal('modal-add-shift')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+        </div>
+        
         <!-- NEW: Shift Catalog Display Table -->
         <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mt-6">
             <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase">Shift Catalog</h2>
@@ -88,7 +313,6 @@
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
                         <tr>
                             <th class="px-4 py-3">Shift ID</th>
-                            <th class="px-4 py-3">Shift Name</th>
                             <th class="px-4 py-3">Start Time</th>
                             <th class="px-4 py-3">End Time</th>
                         </tr>
@@ -97,11 +321,6 @@
                         {% for shift in shifts %}
                         <tr class="border-b border-gray-50 hover:bg-gray-50">
                             <td class="px-4 py-3 font-medium text-gray-900">#{{ shift.shift_id }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 bg-brand-light/30 text-brand rounded font-bold text-xs">
-                                    {{ shift.shift_name }}
-                                </span>
-                            </td>
                             <td class="px-4 py-3">{{ shift.shift_start_time|time:"h:i A" }}</td>
                             <td class="px-4 py-3">{{ shift.shift_end_time|time:"h:i A" }}</td>
                         </tr>
@@ -116,33 +335,10 @@
                 </table>
             </div>
         </div>
+            
 
-    </div>
-</div>
-
-<!-- NEW: Add Shift Modal -->
-<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
-    
-    <!-- NEW: Add Shift Modal (Inner Content) -->
-    <div id="modal-add-shift" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col relative">
-        <!-- Modal Header -->
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
-            <h3 class="font-bold text-gray-800 text-lg">Add New Shift to Catalog</h3>
-            <button type="button" onclick="closeModal('modal-add-shift')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="ph-bold ph-x text-xl"></i>
-            </button>
-        </div>
-        
         <!-- Modal Body -->
         <div class="p-6 space-y-4 flex-1">
-            <div>
-                <label class="form-label" for="shiftName">Shift Designation</label>
-                <select id="shiftName" class="form-input bg-white w-full">
-                    <option value="Morning">Morning</option>
-                    <option value="Afternoon">Afternoon</option>
-                    <option value="Night">Night</option>
-                </select>
-            </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="form-label" for="shiftStart">Start Time</label>
@@ -165,50 +361,104 @@
         
     </div>
 
-    <!-- Assign Shift Modal -->
-    <div id="modal-assign-shift" class="modal-content hidden bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl flex flex-col relative overflow-hidden">
-        
+    <!-- Edit Days Off Modal -->
+    <div id="modal-edit-schedule" class="modal-content hidden bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col relative transform transition-all">
         <!-- Modal Header -->
-        <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center flex-shrink-0">
-            <h3 class="font-bold text-gray-800 text-lg">Assign New Shift</h3>
-            <button type="button" onclick="closeModal('modal-assign-shift')" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close">
-                <i class="ph-bold ph-x text-xl"></i>
+        <div class="p-6 border-b border-gray-100 flex justify-between items-start bg-white flex-shrink-0">
+            <div>
+                <h3 class="font-bold text-gray-800 text-xl flex items-center gap-2">
+                    <i class="ph-fill ph-calendar-edit text-brand"></i> Edit Daily Schedule
+                </h3>
+                <p id="edit-modal-subtitle" class="text-xs text-gray-500 font-medium mt-1 uppercase tracking-wide"></p>
+            </div>
+            <button type="button" onclick="closeModal('modal-edit-schedule')" class="text-gray-400 hover:text-red-500 bg-gray-50 hover:bg-red-50 h-8 w-8 rounded-full flex items-center justify-center transition-colors">
+                <i class="ph-bold ph-x text-lg"></i>
             </button>
         </div>
         
         <!-- Modal Body -->
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-            <div>
-                <label class="form-label" for="assignResponder">Select Responder</label>
-                <select id="assignResponder" class="form-input bg-white w-full">
-                    <option>Quev Cruz</option>
-                    <option>Maria Santos</option>
-                    <option>Carlos Reyes</option>
-                </select>
-            </div>
-            <div>
-                <label class="form-label" for="assignDate">Select Date</label>
-                <input id="assignDate" type="date" class="form-input w-full">
-            </div>
-            <div>
-                <label class="form-label" for="assignShiftSelect">Select Shift</label>
-                <select id="assignShiftSelect" class="form-input bg-white w-full">
-                    <option>Morning (06:00 AM - 02:00 PM)</option>
-                    <option>Whole Day (08:00 AM - 04:00 PM)</option>
-                    <option>Afternoon (02:00 PM - 10:00 PM)</option>
-                    <option>Night (10:00 PM - 06:00 AM)</option>
-                </select>
+        <div class="p-6 flex-1 overflow-y-auto max-h-[65vh] custom-scrollbar bg-gray-50/30">
+            <input type="hidden" id="editUserId">
+            <input type="hidden" id="editCallShift">
+
+            <!-- Modern Legend -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Click a date to change status:</label>
+                <div class="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider">
+                    <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-brand"><i class="ph-fill ph-briefcase text-sm"></i> Scheduled</span>
+                    <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-blue-500"><i class="ph-fill ph-coffee text-sm"></i> Day Off</span>
+                    <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-orange-500"><i class="ph-fill ph-airplane-tilt text-sm"></i> Leave</span>
+                </div>
             </div>
             
-            <!-- Action Button -->
-            <button type="button" onclick="submitModalAction(this, 'Shift Assigned Successfully!')" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors mt-6 flex items-center justify-center gap-2">
-                Confirm Assignment
+            <!-- Dynamic Calendar Grid -->
+            <div id="edit-calendar-grid" class="space-y-8">
+                <!-- JS will populate dates here -->
+            </div>
+        </div>
+        
+        <!-- Modal Footer -->
+        <div class="p-5 bg-white border-t border-gray-100 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+            <button type="button" onclick="closeModal('modal-edit-schedule')" class="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+            <button type="button" id="update-schedule-btn" onclick="updateScheduleDaysOff()" class="px-6 py-2.5 bg-brand text-white text-sm font-bold rounded-xl hover:bg-brand-dark transition-transform hover:-translate-y-0.5 shadow-md flex items-center gap-2">
+                <i class="ph-bold ph-check-circle text-lg"></i> Save Changes
             </button>
+        </div>
+    </div>
+
+    <!-- View Calendar Modal -->
+    <div id="modal-view-calendar" class="modal-content hidden bg-white rounded-2xl w-full max-w-4xl shadow-xl overflow-hidden flex flex-col relative">
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
+            <h3 class="font-bold text-gray-800 text-lg" id="calendar-modal-title">Responder Schedule</h3>
+            <button type="button" onclick="closeModal('modal-view-calendar')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Modal Body (Injected by JS) -->
+        <div id="calendar-modal-body" class="p-6 bg-gray-50/50">
+            <!-- Calendar Grid loads here -->
         </div>
     </div>
 </div>
 
+
+
+
 <script>
+    const leavesData = JSON.parse('{{ leaves_data_json|escapejs }}');
+    let currentEditState = [];
+    let currentShiftTime = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const responderSelect = document.getElementById('responderShift');
+        const leavesContainer = document.getElementById('responderLeavesContainer');
+        const leavesList = document.getElementById('responderLeavesList');
+
+        if (responderSelect) {
+            responderSelect.addEventListener('change', function() {
+                const userId = this.value;
+                leavesList.innerHTML = '';
+
+                if (userId && leavesData[userId] && leavesData[userId].length > 0) {
+                    // Populate the dates
+                    leavesData[userId].forEach(dateStr => {
+                        const pill = document.createElement('span');
+                        pill.className = 'text-[10px] font-bold bg-white text-blue-600 border border-blue-200 px-2 py-0.5 rounded shadow-sm';
+                        pill.textContent = dateStr;
+                        leavesList.appendChild(pill);
+                    });
+                    // Show the container
+                    leavesContainer.classList.remove('hidden');
+                } else {
+                    // Hide if no upcoming leaves
+                    leavesContainer.classList.add('hidden');
+                }
+            });
+        }
+    });
+    
     // CSRF Helper
     function getCookie(name) {
         let cookieValue = null;
@@ -225,10 +475,246 @@
         return cookieValue;
     }
 
+    function openEditScheduleModal(userId, dailyStatusesJson, startDateStr, endDateStr, shiftId, shiftTimeStr) {
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editCallShift').value = shiftId;
+        
+        currentShiftTime = shiftTimeStr;
+
+        // Safely parse local dates
+        const [sYear, sMonth, sDay] = startDateStr.split('-');
+        const [eYear, eMonth, eDay] = endDateStr.split('-');
+        const startDate = new Date(sYear, sMonth - 1, sDay);
+        const endDate = new Date(eYear, eMonth - 1, eDay);
+        
+        const dateOptions = { month: 'short', day: 'numeric' };
+        document.getElementById('edit-modal-subtitle').innerText = 
+            `${startDate.toLocaleDateString(undefined, dateOptions)} — ${endDate.toLocaleDateString(undefined, dateOptions)}`;
+
+        const dailyStatuses = JSON.parse(dailyStatusesJson);
+
+        // Clear state
+        currentEditState = [];
+        let pointerDate = new Date(startDate);
+        
+        // Build the grid state from start to end date
+        while (pointerDate <= endDate) {
+            // Format to YYYY-MM-DD safely
+            const year = pointerDate.getFullYear();
+            const month = String(pointerDate.getMonth() + 1).padStart(2, '0');
+            const day = String(pointerDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const dayName = pointerDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+            
+            // If the day is found in the days_off set, mark it as Day Off, otherwise Scheduled
+            let initialStatus = dailyStatuses[dateStr] || 'Scheduled';
+
+            currentEditState.push({
+                date: dateStr,
+                status: initialStatus
+            });
+
+            pointerDate.setDate(pointerDate.getDate() + 1);
+        }
+        
+        renderEditGrid();
+        openModal('modal-edit-schedule');
+    }
+
+    // Visual Renderer for the Edit Calendar
+    function renderEditGrid() {
+        const gridContainer = document.getElementById('edit-calendar-grid');
+        gridContainer.innerHTML = '';
+        
+        if (!currentEditState.length) return;
+
+        // Helper to safely parse YYYY-MM-DD
+        const parseDate = (str) => {
+            const [y, m, d] = str.split('-');
+            return new Date(y, m - 1, d);
+        };
+
+        const startDate = parseDate(currentEditState[0].date);
+        const endDate = parseDate(currentEditState[currentEditState.length - 1].date);
+
+        let currentYear = startDate.getFullYear();
+        let currentMonth = startDate.getMonth();
+
+        const endYear = endDate.getFullYear();
+        const endMonth = endDate.getMonth();
+
+        // Loop through all months spanned by the schedule range
+        while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+            const monthName = new Date(currentYear, currentMonth, 1).toLocaleDateString('en-US', { month: 'long' });
+            
+            const monthSection = document.createElement('div');
+            monthSection.className = 'bg-white p-5 rounded-2xl border border-gray-100 shadow-sm';
+            monthSection.innerHTML = `<h4 class="text-base font-extrabold text-gray-800 mb-4 flex items-center gap-2"><i class="ph-fill ph-calendar text-brand"></i> ${monthName} ${currentYear}</h4>`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-7 gap-1.5 sm:gap-2 min-w-[400px] overflow-x-auto';
+            
+            // Days of week header
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            daysOfWeek.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'text-center text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider pb-2';
+                header.innerText = day;
+                grid.appendChild(header);
+            });
+
+            const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            // 1. Pad the beginning of the month with empty cells
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-1 h-20 sm:h-24 bg-gray-50/50 rounded-xl border border-transparent opacity-40';
+                grid.appendChild(emptyCell);
+            }
+
+            // 2. Loop through actual days of the month
+            for (let d = 1; d <= daysInMonth; d++) {
+                const yearStr = currentYear;
+                const monthStr = String(currentMonth + 1).padStart(2, '0');
+                const dayStr = String(d).padStart(2, '0');
+                const dateString = `${yearStr}-${monthStr}-${dayStr}`;
+
+                const stateObj = currentEditState.find(s => s.date === dateString);
+                const cell = document.createElement('div');
+
+                if (stateObj) {
+                    // Inside the editable range
+                    let colorClasses = '';
+                    let icon = '';
+                    let infoText = '';
+                    
+                    // Modern UI Card styling
+                    if (stateObj.status === 'Scheduled') {
+                        colorClasses = 'bg-brand/5 border-brand/30 text-brand hover:bg-brand/10 hover:border-brand/50 hover:shadow-md';
+                        icon = '<i class="ph-fill ph-briefcase text-lg"></i>';
+                        infoText = currentShiftTime; 
+                    } else if (stateObj.status === 'Day Off') {
+                        colorClasses = 'bg-blue-50/50 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-400 hover:shadow-md';
+                        icon = '<i class="ph-fill ph-coffee text-lg"></i>';
+                        infoText = 'Day Off';
+                    } else if (stateObj.status === 'Leave') {
+                        colorClasses = 'bg-orange-50/50 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-400 hover:shadow-md';
+                        icon = '<i class="ph-fill ph-airplane-tilt text-lg"></i>';
+                        infoText = 'Leave';
+                    }
+
+                    cell.className = `group cursor-pointer border-[1.5px] rounded-xl p-2 sm:p-2.5 flex flex-col justify-between transition-all duration-200 select-none h-20 sm:h-24 relative overflow-hidden ${colorClasses}`;
+                    cell.onclick = () => toggleDayStatus(dateString);
+                    
+                    cell.innerHTML = `
+                        <div class="flex justify-between items-start w-full">
+                            <span class="text-xs sm:text-sm font-extrabold">${d}</span>
+                            <span class="opacity-70 group-hover:opacity-100 transition-all transform group-hover:scale-110">${icon}</span>
+                        </div>
+                        <div class="mt-auto w-full text-left">
+                            <span class="text-[8px] sm:text-[9.5px] font-bold uppercase leading-tight line-clamp-2 opacity-90">${infoText}</span>
+                        </div>
+                    `;
+                } else {
+                    // Outside the editable range
+                    cell.className = 'p-2 flex flex-col h-20 sm:h-24 bg-gray-50/50 rounded-xl border border-gray-100 opacity-50';
+                    cell.innerHTML = `<span class="text-xs sm:text-sm font-bold text-gray-400 w-full text-left">${d}</span>`;
+                }
+                grid.appendChild(cell);
+            }
+
+            monthSection.appendChild(grid);
+            gridContainer.appendChild(monthSection);
+
+            // Move to the next month
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+        }
+    }
+
+    // Toggles the state when a cell is clicked
+    function toggleDayStatus(dateStr) {
+        const dayObj = currentEditState.find(d => d.date === dateStr);
+        
+        // Cycle through states
+        if (dayObj.status === 'Scheduled') dayObj.status = 'Day Off';
+        else if (dayObj.status === 'Day Off') dayObj.status = 'Leave';
+        else dayObj.status = 'Scheduled';
+        
+        renderEditGrid();
+    }
+
+    async function updateScheduleDaysOff() {
+        const btn = document.getElementById('update-schedule-btn');
+        const userId = document.getElementById('editUserId').value;
+        const shiftId = document.getElementById('editCallShift').value;
+
+        if (!userId || !shiftId || currentEditState.length === 0) {
+            alert('Missing schedule information.');
+            return;
+        }
+
+        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Updating...';
+        btn.classList.add('opacity-70', 'pointer-events-none');
+
+        try {
+            const response = await fetch('{% url "schedules:update_schedule_days_off" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    shift_id: shiftId,
+                    daily_updates: currentEditState
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> Updated!';
+                btn.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Error updating schedule:', error);
+            alert(error.message || 'An error occurred while updating.');
+            
+            btn.innerHTML = '<i class="ph-bold ph-check"></i> Save Daily Changes';
+            btn.classList.remove('opacity-70', 'pointer-events-none');
+        }
+    }
+
+    // open the Calendar Grid Modal
+    function viewCalendar(scheduleId, responderName) {
+        // 1. Update the Modal Title
+        document.getElementById('calendar-modal-title').innerText = `${responderName}'s Schedule`;
+        
+        // 2. Grab the pre-rendered HTML from the hidden template
+        const templateHTML = document.getElementById(`calendar-data-${scheduleId}`).innerHTML;
+        
+        // 3. Inject it into the modal body
+        document.getElementById('calendar-modal-body').innerHTML = templateHTML;
+        
+        // 4. Open the Modal
+        openModal('modal-view-calendar');
+    }
+
     // Save Shift API Call
     async function saveShift() {
         const btn = document.getElementById('save-shift-btn');
-        const name = document.getElementById('shiftName').value;
         const start = document.getElementById('shiftStart').value;
         const end = document.getElementById('shiftEnd').value;
 
@@ -248,7 +734,6 @@
                     'X-CSRFToken': getCookie('csrftoken')
                 },
                 body: JSON.stringify({
-                    shift_name: name,
                     start_time: start,
                     end_time: end
                 })
@@ -276,6 +761,170 @@
                 btn.innerHTML = '<i class="ph-bold ph-check"></i> Save Shift';
                 btn.className = 'px-6 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors flex items-center gap-2';
             }, 2000);
+        }
+    }
+
+    async function saveSchedule() {
+        const btn = document.getElementById('save-schedule-btn');
+        const responderId = document.getElementById('responderShift').value;
+        const startDate = document.getElementById('scheduleStartPeriod').value;
+        const endDate = document.getElementById('scheduleEndPeriod').value;
+        const shiftId = document.getElementById('callShiftSchedule').value;
+
+        // Grab all checked days and map them to an array (e.g., ['monday', 'tuesday'])
+        const dayOff = Array.from(document.querySelectorAll('input[name="day_off"]:checked')).map(cb => cb.value);
+
+        // Basic validation
+        if (!responderId || !startDate || !endDate || !shiftId) {
+            Swal.fire({
+                title: 'Missing Details',
+                text: 'Please select a responder, date range, and shift.',
+                icon: 'warning',
+                confirmButtonColor: '#10b981',
+                confirmButtonText: 'Okay'
+            });
+            return;
+        }
+        if (dayOff.length === 0) {
+            Swal.fire({
+                title: 'Day Off Required',
+                text: 'Please select at least one day for the day off.',
+                icon: 'warning',
+                confirmButtonColor: '#10b981',
+                confirmButtonText: 'Okay'
+            });
+            return;
+        }
+
+        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Generating...';
+        btn.classList.add('opacity-70', 'pointer-events-none');
+
+        try {
+            const response = await fetch('{% url "schedules:save_schedule" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    responder_id: responderId,
+                    start_date: startDate,
+                    end_date: endDate,
+                    shift_id: shiftId,
+                    day_off: dayOff
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> ' + result.message;
+                btn.classList.add('bg-green-600');
+                
+                // Reset form UI after success
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="ph-bold ph-calendar-plus text-lg"></i> Generate Schedule';
+                    btn.classList.remove('bg-green-600', 'opacity-70', 'pointer-events-none');
+                    document.getElementById('responderShift').value = "";
+                    document.getElementById('callShiftSchedule').value = "";
+                    window.location.reload();
+                }, 2000);
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Error saving schedule:', error);
+
+            Swal.fire({
+                title: 'Schedule Conflict',
+                text: error.message || 'An error occurred while generating the schedule.',
+                icon: 'warning',
+                confirmButtonColor: '#10b981', 
+                confirmButtonText: 'Okay'
+            });
+            
+            btn.innerHTML = '<i class="ph-bold ph-calendar-plus text-lg"></i> Generate Schedule';
+            btn.classList.remove('opacity-70', 'pointer-events-none');
+        }
+    }
+
+
+    async function processDayOff(leaveId, action) {
+        if (action === 'deny') {
+            const confirmDeny = await Swal.fire({
+                title: 'Deny Request?',
+                text: "Are you sure you want to deny this day off request?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af',
+                confirmButtonText: 'Yes, deny it',
+                cancelButtonText: 'Cancel'
+            });
+            if (!confirmDeny.isConfirmed) return;
+        }
+
+        // 2. Show a loading state while fetching
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Updating request status.',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const response = await fetch('{% url "schedules:update_dayoff_status" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    leave_id: leaveId,
+                    action: action
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // 3. Show Success Alert
+                Swal.fire({
+                    title: action === 'approve' ? 'Approved!' : 'Denied',
+                    text: result.message || `The request has been ${action}.`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Remove the card from the UI with a smooth transition
+                const row = document.getElementById(`leave-row-${leaveId}`);
+                if (row) {
+                    row.style.transition = "opacity 0.3s ease";
+                    row.style.opacity = "0";
+                    setTimeout(() => row.remove(), 300);
+                }
+            } else {
+                // 4. Show Server Error Alert
+                Swal.fire({
+                    title: 'Error!',
+                    text: result.message || "An error occurred while processing the request.",
+                    icon: 'error',
+                    confirmButtonColor: '#10b981'
+                });
+            }
+        } catch (error) {
+            console.error('Error updating day off request:', error);
+            // 5. Show Network/Unexpected Error Alert
+            Swal.fire({
+                title: 'Failed',
+                text: 'An unexpected error occurred.',
+                icon: 'error',
+                confirmButtonColor: '#10b981'
+            });
         }
     }
 </script>
