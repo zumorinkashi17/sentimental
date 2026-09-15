@@ -8,7 +8,7 @@ from apps.dashboard.views import _get_session_user
 def history_list_view(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
-        return redirect_response # Kicks them to login if they aren't authenticated
+        return redirect_response
     sessions = CallSession.objects.all()
 
     responder_filter = request.GET.get('responder', '')
@@ -39,7 +39,6 @@ def history_list_view(request):
 
     sessions = sessions.order_by('-session_call_date', '-session_time_called')
     
-    # FIX: Use user_id__in instead of id__in
     responder_ids = CallSession.objects.values_list('user_id', flat=True).distinct()
     responders = User.objects.filter(user_id__in=responder_ids)
 
@@ -55,11 +54,10 @@ def history_list_view(request):
 def user_history_view(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
-        return redirect_response # Kicks them to login if they aren't authenticated
-    # FIX: Get the user_id from your custom session auth, NOT request.user
+        return redirect_response
+
     current_user_id = request.session.get('user_id')
     
-    # Base Queryset: Filter by custom session ID
     sessions = CallSession.objects.filter(user_id=current_user_id)
 
     date_filter = request.GET.get('date_filter', '')
