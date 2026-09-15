@@ -112,6 +112,23 @@
         return cookieValue;
     }
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('callDate');
+        
+        if (dateInput) {
+            // Fetch current date locked to Philippine Time
+            const today = new Date().toLocaleDateString('en-US', {
+                timeZone: 'Asia/Manila',
+                month: 'long',
+                day: '2-digit',
+                year: 'numeric'
+            });
+            
+            // Output will be formatted like "August 02, 2026"
+            dateInput.value = today;
+        }
+    });
+
     async function triggerAI() {
        const shiftInput = document.getElementById('callShift');
         if (!shiftInput.value || shiftInput.value.trim() === "") {

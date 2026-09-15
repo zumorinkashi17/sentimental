@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
-    <div class="max-w-5xl mx-auto w-full space-y-6">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
         <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Callers Database</h1>
@@ -11,17 +11,17 @@
             </div>
             <!-- Your search/filter dropdowns remain here -->
             <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
-                    <option>All Time</option>
-                    <option>Today</option>
-                    <option>This Week</option>
-                    <option>This Month</option>
+                <select id="time-filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
                 </select>
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
-                    <option>All Risk Levels</option>
-                    <option>High Risk</option>
-                    <option>Medium Risk</option>
-                    <option>Low Risk</option>
+                <select id="risk-filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option value="all">All Risk Levels</option>
+                    <option value="high">High Risk</option>
+                    <option value="medium">Medium Risk</option>
+                    <option value="low">Low Risk</option>
                 </select>
             </div>
         </div>
@@ -30,13 +30,13 @@
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
                 <label for="caller-search" class="sr-only">Search callers</label>
-                <input id="caller-search" type="text" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+                <input id="search" type="text" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
 
             <!-- Dynamic Data Loop Starts Here -->
             <div class="space-y-3">
                 {% for item in caller_list %}
-                <div class="p-4 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 transition-all group">
+                <div class="p-4 border border-gray-100 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 transition-all group" data-date="{{ item.latest_session.session_call_date|date:'Y-m-d'|default:'' }}">
                     <div class="flex items-center gap-4 min-w-0">
                         <div class="w-10 h-10 rounded-full {% if item.caller.caller_name %}bg-blue-100 text-blue-600{% else %}bg-gray-200 text-gray-500{% endif %} flex items-center justify-center font-bold text-lg flex-shrink-0">
                             <i class="ph-fill {% if item.caller.caller_name %}ph-user{% else %}ph-user-focus{% endif %}"></i>
@@ -70,7 +70,7 @@
                             <span class="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold rounded-full uppercase">No Sessions</span>
                         {% endif %}
                         
-                        <td class="p-3 text-right">
+                        <div class="p-3 text-right">
                             <button type="button" 
                                 onclick="viewCallerDetails(this)" 
                                 data-name="{{ item.caller.caller_name|default:'Anonymous' }}"
@@ -85,7 +85,7 @@
                                 class="text-brand hover:underline font-bold text-xs">
                                 View Details
                             </button>
-                        </td>
+                        </div>
                     </div>
                 </div>
                 {% empty %}
@@ -193,5 +193,86 @@
         // 3. Open the modal (Ensure openModal logic toggles the backdrop properly)
         openModal('modal-caller-details');
     }
+
+   document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search');
+        const riskFilter = document.getElementById('risk-filter');
+        const timeFilter = document.getElementById('time-filter');
+        
+        // Attach event listeners to ALL THREE inputs
+        if (searchInput) searchInput.addEventListener('input', filterList);
+        if (riskFilter) riskFilter.addEventListener('change', filterList);
+        if (timeFilter) timeFilter.addEventListener('change', filterList);
+
+        function filterList() {
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const selectedRisk = riskFilter ? riskFilter.value : 'all';
+            const selectedTime = timeFilter ? timeFilter.value : 'all';
+            
+            // Set up date boundaries for time filtering
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            const firstDayOfWeek = new Date(today);
+            firstDayOfWeek.setDate(today.getDate() - today.getDay());
+            
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            const callerCards = document.querySelectorAll('.space-y-3 > .group');
+
+            callerCards.forEach(card => {
+                const callerInfoDiv = card.querySelector('.min-w-0');
+                const riskBadgeSpan = card.querySelector('span.rounded-full');
+                const cardDateStr = card.getAttribute('data-date');
+                
+                if (callerInfoDiv) {
+                    // 1. Check Text Match
+                    const textMatches = callerInfoDiv.textContent.toLowerCase().includes(searchTerm);
+                    
+                    // 2. Check Risk Match
+                    let riskMatches = false;
+                    const cellRiskText = riskBadgeSpan ? riskBadgeSpan.textContent.toLowerCase().trim() : '';
+                    
+                    if (selectedRisk === 'all') {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'high' && cellRiskText.includes('high')) {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'medium' && cellRiskText.includes('medium')) {
+                        riskMatches = true;
+                    } else if (selectedRisk === 'low' && cellRiskText.includes('low')) {
+                        riskMatches = true;
+                    }
+
+                    // 3. Check Time Match
+                    let timeMatches = false;
+                    
+                    if (selectedTime === 'all') {
+                        timeMatches = true;
+                    } else if (cardDateStr) {
+                        // Split date to avoid timezone offset issues in Javascript
+                        const [year, month, day] = cardDateStr.split('-');
+                        const cardDate = new Date(year, month - 1, day);
+                        
+                        if (selectedTime === 'today') {
+                            timeMatches = cardDate.getTime() === today.getTime();
+                        } else if (selectedTime === 'week') {
+                            timeMatches = cardDate >= firstDayOfWeek;
+                        } else if (selectedTime === 'month') {
+                            timeMatches = cardDate >= firstDayOfMonth;
+                        }
+                    }
+
+                    // Show the card ONLY if it matches ALL THREE conditions
+                    if (textMatches && riskMatches && timeMatches) {
+                        card.style.display = ''; 
+                    } else {
+                        card.style.display = 'none'; 
+                    }
+                }
+            });
+        }
+    });
+
+
 </script>
 {% endblock %}

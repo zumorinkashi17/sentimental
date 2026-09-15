@@ -12,12 +12,11 @@ def list_view(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-    # Fetch all callers with no user restriction
+
     callers = Caller.objects.all().order_by('-caller_id')
     
     caller_list = []
     for caller in callers:
-        # Get the most recent session for this specific caller
         latest_session = CallSession.objects.filter(caller=caller).order_by('-session_call_date', '-session_time_called').first()
         
         caller_list.append({
@@ -31,13 +30,12 @@ def database_view(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-
-    # Fetch all callers
+    
     callers = Caller.objects.all().order_by('-caller_id')
     
     caller_list = []
     for caller in callers:
-        # Get the most recent session for this specific caller
+
         latest_session = CallSession.objects.filter(caller=caller).order_by('-session_call_date', '-session_time_called').first()
         
         # Count total sessions for the modal
@@ -61,15 +59,13 @@ def save_call_documentation(request):
         current_user = None
         if user_id:
             current_user = User.objects.filter(user_id=user_id).first()
-        
-        # 1. Parse Data Formats safely
-        # Format: "October 04, 2024" -> Python date object
+
         try:
             call_date = datetime.strptime(data.get('callDate', ''), '%B %d, %Y').date()
         except ValueError:
             call_date = None
             
-        # Format: "06:12 PM" -> Python time object
+        # Format: "06:12 PM"
         def parse_time(time_str):
             try:
                 return datetime.strptime(time_str, '%I:%M %p').time()
@@ -83,7 +79,7 @@ def save_call_documentation(request):
         age_str = data.get('callerAge')
         caller_age = int(age_str) if age_str and age_str.isdigit() else None
 
-        # 2. Fetch the Shift Instance from the database
+        # Fetch the Shift Instance from the database
         shift_id = data.get('callShift')
         shift_instance = None
         
@@ -91,7 +87,7 @@ def save_call_documentation(request):
             # Look up the shift using its primary key (ID) instead of its name
             shift_instance = ShiftCatalog.objects.filter(pk=shift_id).first()
 
-        # 2. Create the Caller record
+        # Create the Caller record
         caller = Caller.objects.create(
             caller_name=data.get('callerName'),
             caller_gender=data.get('callerGender'),
@@ -100,7 +96,7 @@ def save_call_documentation(request):
             caller_location=data.get('callerLocation')
         )
 
-        # 3. Create the Call Session record
+        # Create the Call Session record
         session = CallSession.objects.create(
             user=current_user,
             caller=caller,
@@ -115,7 +111,7 @@ def save_call_documentation(request):
             session_additional_comments=data.get('additionalComments')
         )
 
-        # 4. Create the manual transcript if notes exist
+        # Create the manual transcript if notes exist
         manual_notes = data.get('manualScriptNotes')
         if manual_notes and manual_notes.strip():
             CallTranscript.objects.create(
