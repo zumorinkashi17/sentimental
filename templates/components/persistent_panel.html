@@ -21,11 +21,14 @@
                     <input id="callSessionNo" type="text" class="form-input bg-gray-50 font-mono text-gray-500" value="{{ next_session_id|default:'TPCB10-XXXX' }}" readonly>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="form-label" for="callDate">Date:</label><input id="callDate" type="text" class="form-input" readonly></div>
+                    <div>
+                        <label class="form-label" for="callDate">Date:</label>
+                        <input id="callDate" type="text" class="form-input" value="{% now "F d, Y" %}" readonly>
+                    </div>
                     <div>
                         <label class="form-label" for="callShift">Shift:</label>
                         <select id="callShift" class="form-input bg-white appearance-none">
-                            <option value="">Select a Shift</option>
+                            <option value="" disabled selected hidden>Select a Shift</option>
                             {% for shift in shifts %}
                                 <option value="{{ shift.shift_id }}">
                                     {{ shift.shift_name }} ({{ shift.shift_start_time|time:"h:i A" }} - {{ shift.shift_end_time|time:"h:i A" }})
@@ -131,15 +134,6 @@
         if (!shiftInput.value || shiftInput.value.trim() === "") {
             // Highlight the dropdown in red to grab their attention
             shiftInput.classList.add('border-red-600', 'ring-1', 'ring-red-600');
-            
-            // Show a SweetAlert
-            Swal.fire({
-                title: 'Shift Required',
-                text: 'Please select a Shift before continuing to the next step.',
-                icon: 'warning',
-                confirmButtonColor: '#10b981', // This matches the greenish brand color from your UI
-                confirmButtonText: 'Okay'
-            });
             
             // Remove the red highlight after 3 seconds
             setTimeout(() => {

@@ -10,10 +10,6 @@
                 <p class="text-gray-500">Manage assigned shifts and requested time off.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
-                    <option>Monthly View</option>
-                    <option>Weekly View</option>
-                </select>
                 <button type="button" onclick="openModal('modal-request-leave')" class="px-5 py-1.5 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 shadow-sm"><i class="ph-bold ph-calendar-plus"></i> Request Day Off</button>
             </div>
         </div>
@@ -21,10 +17,25 @@
         <!-- Calendar Grid -->
         <div class="bg-white p-3 sm:p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
             <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 min-w-[560px]">
-                <h2 class="text-lg font-bold text-brand flex items-center gap-2"><i class="ph-bold ph-calendar"></i> October 2024</h2>
+                <!-- Dynamic Month & Year -->
+                <h2 class="text-lg font-bold text-brand flex items-center gap-2">
+                    <i class="ph-bold ph-calendar"></i> {{ current_month_name }} {{ current_year }}
+                </h2>
                 <div class="flex gap-2">
-                    <button type="button" class="p-2 border border-gray-200 rounded hover:bg-gray-50" aria-label="Previous month"><i class="ph ph-caret-left"></i></button>
-                    <button type="button" class="p-2 border border-gray-200 rounded hover:bg-gray-50" aria-label="Next month"><i class="ph ph-caret-right"></i></button>
+                    <!-- Previous Month Link -->
+                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="p-2 border border-gray-200 rounded hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors" aria-label="Previous month">
+                        <i class="ph-bold ph-caret-left"></i>
+                    </a>
+                    
+                    <!-- Today Shortcut (Optional, but very helpful for users!) -->
+                    <a href="?month={{ today_date.month }}&year={{ today_date.year }}" class="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 text-xs font-bold text-gray-600 flex items-center justify-center transition-colors">
+                        Today
+                    </a>
+
+                    <!-- Next Month Link -->
+                    <a href="?month={{ next_month }}&year={{ next_year }}" class="p-2 border border-gray-200 rounded hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors" aria-label="Next month">
+                        <i class="ph-bold ph-caret-right"></i>
+                    </a>
                 </div>
             </div>
             
@@ -38,51 +49,208 @@
                 <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Fri</div>
                 <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Sat</div>
                 
-                <!-- Sample Week -->
-                <div class="p-2 sm:p-3 border border-gray-100 rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start"><span class="text-xs font-bold text-gray-600">20</span></div>
-                <div class="p-2 sm:p-3 border border-gray-100 rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start relative">
-                    <div class="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-400"></div>
-                    <span class="text-xs font-bold text-gray-600">21</span>
-                    <span class="mt-auto text-[8px] sm:text-[10px] text-gray-400 uppercase font-bold text-center">Day Off<br>(Approved)</span>
-                </div>
-                <div class="p-2 sm:p-3 border border-brand/30 rounded-xl bg-brand-light/20 h-20 sm:h-28 flex flex-col items-center justify-start"><span class="text-xs font-bold text-brand">22</span><span class="mt-auto text-[8px] sm:text-[10px] text-brand font-medium">02:00 PM</span></div>
-                <div class="p-2 sm:p-3 border border-brand/30 rounded-xl bg-brand-light/20 h-20 sm:h-28 flex flex-col items-center justify-start"><span class="text-xs font-bold text-brand">23</span><span class="mt-auto text-[8px] sm:text-[10px] text-brand font-medium">02:00 PM</span></div>
-                <div class="p-2 sm:p-3 border border-2 border-brand rounded-xl bg-brand h-20 sm:h-28 flex flex-col items-center justify-start shadow-md text-white"><span class="text-xs font-bold">24 (Today)</span><span class="mt-auto text-[8px] sm:text-[10px] font-bold text-white/90">02:00 PM</span></div>
-                <div class="p-2 sm:p-3 border border-brand/30 rounded-xl bg-brand-light/20 h-20 sm:h-28 flex flex-col items-center justify-start"><span class="text-xs font-bold text-brand">25</span><span class="mt-auto text-[8px] sm:text-[10px] text-brand font-medium">10:00 PM</span></div>
-                <div class="p-2 sm:p-3 border border-brand/30 rounded-xl bg-brand-light/20 h-20 sm:h-28 flex flex-col items-center justify-start"><span class="text-xs font-bold text-brand">26</span><span class="mt-auto text-[8px] sm:text-[10px] text-brand font-medium">10:00 PM</span></div>
+                <!-- Dynamic Calendar Loop -->
+                {% for day in calendar_grid %}
+                    {% if not day.is_current_month %}
+                        <!-- Inactive Day (Previous/Next Month) -->
+                        <div class="p-2 sm:p-3 border border-gray-50 rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start bg-gray-50/30 opacity-60">
+                            <span class="text-xs font-bold text-gray-300">{{ day.day_num }}</span>
+                        </div>
+                    {% else %}
+                        <!-- Active Day Box -->
+                        <div class="p-2 sm:p-3 border 
+                            {% if day.is_today %} border-2 border-brand bg-brand text-white shadow-md
+                            {% elif day.shift %} border-brand/30 bg-brand-light/20
+                            {% elif day.is_day_off %} border-blue-100 bg-blue-50/30
+                            {% elif day.is_leave %} border-orange-100 bg-orange-50/30 <!-- NEW -->
+                            {% else %} border-gray-100 bg-white
+                            {% endif %} 
+                            rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start relative transition-all">
+                            
+                            <!-- Date Number -->
+                            <span class="text-xs font-bold 
+                                {% if day.is_today %} text-white
+                                {% elif day.shift %} text-brand
+                                {% elif day.is_leave %} text-orange-600 <!-- NEW -->
+                                {% else %} text-gray-600
+                                {% endif %}">
+                                {{ day.day_num }}{% if day.is_today %} (Today){% endif %}
+                            </span>
+                            
+                            <!-- Content inside the box -->
+                            {% if day.is_day_off %}
+                                <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-400"></div>
+                                <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-blue-500{% endif %}">Day Off</span>
+                            
+                            {% elif day.is_leave %} <!-- NEW BLOCK -->
+                                <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-400"></div>
+                                <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-orange-500{% endif %}">Leave</span>
+
+                            {% elif day.shift %}
+                                <span class="mt-auto text-[8px] sm:text-[10px] font-medium text-center {% if day.is_today %}text-white/90{% else %}text-brand{% endif %}">
+                                    {{ day.shift.shift_start_time|time:"h:i A" }}<br>-<br>{{ day.shift.shift_end_time|time:"h:i A" }}
+                                </span>
+                            
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
-
+        
         <!-- Requested Day Offs List -->
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase">Requested Day Offs</h2>
-            <div class="table-scroll">
-            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
-                <thead>
-                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
-                        <th scope="col" class="p-3 font-bold">Date</th>
-                        <th scope="col" class="p-3 font-bold">Reason</th>
-                        <th scope="col" class="p-3 font-bold">Notes</th>
-                        <th scope="col" class="p-3 font-bold text-right">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
-                    <tr>
-                        <td class="p-3 font-bold text-gray-800">Oct 28, 2024</td>
-                        <td class="p-3 text-gray-600">Vacation</td>
-                        <td class="p-3 text-gray-500 text-xs truncate max-w-[200px]">Family trip.</td>
-                        <td class="p-3 text-right"><span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold uppercase">Pending</span></td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 font-bold text-gray-800">Oct 21, 2024</td>
-                        <td class="p-3 text-gray-600">Personal Emergency</td>
-                        <td class="p-3 text-gray-500 text-xs truncate max-w-[200px]">Dental appointment.</td>
-                        <td class="p-3 text-right"><span class="px-2.5 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold uppercase">Approved</span></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden min-w-[600px]">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th scope="col" class="p-3 font-bold">Date</th>
+                            <th scope="col" class="p-3 font-bold">Reason</th>
+                            <th scope="col" class="p-3 font-bold">Notes</th>
+                            <th scope="col" class="p-3 font-bold text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for req in dayoff_requests %}
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="p-3 font-bold text-gray-800 whitespace-nowrap">{{ req.requested_date|date:"M d, Y" }}</td>
+                                <td class="p-3 text-gray-600 whitespace-nowrap">{{ req.requested_reason }}</td>
+                                <td class="p-3 text-gray-500 text-xs truncate max-w-[200px]">
+                                    {{ req.requested_additional_notes|default:"No notes provided." }}
+                                </td>
+                                <td class="p-3 text-right whitespace-nowrap">
+                                    <!-- Dynamically color the status badge -->
+                                    {% if req.requested_status == 'Pending' %}
+                                        <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                    {% elif req.requested_status == 'Approved' %}
+                                        <span class="px-2.5 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                    {% else %}
+                                        <span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <!-- Displayed if the user has no requests -->
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-gray-500 font-medium bg-gray-50/50">
+                                    You have no day-off requests at the moment.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+        
     </div>
 </div>
+
+<div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
+        <div id="modal-request-leave" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col relative">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
+                <h3 class="font-bold text-gray-800 text-lg">Request Day Off</h3>
+                <button type="button" onclick="closeModal('modal-request-leave')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 space-y-4 flex-1">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestDate">Date Requested</label>
+                    <input type="date" id="requestDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestReason">Reason</label>
+                    <select id="requestReason" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+                        <option value="" disabled selected hidden>Select a reason...</option>
+                        <option value="Personal Emergency">Personal Emergency</option>
+                        <option value="Sick Leave">Sick Leave</option>
+                        <option value="Vacation">Vacation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestNotes">Additional Notes (Optional)</label>
+                    <textarea id="requestNotes" rows="3" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg resize-none custom-scrollbar" placeholder="Provide any necessary details..."></textarea>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" onclick="closeModal('modal-request-leave')" class="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                <button type="button" id="submit-request-btn" onclick="submitDayOffRequest()" class="px-6 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors flex items-center gap-2">
+                    <i class="ph-bold ph-paper-plane-tilt"></i> Submit Request
+                </button>
+            </div>
+        </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function submitDayOffRequest() {
+        const btn = document.getElementById('submit-request-btn');
+        const reqDate = document.getElementById('requestDate').value;
+        const reqReason = document.getElementById('requestReason').value;
+        const reqNotes = document.getElementById('requestNotes').value;
+
+        if (!reqDate || !reqReason) {
+            alert('Please select a date and reason.');
+            return;
+        }
+
+        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Submitting...';
+        btn.classList.add('opacity-70', 'pointer-events-none');
+
+        try {
+            const response = await fetch('{% url "schedules:submit_dayoff_request" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    date: reqDate,
+                    reason: reqReason,
+                    notes: reqNotes
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> Success!';
+                btn.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Error submitting request:', error);
+            alert(error.message || 'An error occurred.');
+            
+            btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Submit Request';
+            btn.classList.remove('opacity-70', 'pointer-events-none');
+        }
+    }
+</script>
 {% endblock %}
