@@ -13,4 +13,5 @@ urlpatterns = [
     path('save-schedule/', views.save_schedule, name='save_schedule'),
     path('update-days-off/', views.update_schedule_days_off, name='update_schedule_days_off'),
     path('update-dayoff-status/', views.update_dayoff_status, name='update_dayoff_status'),
+    path('api/schedules/user/<int:user_id>/', views.api_user_schedule, name='api_user_schedule'),
 ]
