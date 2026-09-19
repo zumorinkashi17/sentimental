@@ -110,3 +110,333 @@ canvas {
     justify-content: flex-start !important;
     padding-left: 1.5rem !important;
 }
+
+/* calendar */
+.fc {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    --fc-page-bg-color: #ffffff;
+    --fc-today-bg-color: #f8fafc !important;
+}
+
+/* Header Layout - Title Left, Buttons Right */
+.fc-header-toolbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.5rem !important;
+    margin-bottom: 1rem !important;
+}
+.fc-toolbar-title {
+    font-size: 1.5rem !important; 
+    font-weight: 800 !important; 
+    color: #0f172a !important;
+}
+
+/* Navigation Buttons */
+.fc .fc-button {
+    background-color: #ffffff !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+    text-transform: capitalize !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.5rem !important;
+    padding: 0.4rem 1rem !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+    transition: all 0.2s ease !important;
+}
+.fc .fc-button:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+.fc .fc-button-active, .fc .fc-button:active {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+/* Grid & Borders */
+.fc-scrollgrid { border-radius: 0.5rem !important; overflow: hidden !important; border-color: #e2e8f0 !important; }
+.fc-theme-standard td, .fc-theme-standard th { border-color: #e2e8f0 !important; }
+
+/* Day Headers (MON, TUE) */
+.fc-col-header-cell-cushion {
+    color: #64748b !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    padding: 0.5rem 0 !important;
+    text-decoration: none !important;
+}
+
+/* Day Numbers */
+.fc-daygrid-day-number {
+    color: #334155 !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 8px !important;
+    text-decoration: none !important;
+}
+/* Today Indicator Circle */
+.fc-day-today .fc-daygrid-day-number {
+    background-color: #00a67e !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px;
+    padding: 0 !important;
+}
+.fc-day-other .fc-daygrid-day-number { color: #cbd5e1 !important; }
+
+/* Event Wrappers */
+.fc-daygrid-event-harness { margin: 2px 4px !important; }
+.fc-h-event { background-color: transparent !important; border: none !important; }
+.fc-event { box-shadow: none !important; }
+
+/* responder calendar*/
+.fc {
+    font-family: inherit;
+    --fc-border-color: transparent;
+    --fc-today-bg-color: transparent;
+}
+
+/* Header Toolbar */
+.fc .fc-toolbar {
+    margin-bottom: 2rem !important;
+}
+.fc .fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #00a67e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.fc .fc-toolbar-title::before {
+    content: "\e0b0"; /* Phosphor Icon calendar-blank unicode */
+    font-family: "Phosphor";
+    font-weight: bold;
+}
+
+/* Toolbar Buttons */
+.fc .fc-button-group {
+    gap: 0.5rem;
+}
+.fc .fc-button-group > .fc-button {
+    border-radius: 0.5rem !important;
+}
+.fc .fc-button-primary {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    text-transform: capitalize;
+    transition: all 0.2s ease;
+}
+.fc .fc-button-primary:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
+}
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+}
+.fc .fc-button-primary:focus {
+    box-shadow: none !important;
+}
+
+/* Grid & Headers */
+.fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid {
+    border: none !important;
+}
+.fc .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #9ca3af;
+    padding: 1rem 0;
+}
+
+/* Day Cells (The Cards) */
+.fc .fc-daygrid-day-frame {
+    border: 1px solid #f3f4f6;
+    border-radius: 0.75rem;
+    margin: 4px; /* Creates the gap between cards */
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background-color: #ffffff;
+    transition: all 0.2s;
+}
+
+/* Hide background on empty days */
+.fc .fc-day-other .fc-daygrid-day-frame {
+    background-color: #fafafa;
+    border-color: transparent;
+    opacity: 0.5;
+}
+
+/* Day Numbers */
+.fc .fc-daygrid-day-top {
+    display: flex;
+    justify-content: center;
+    padding-top: 0.75rem;
+}
+.fc .fc-daygrid-day-number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #00a67e;
+    text-decoration: none !important;
+}
+.fc .fc-day-other .fc-daygrid-day-number {
+    color: #d1d5db;
+}
+
+/* Event Wrappers */
+.fc .fc-daygrid-day-events {
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    padding-bottom: 0.5rem;
+}
+.fc .fc-event {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Dynamic Status Classes */
+.fc-day-scheduled .fc-daygrid-day-frame { border-color: #a7f3d0; }
+.fc-day-dayoff .fc-daygrid-day-frame { border-color: #bfdbfe; }
+.fc-day-dayoff .fc-daygrid-day-frame::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    background-color: #60a5fa;
+    border-radius: 50%;
+}
+.fc-day-leave .fc-daygrid-day-frame { border-color: #fed7aa; }
+.fc-day-leave .fc-daygrid-day-frame::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    background-color: #fb923c;
+    border-radius: 50%;
+}
+
+/* Today */
+.fc .fc-day-today .fc-daygrid-day-frame {
+    background-color: #00a67e !important;
+    border-color: #00a67e !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 166, 126, 0.2);
+}
+.fc .fc-day-today .fc-daygrid-day-number,
+.fc .fc-day-today .text-custom-time,
+.fc .fc-day-today .text-custom-status {
+    color: #ffffff !important;
+}
+
+/* Typography */
+.text-custom-time {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #00a67e;
+    line-height: 1.4;
+    text-align: center;
+}
+.text-custom-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+}
+.text-status-dayoff { color: #3b82f6; }
+.text-status-leave { color: #f97316; }
+
+/* ==========================================
+    MOBILE RESPONSIVENESS OVERRIDES
+    ========================================== */
+@media (max-width: 640px) {
+    /* Align and wrap the toolbar like the image */
+    .fc .fc-toolbar {
+        align-items: flex-start;
+        flex-direction: row;
+    }
+    .fc .fc-toolbar-title {
+        font-size: 1.5rem;
+        line-height: 1.1;
+        white-space: normal;
+        max-width: 140px; /* Forces "September 2026" to wrap */
+        align-items: flex-start;
+    }
+    .fc .fc-toolbar-title::before {
+        margin-top: 0.2rem;
+        font-size: 1.25rem;
+    }
+    .fc .fc-button-primary {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Make columns tall pills and reduce gap */
+    .fc .fc-daygrid-day-frame {
+        margin: 2px;
+        min-height: 115px; 
+        border-radius: 1rem; 
+    }
+    .fc .fc-daygrid-day-number {
+        font-size: 0.75rem;
+        padding-top: 0.5rem;
+    }
+    
+    /* Shrink typography to minimize overlap */
+    .text-custom-time {
+        font-size: 0.5rem; 
+        line-height: 1.2;
+        word-break: break-word;
+    }
+    .text-custom-status {
+        font-size: 0.55rem;
+        margin-top: 0.25rem;
+    }
+    .fc .fc-col-header-cell-cushion {
+        font-size: 0.6rem;
+        padding: 0.5rem 0;
+    }
+    
+    /* Adjust dots */
+    .fc-day-dayoff .fc-daygrid-day-frame::after,
+    .fc-day-leave .fc-daygrid-day-frame::after {
+        top: 6px;
+        right: 6px;
+        width: 4px;
+        height: 4px;
+    }
+}

@@ -21,14 +21,12 @@ def admin_calendar_view(request):
     )
     
     today = date.today()
-    cal = calendar.Calendar(firstweekday=6)
-    
     grouped_roster = []
     
     for user, user_schedules_iter in groupby(scheduled_roster, key=lambda s: s.user):
         user_schedules = list(user_schedules_iter)
-        
         reconstructed_blocks = []
+        
         if user_schedules:
             current_block = {
                 'shift': user_schedules[0].shift,
@@ -39,8 +37,6 @@ def admin_calendar_view(request):
                 },
                 'schedule_id': user_schedules[0].schedule_id 
             }
-            if user_schedules[0].schedule_status == 'Day Off':
-                current_block['days_off'] = {user_schedules[0].shift_date.strftime("%A").lower()}
 
             for s in user_schedules[1:]:
                 is_contiguous = (s.shift_date == current_block['shift_end_date'] + timedelta(days=1))
@@ -48,14 +44,11 @@ def admin_calendar_view(request):
 
                 if is_contiguous and is_same_shift:
                     current_block['shift_end_date'] = s.shift_date
-                    # Add the exact status for this specific date
                     current_block['daily_statuses'][s.shift_date.strftime("%Y-%m-%d")] = s.schedule_status
                 else:
-                    # Dump to JSON before appending
                     current_block['daily_statuses_json'] = json.dumps(current_block['daily_statuses'])
                     reconstructed_blocks.append(current_block)
                     
-                    # Start new block
                     current_block = {
                         'shift': s.shift,
                         'shift_start_date': s.shift_date,
@@ -66,106 +59,48 @@ def admin_calendar_view(request):
                         'schedule_id': s.schedule_id
                     }
                     
-            # Append the final block
             current_block['daily_statuses_json'] = json.dumps(current_block['daily_statuses'])
             reconstructed_blocks.append(current_block)
-
-        # Determine how far into the future we need to generate calendars for this user
-        max_date = today
-        if user_schedules:
-            max_date = max(s.shift_date for s in user_schedules)
-
-        curr_y, curr_m = today.year, today.month
-        end_y, end_m = max_date.year, max_date.month
-
-        months_to_generate = []
-        months_count = 0
-        
-        # Generate from this month up to their last scheduled month (minimum 3 months total)
-        while True:
-            months_to_generate.append((curr_y, curr_m))
-            months_count += 1
-            
-            # Stop if we've passed their max schedule date AND we've shown at least 3 months
-            if (curr_y > end_y or (curr_y == end_y and curr_m >= end_m)) and months_count >= 3:
-                break
-                
-            if curr_m == 12:
-                curr_y += 1
-                curr_m = 1
-            else:
-                curr_m += 1
-
-        user_months = []
-        
-        schedule_dict = {s.shift_date: s for s in user_schedules}
-        
-        # Build the grid for every month in the generated range
-        for y, m in months_to_generate:
-            month_days = list(cal.itermonthdates(y, m))
-            user_grid = []
-            
-            for d in month_days:
-                day_data = {
-                    'date': d,
-                    'day_num': d.day,
-                    'is_current_month': d.month == m,
-                    'is_today': d == today,
-                    'shift': None,
-                    'is_day_off': False,
-                    'is_leave': False,
-                }
-                
-                # CHANGED: Direct dictionary lookup instead of looping through all dates
-                if d in schedule_dict:
-                    schedule = schedule_dict[d]
-                    if schedule.schedule_status == 'Day Off':
-                        day_data['is_day_off'] = True
-                    elif schedule.schedule_status == 'Leave':
-                        day_data['is_leave'] = True
-                    else:
-                        day_data['is_day_off'] = False
-                        day_data['shift'] = schedule.shift
-                        
-                user_grid.append(day_data)
-                
-            user_months.append({
-                'month_name': calendar.month_name[m],
-                'year': y,
-                'grid': user_grid
-            })
             
         grouped_roster.append({
             'user': user,
-            'schedules': reconstructed_blocks,
-            'months': user_months  
+            'schedules': reconstructed_blocks
+            # Removed the complex "months" manual grid calculation here
         })
 
     pending_leaves = DayOffRequest.objects.filter(
         requested_status=DayOffRequest.StatusChoices.PENDING
     ).select_related('user').order_by('requested_date')
 
-    approved_leaves = DayOffRequest.objects.filter(
-        requested_status=DayOffRequest.StatusChoices.APPROVED,
-        requested_date__gte=today
-    ).order_by('requested_date')
-    
-    leaves_data = {}
-    for leave in approved_leaves:
-        uid = str(leave.user_id)
-        if uid not in leaves_data:
-            leaves_data[uid] = []
-        leaves_data[uid].append(leave.requested_date.strftime('%A, %b %d, %Y'))
+    processed_leaves = DayOffRequest.objects.exclude(
+        requested_status=DayOffRequest.StatusChoices.PENDING
+    ).select_related('user').order_by('-requested_date')[:25] 
 
     context = {
         'shifts': shifts,
         'responders': responders,
         'grouped_roster': grouped_roster,
         'today_date': today,
-        'leaves_data_json': json.dumps(leaves_data),
         'pending_leaves': pending_leaves,
+        'processed_leaves': processed_leaves, 
     }
     return render(request, 'schedules/admin_calendar.html', context)
+
+def api_user_schedule(request, user_id):
+    schedules = ShiftSchedule.objects.filter(user_id=user_id).select_related('shift')
+    events = []
+    
+    for sched in schedules:
+        events.append({
+            "title": "Shift" if sched.schedule_status == 'Scheduled' else sched.schedule_status,
+            "start": f"{sched.shift_date}T{sched.shift.shift_start_time}",
+            "end": f"{sched.shift_date}T{sched.shift.shift_end_time}",
+            "extendedProps": {
+                "status": sched.schedule_status.lower()
+            }
+        })
+        
+    return JsonResponse(events, safe=False)
 
 @require_POST
 def update_schedule_days_off(request):
@@ -296,84 +231,64 @@ def responder_schedule_view(request):
                 current_user = None
 
     dayoff_requests = DayOffRequest.objects.none()
-    calendar_grid = []
-    
-    today = date.today()
-    try:
-        current_year = int(request.GET.get('year', today.year))
-        current_month = int(request.GET.get('month', today.month))
-    except ValueError:
-        current_year = today.year
-        current_month = today.month
-
-    # Basic validation to prevent weird URL manipulation
-    if current_month < 1 or current_month > 12:
-        current_month = today.month
-        current_year = today.year
-
-    current_month_name = calendar.month_name[current_month]
-
-    # 2. Calculate Next and Previous months to pass to the buttons
-    if current_month == 1:
-        prev_month = 12
-        prev_year = current_year - 1
-    else:
-        prev_month = current_month - 1
-        prev_year = current_year
-        
-    if current_month == 12:
-        next_month = 1
-        next_year = current_year + 1
-    else:
-        next_month = current_month + 1
-        next_year = current_year
+    events = []
 
     if current_user:
         dayoff_requests = DayOffRequest.objects.filter(user=current_user).order_by('-requested_date')
         
-        # 1. Fetch ALL shifts (Removed the status filter so we get Days Off and Leaves too)
         my_schedules = ShiftSchedule.objects.filter(
             user=current_user
         ).select_related('shift')
 
-        # 2. Create a dictionary for fast date lookups
-        schedule_dict = {s.shift_date: s for s in my_schedules}
-
-        # Build a visual calendar grid (starts on Sunday = 6)
-        cal = calendar.Calendar(firstweekday=6)
-        month_days = cal.itermonthdates(current_year, current_month)
-
-        for d in month_days:
-            day_data = {
-                'date': d,
-                'day_num': d.day,
-                'is_current_month': d.month == current_month,
-                'is_today': d == today,
-                'shift': None,
-                'is_day_off': False,
-                'is_leave': False, # 3. Added Leave flag
-            }
+        for sched in my_schedules:
+            status = sched.schedule_status
             
-            # 4. Check the exact date in our dictionary instead of start/end ranges
-            if d in schedule_dict:
-                schedule = schedule_dict[d]
-                if schedule.schedule_status == 'Day Off':
-                    day_data['is_day_off'] = True
-                elif schedule.schedule_status == 'Leave':
-                    day_data['is_leave'] = True
-                else:
-                    day_data['shift'] = schedule.shift
-                    
-            calendar_grid.append(day_data)
+            if status == 'Scheduled' and sched.shift:
+                time_str = f"{sched.shift.shift_start_time.strftime('%I:%M %p')} - {sched.shift.shift_end_time.strftime('%I:%M %p')}"
+                events.append({
+                    "id": sched.schedule_id,
+                    "title": f"Shift ({time_str})",
+                    "start": f"{sched.shift_date}T{sched.shift.shift_start_time.strftime('%H:%M:%S')}",
+                    "end": f"{sched.shift_date}T{sched.shift.shift_end_time.strftime('%H:%M:%S')}",
+                    "allDay": False,
+                    "backgroundColor": "#00a67e",
+                    "borderColor": "#007a5d",
+                    "textColor": "#ffffff",
+                    "extendedProps": {
+                        "status": "Scheduled",
+                        "time": time_str
+                    }
+                })
+            elif status == 'Day Off':
+                events.append({
+                    "id": sched.schedule_id,
+                    "title": "Day Off",
+                    "start": str(sched.shift_date),
+                    "allDay": True,
+                    "backgroundColor": "#3b82f6",
+                    "borderColor": "#2563eb",
+                    "textColor": "#ffffff",
+                    "extendedProps": {
+                        "status": "Day Off"
+                    }
+                })
+            elif status == 'Leave':
+                events.append({
+                    "id": sched.schedule_id,
+                    "title": "Leave",
+                    "start": str(sched.shift_date),
+                    "allDay": True,
+                    "backgroundColor": "#f97316",
+                    "borderColor": "#ea580c",
+                    "textColor": "#ffffff",
+                    "extendedProps": {
+                        "status": "Leave"
+                    }
+                })
+
     context = {
         'dayoff_requests': dayoff_requests,
-        'calendar_grid': calendar_grid,
-        'current_month_name': current_month_name,
-        'current_year': current_year,
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
+        'events_json': json.dumps(events),
     }
     
     return render(request, 'schedules/calendar.html', context)

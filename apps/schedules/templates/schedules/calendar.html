@@ -3,115 +3,38 @@
 
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
-    <div class="max-w-5xl mx-auto w-full space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+    <div class="max-w-6xl mx-auto w-full space-y-8">
+        
+        <!-- Header Actions -->
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-gray-100 pb-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">My Shift Schedules</h1>
-                <p class="text-gray-500">Manage assigned shifts and requested time off.</p>
+                <p class="text-gray-500 text-sm">Manage assigned shifts and requested time off.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <button type="button" onclick="openModal('modal-request-leave')" class="px-5 py-1.5 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 shadow-sm"><i class="ph-bold ph-calendar-plus"></i> Request Day Off</button>
-            </div>
+            <button type="button" onclick="openModal('modal-request-leave')" class="px-5 py-2 bg-brand text-white text-sm font-semibold rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                <i class="ph-bold ph-calendar-plus text-lg"></i> Request Day Off
+            </button>
         </div>
 
-        <!-- Calendar Grid -->
-        <div class="bg-white p-3 sm:p-6 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 min-w-[560px]">
-                <!-- Dynamic Month & Year -->
-                <h2 class="text-lg font-bold text-brand flex items-center gap-2">
-                    <i class="ph-bold ph-calendar"></i> {{ current_month_name }} {{ current_year }}
-                </h2>
-                <div class="flex gap-2">
-                    <!-- Previous Month Link -->
-                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="p-2 border border-gray-200 rounded hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors" aria-label="Previous month">
-                        <i class="ph-bold ph-caret-left"></i>
-                    </a>
-                    
-                    <!-- Today Shortcut (Optional, but very helpful for users!) -->
-                    <a href="?month={{ today_date.month }}&year={{ today_date.year }}" class="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 text-xs font-bold text-gray-600 flex items-center justify-center transition-colors">
-                        Today
-                    </a>
-
-                    <!-- Next Month Link -->
-                    <a href="?month={{ next_month }}&year={{ next_year }}" class="p-2 border border-gray-200 rounded hover:bg-gray-50 flex items-center justify-center text-gray-700 transition-colors" aria-label="Next month">
-                        <i class="ph-bold ph-caret-right"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-7 gap-2 md:gap-4 min-w-[560px]">
-                <!-- Headers -->
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Sun</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Mon</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Tue</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Wed</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Thu</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Fri</div>
-                <div class="font-bold text-[10px] sm:text-xs text-gray-400 uppercase text-center">Sat</div>
-                
-                <!-- Dynamic Calendar Loop -->
-                {% for day in calendar_grid %}
-                    {% if not day.is_current_month %}
-                        <!-- Inactive Day (Previous/Next Month) -->
-                        <div class="p-2 sm:p-3 border border-gray-50 rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start bg-gray-50/30 opacity-60">
-                            <span class="text-xs font-bold text-gray-300">{{ day.day_num }}</span>
-                        </div>
-                    {% else %}
-                        <!-- Active Day Box -->
-                        <div class="p-2 sm:p-3 border 
-                            {% if day.is_today %} border-2 border-brand bg-brand text-white shadow-md
-                            {% elif day.shift %} border-brand/30 bg-brand-light/20
-                            {% elif day.is_day_off %} border-blue-100 bg-blue-50/30
-                            {% elif day.is_leave %} border-orange-100 bg-orange-50/30 <!-- NEW -->
-                            {% else %} border-gray-100 bg-white
-                            {% endif %} 
-                            rounded-xl h-20 sm:h-28 flex flex-col items-center justify-start relative transition-all">
-                            
-                            <!-- Date Number -->
-                            <span class="text-xs font-bold 
-                                {% if day.is_today %} text-white
-                                {% elif day.shift %} text-brand
-                                {% elif day.is_leave %} text-orange-600 <!-- NEW -->
-                                {% else %} text-gray-600
-                                {% endif %}">
-                                {{ day.day_num }}{% if day.is_today %} (Today){% endif %}
-                            </span>
-                            
-                            <!-- Content inside the box -->
-                            {% if day.is_day_off %}
-                                <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-400"></div>
-                                <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-blue-500{% endif %}">Day Off</span>
-                            
-                            {% elif day.is_leave %} <!-- NEW BLOCK -->
-                                <div class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-400"></div>
-                                <span class="mt-auto text-[8px] sm:text-[10px] uppercase font-bold text-center {% if day.is_today %}text-white/90{% else %}text-orange-500{% endif %}">Leave</span>
-
-                            {% elif day.shift %}
-                                <span class="mt-auto text-[8px] sm:text-[10px] font-medium text-center {% if day.is_today %}text-white/90{% else %}text-brand{% endif %}">
-                                    {{ day.shift.shift_start_time|time:"h:i A" }}<br>-<br>{{ day.shift.shift_end_time|time:"h:i A" }}
-                                </span>
-                            
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
+        <!-- FullCalendar Container (Transparent wrapper) -->
+        <div class="w-full">
+            <div id="fullcalendar"></div>
         </div>
         
         <!-- Requested Day Offs List -->
-        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase">Requested Day Offs</h2>
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm mt-8">
+            <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Requested Day Offs</h2>
             <div class="table-scroll overflow-x-auto">
-                <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden min-w-[600px]">
+                <table class="w-full text-left border-collapse rounded-lg overflow-hidden min-w-[600px]">
                     <thead>
-                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500 border-b border-gray-100">
                             <th scope="col" class="p-3 font-bold">Date</th>
                             <th scope="col" class="p-3 font-bold">Reason</th>
                             <th scope="col" class="p-3 font-bold">Notes</th>
                             <th scope="col" class="p-3 font-bold text-right">Status</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
                         {% for req in dayoff_requests %}
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="p-3 font-bold text-gray-800 whitespace-nowrap">{{ req.requested_date|date:"M d, Y" }}</td>
@@ -120,20 +43,18 @@
                                     {{ req.requested_additional_notes|default:"No notes provided." }}
                                 </td>
                                 <td class="p-3 text-right whitespace-nowrap">
-                                    <!-- Dynamically color the status badge -->
                                     {% if req.requested_status == 'Pending' %}
-                                        <span class="px-2.5 py-1 bg-yellow-100 text-yellow-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                        <span class="px-2.5 py-1 bg-yellow-50 text-yellow-600 border border-yellow-200 text-[10px] rounded-md font-bold uppercase tracking-wide">{{ req.requested_status }}</span>
                                     {% elif req.requested_status == 'Approved' %}
-                                        <span class="px-2.5 py-1 bg-green-100 text-green-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                        <span class="px-2.5 py-1 bg-green-50 text-green-600 border border-green-200 text-[10px] rounded-md font-bold uppercase tracking-wide">{{ req.requested_status }}</span>
                                     {% else %}
-                                        <span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold uppercase">{{ req.requested_status }}</span>
+                                        <span class="px-2.5 py-1 bg-red-50 text-red-600 border border-red-200 text-[10px] rounded-md font-bold uppercase tracking-wide">{{ req.requested_status }}</span>
                                     {% endif %}
                                 </td>
                             </tr>
                         {% empty %}
-                            <!-- Displayed if the user has no requests -->
                             <tr>
-                                <td colspan="4" class="p-8 text-center text-gray-500 font-medium bg-gray-50/50">
+                                <td colspan="4" class="p-8 text-center text-gray-400 font-medium bg-gray-50/30 border border-dashed border-gray-200 rounded-lg">
                                     You have no day-off requests at the moment.
                                 </td>
                             </tr>
@@ -146,49 +67,126 @@
     </div>
 </div>
 
+<!-- Modal: Request Day Off (Unchanged) -->
 <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-3 sm:p-4">
-        <div id="modal-request-leave" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col relative">
-            <!-- Modal Header -->
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
-                <h3 class="font-bold text-gray-800 text-lg">Request Day Off</h3>
-                <button type="button" onclick="closeModal('modal-request-leave')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
+    <div id="modal-request-leave" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col relative">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 flex-shrink-0">
+            <h3 class="font-bold text-gray-800 text-lg">Request Day Off</h3>
+            <button type="button" onclick="closeModal('modal-request-leave')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-4 flex-1">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1" for="requestDate">Date Requested</label>
+                <input type="date" id="requestDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
             </div>
-            
-            <!-- Modal Body -->
-            <div class="p-6 space-y-4 flex-1">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestDate">Date Requested</label>
-                    <input type="date" id="requestDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestReason">Reason</label>
-                    <select id="requestReason" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
-                        <option value="" disabled selected hidden>Select a reason...</option>
-                        <option value="Personal Emergency">Personal Emergency</option>
-                        <option value="Sick Leave">Sick Leave</option>
-                        <option value="Vacation">Vacation</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestNotes">Additional Notes (Optional)</label>
-                    <textarea id="requestNotes" rows="3" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg resize-none custom-scrollbar" placeholder="Provide any necessary details..."></textarea>
-                </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1" for="requestReason">Reason</label>
+                <select id="requestReason" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+                    <option value="" disabled selected hidden>Select a reason...</option>
+                    <option value="Personal Emergency">Personal Emergency</option>
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Vacation">Vacation</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
-            
-            <!-- Modal Footer -->
-            <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                <button type="button" onclick="closeModal('modal-request-leave')" class="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-                <button type="button" id="submit-request-btn" onclick="submitDayOffRequest()" class="px-6 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors flex items-center gap-2">
-                    <i class="ph-bold ph-paper-plane-tilt"></i> Submit Request
-                </button>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1" for="requestNotes">Additional Notes (Optional)</label>
+                <textarea id="requestNotes" rows="3" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg resize-none custom-scrollbar" placeholder="Provide any necessary details..."></textarea>
             </div>
         </div>
+        
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+            <button type="button" onclick="closeModal('modal-request-leave')" class="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+            <button type="button" id="submit-request-btn" onclick="submitDayOffRequest()" class="px-6 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors flex items-center gap-2">
+                <i class="ph-bold ph-paper-plane-tilt"></i> Submit Request
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('fullcalendar');
+        const rawEvents = {{ events_json|safe|default:"[]" }};
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            headerToolbar: {
+                left: 'title',
+                center: '',
+                right: 'prev,today,next'
+            },
+            buttonText: {
+                today: 'Today'
+            },
+            events: rawEvents,
+            
+            // Customizes the day number text (appends "Today" to the current day)
+            dayCellContent: function(arg) {
+                const isMobile = window.innerWidth <= 640;
+                
+                if (arg.isToday) {
+                    if (isMobile) {
+                        return { html: `<div class="flex flex-col items-center"><span>${arg.dayNumberText}</span><span style="font-size: 0.5rem; line-height: 1">Today</span></div>` };
+                    }
+                    return { html: `${arg.dayNumberText} (Today)` };
+                }
+                return { html: arg.dayNumberText };
+            },
+
+            // Applies outer border classes to the day cell based on event status
+            eventDidMount: function(info) {
+                const status = info.event.extendedProps.status;
+                const dayCell = info.el.closest('.fc-daygrid-day');
+                
+                if (dayCell) {
+                    if (status === 'Scheduled') {
+                        dayCell.classList.add('fc-day-scheduled');
+                    } else if (status === 'Day Off') {
+                        dayCell.classList.add('fc-day-dayoff');
+                    } else if (status === 'Leave') {
+                        dayCell.classList.add('fc-day-leave');
+                    }
+                }
+            },
+
+            // Injects the custom typography layout inside the event wrapper
+            eventContent: function(arg) {
+                const status = arg.event.extendedProps.status;
+                let html = '';
+                
+                if (status === 'Scheduled') {
+                    const timeStr = arg.event.extendedProps.time || '';
+                    const times = timeStr.split(' - ');
+                    
+                    if (times.length === 2) {
+                        html = `
+                            <div class="text-custom-time flex flex-col items-center">
+                                <span>${times[0]}</span>
+                                <span>-</span>
+                                <span>${times[1]}</span>
+                            </div>
+                        `;
+                    } else {
+                        html = `<div class="text-custom-time">${timeStr}</div>`;
+                    }
+                } else if (status === 'Day Off') {
+                    html = `<div class="text-custom-status text-status-dayoff">Day Off</div>`;
+                } else if (status === 'Leave') {
+                    html = `<div class="text-custom-status text-status-leave">Leave</div>`;
+                }
+                
+                return { html: html };
+            },
+        });
+
+        calendar.render();
+    });
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
