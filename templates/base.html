@@ -41,6 +41,9 @@
     <!-- calendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
+    <!-- Persistent recording engine (keeps recording alive across pages) -->
+    <script src="{% static 'js/recorder.js' %}?v=1"></script>
+
     <!-- Global CSS -->
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/global.css' %}?v=2">
@@ -130,12 +133,14 @@
                 {% endif %}
             </nav>
 
-            <div class="logout-container mt-auto pt-4 mb-4 w-full flex justify-center">
-                <a href="{% url 'accounts:logout' %}" onclick="confirmLogout(event)" class="logout-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Logout">
-                    <i class="ph-bold ph-sign-out text-xl"></i>
-                    <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Logout</div>
+            <!-- Call / Audio Icon -->
+            <div class="call-action-container mt-auto w-full flex justify-center mb-4">
+                <a href="{% url 'callers:call_setup' %}" class="call-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Start Call">
+                    <i class="ph-bold ph-microphone text-xl"></i>
+                    <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Start Call</div>
                 </a>
             </div>
+
         </aside>
 
         <!-- MAIN CONTENT WRAPPER -->
@@ -154,8 +159,10 @@
                     </div>
                 </div>
 
-                <!-- User Info -->
-                <div class="flex items-center gap-2 sm:gap-5 relative flex-shrink-0">
+                <!-- User Info & Actions Container -->
+                <div class="flex items-center gap-3 sm:gap-6 relative flex-shrink-0">
+                    
+                    <!-- Notifications -->
                     <div class="relative">
                         <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors border border-brand/20">
                             <i class="ph ph-bell text-xl pointer-events-none"></i>
@@ -165,7 +172,8 @@
                     
                     <div class="h-8 w-px bg-gray-200 hidden sm:block"></div>
                     
-                    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 sm:gap-3 group cursor-pointer">
+                    <!-- User Profile -->
+                    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 sm:gap-3 group cursor-pointer pr-2">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-brand overflow-hidden flex items-center justify-center text-brand bg-brand-light font-bold text-lg flex-shrink-0">
                             {% if user_profile.user_image %}
                                 <img src="{{ user_profile.user_image }}" alt="Avatar" class="w-full h-full object-cover">
@@ -182,8 +190,28 @@
                             </p>
                         </div>
                     </a>
+
+                    <!-- Logout Button (Fixed Layout) -->
+                    <a href="{% url 'accounts:logout' %}" onclick="confirmLogout(event)" class="logout-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative flex-shrink-0" aria-label="Logout">
+                        <i class="ph-bold ph-sign-out text-xl"></i>
+                        <!-- Adjusted tooltip positioning for the top header -->
+                        <div class="nav-tooltip hidden md:block absolute top-14 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Logout</div>
+                    </a>
+
                 </div>
             </header>
+
+            <!-- RECORDING-IN-PROGRESS BANNER (persists across sections) -->
+            <div id="global-call-banner" class="hidden relative z-30 flex-shrink-0 flex items-center justify-between gap-3 px-4 sm:px-6 py-2 bg-red-600 text-white text-sm font-bold">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0"></span>
+                    <span class="truncate">Recording in Progress — Call:</span>
+                    <span id="global-recording-timer" class="font-mono flex-shrink-0">00:00</span>
+                </div>
+                <button type="button" id="global-end-call-btn" onclick="CallRecorder.stop()" class="bg-white text-red-600 hover:bg-red-50 text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex-shrink-0">
+                    <i class="ph-bold ph-stop mr-1"></i> End Call
+                </button>
+            </div>
 
             <div class="flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden bg-bgLight min-w-0">
                 
@@ -202,7 +230,7 @@
     {% include 'partials/modals.html' %}
 
     <!-- Script assets -->
-    <script src="{% static 'js/main.js' %}?v=15"></script>
+    <script src="{% static 'js/main.js' %}?v=16"></script>
     <!-- DJANGO MESSAGES HIDDEN DATA -->
     {% if messages %}
         <div id="django-messages" class="hidden">
