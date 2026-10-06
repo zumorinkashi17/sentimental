@@ -164,10 +164,27 @@
                     
                     <!-- Notifications -->
                     <div class="relative">
-                        <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors border border-brand/20">
+                        <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors">
                             <i class="ph ph-bell text-xl pointer-events-none"></i>
-                            <span class="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none"></span>
+                            <span id="notif-badge" class="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none hidden"></span>
                         </button>
+
+                        <!-- Notification Dropdown -->
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <span class="text-sm font-bold text-gray-800">Notifications</span>
+                                <span id="notif-count" class="text-xs font-bold text-brand"></span>
+                            </div>
+                            <div id="notif-list" class="overflow-y-auto custom-scrollbar divide-y divide-gray-50 transition-all duration-300" style="max-height: 18rem;">
+                                <p class="text-xs text-gray-400 text-center py-6">Loading...</p>
+                            </div>
+                            {% if request.session.user_role == 'Admin' or request.session.user_role == 'Responder' %}
+                            <button type="button" onclick="toggleExpandNotifications()" id="btn-expand-notif" class="w-full text-center text-xs font-bold text-brand py-3 hover:bg-brand-light transition-colors border-t border-gray-100 flex items-center justify-center gap-1">
+                                <span id="expand-notif-label">View All Notifications</span>
+                                <i id="expand-notif-icon" class="ph ph-caret-down text-sm transition-transform duration-200"></i>
+                            </button>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <div class="h-8 w-px bg-gray-200 hidden sm:block"></div>
@@ -255,6 +272,152 @@
             });
         </script>
     {% endif %}
+    <script>
+    (function() {
+        const NOTIF_URL = '/notifications/api/';
+        const MARK_READ_URL = '/notifications/mark-read/';
+        const role = '{{ request.session.user_role }}';
+        const isAdmin = role === 'Admin';
+        let notifOpen = false;
+        let expanded = false;
+        const COLLAPSED_HEIGHT = '18rem';
+
+        window.toggleNotifications = function() {
+            const dropdown = document.getElementById('notif-dropdown');
+            notifOpen = !notifOpen;
+            dropdown.classList.toggle('hidden', !notifOpen);
+            if (notifOpen) {
+                loadNotifications();
+                if (!isAdmin) {
+                    // Clear badge immediately on open for responder
+                    document.getElementById('notif-badge').classList.add('hidden');
+                    document.getElementById('notif-count').textContent = '';
+                    markAllRead();
+                }
+            }
+        };
+
+        document.addEventListener('click', function(e) {
+            const btn = document.getElementById('btn-notifications');
+            const dropdown = document.getElementById('notif-dropdown');
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                notifOpen = false;
+            }
+        });
+
+        window.toggleExpandNotifications = function() {
+            expanded = !expanded;
+            const list = document.getElementById('notif-list');
+            const label = document.getElementById('expand-notif-label');
+            const icon = document.getElementById('expand-notif-icon');
+            list.style.maxHeight = expanded ? 'none' : COLLAPSED_HEIGHT;
+            label.textContent = expanded ? 'Show Less' : 'View All Notifications';
+            icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        };
+
+        function loadNotifications() {
+            fetch(NOTIF_URL)
+                .then(r => r.json())
+                .then(data => renderNotifications(data.notifications || []))
+                .catch(() => {});
+        }
+
+        function markAllRead() {
+            fetch(MARK_READ_URL, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')}
+            }).then(() => {
+                document.getElementById('notif-badge').classList.add('hidden');
+            });
+        }
+
+        function renderNotifications(items) {
+            const list = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-badge');
+            const count = document.getElementById('notif-count');
+
+            badge.classList.toggle('hidden', items.length === 0);
+            count.textContent = items.length ? `${items.length}` : '';
+
+            if (!items.length) {
+                list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">No notifications.</p>';
+                return;
+            }
+
+            if (isAdmin) {
+                list.innerHTML = items.map(n => `
+                    <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start gap-2 cursor-pointer" onclick="window.location.href='{% url "schedules:admin_calendar" %}'">
+                            <div class="w-7 h-7 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="ph ph-calendar-check text-brand text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-800 leading-tight">${n.name} requested a day off</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${n.reason} &mdash; <span class="font-semibold text-brand">${n.date}</span></p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-2 pl-9">
+                            <button onclick="handleLeave(${n.id}, 'approve', this)" class="flex-1 text-xs font-bold py-1 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Approve</button>
+                            <button onclick="handleLeave(${n.id}, 'deny', this)" class="flex-1 text-xs font-bold py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Decline</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = items.map(n => {
+                    const approved = n.status === 'Approved';
+                    const iconClass = approved ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500';
+                    const statusClass = approved ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+                    const bgClass = approved ? 'bg-green-50' : 'bg-red-50';
+                    return `
+                        <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{% url "schedules:calendar" %}'">
+                            <div class="flex items-start gap-2">
+                                <div class="w-7 h-7 rounded-full ${bgClass} flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ph ${iconClass} text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 leading-tight">Day off request <span class="${statusClass}">${n.status}</span></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">${n.reason} &mdash; <span class="font-semibold text-brand">${n.date}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        window.handleLeave = function(id, action, btn) {
+            btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+            fetch('/schedules/update-dayoff-status/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({leave_id: id, action: action})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove this item from the list immediately
+                    btn.closest('.px-4').remove();
+                    // Re-fetch to sync badge and count
+                    loadNotifications();
+                }
+            });
+        };
+
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : '';
+        }
+
+        function refreshBadge() {
+            fetch(NOTIF_URL).then(r => r.json()).then(data => {
+                document.getElementById('notif-badge').classList.toggle('hidden', !(data.notifications || []).length);
+            });
+        }
+        refreshBadge();
+        setInterval(refreshBadge, 30000);
+    })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

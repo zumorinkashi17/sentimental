@@ -1,8 +1,8 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from . import views
 
 app_name = 'heatmap'
 
 urlpatterns = [
-    path('map/', TemplateView.as_view(template_name='heatmap/map.html'), name='map'),
+    path('map/', views.map_view, name='map'),
 ]

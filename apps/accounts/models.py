@@ -66,6 +66,7 @@ class DayOffRequest(models.Model):
         choices=StatusChoices.choices, 
         default=StatusChoices.PENDING
     )
+    is_read = models.BooleanField(default=False)
     processed_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
