@@ -33,6 +33,7 @@ urlpatterns = [
     path('schedules/', include('apps.schedules.urls', namespace='schedules')),
     path('heatmap/', include('apps.heatmap.urls', namespace='heatmap')),
     path('reports/', include('apps.reports.urls', namespace='reports')),
+    path('notifications/', include('apps.notifications.urls', namespace='notifications')),
 ]
 
 if settings.DEBUG:

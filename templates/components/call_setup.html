@@ -1,0 +1,689 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div id="floating-call-widget" class="flex-1 h-full overflow-y-auto custom-scrollbar bg-bgLight p-4 sm:p-6 lg:p-8">
+    
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        
+        <!-- Header Section -->
+        <header class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 tracking-tight">Audio Configuration & Recording</h1>
+            <p class="text-gray-500 mt-1 text-sm">
+                Diagnostic tool to capture, mix, and record audio from two separate hardware inputs simultaneously.
+            </p>
+            <div id="error-message" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium"></div>
+        </header>
+
+        <!-- Input Selection Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Caller Input -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <h2 class="text-sm font-bold text-brand uppercase tracking-wider flex items-center">
+                    <i class="ph-fill ph-phone-call text-lg mr-2"></i>
+                    Caller Input (e.g., USB Dongle)
+                </h2>
+                <div>
+                    <label for="caller-device" class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Select Device</label>
+                    <select id="caller-device" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand block p-3 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="">Requesting permissions...</option>
+                    </select>
+                </div>
+                <div class="mt-auto">
+                    <label class="block text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Audio Visualizer</label>
+                    <div class="w-full h-10 bg-[#e3e5eb] rounded-lg border border-gray-200 overflow-hidden relative shadow-inner">
+                        <canvas id="caller-visualizer" class="w-full h-full block"></canvas>
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-8">Caller</span>
+                        <span class="font-mono text-[10px] font-bold text-gray-500 w-11 text-right" id="caller-in-db">--</span>
+                        <span class="text-[10px] text-gray-300">in</span>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div id="caller-level-bar" class="h-full w-0 bg-gray-300 transition-all duration-75"></div>
+                        </div>
+                        <span class="font-mono text-[10px] font-bold w-11 text-right" id="caller-mix-db">--</span>
+                        <span class="text-[10px] text-gray-300">mix</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responder Input -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                <h2 class="text-sm font-bold text-brand uppercase tracking-wider flex items-center">
+                    <i class="ph-fill ph-headset text-lg mr-2"></i>
+                    Responder Input (e.g., Local Mic)
+                </h2>
+                <div>
+                    <label for="responder-device" class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">Select Device</label>
+                    <select id="responder-device" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-2 focus:ring-brand/20 focus:border-brand block p-3 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="">Requesting permissions...</option>
+                    </select>
+                </div>
+                <div class="mt-auto">
+                    <label class="block text-[11px] font-bold text-gray-400 mb-2 uppercase tracking-wider">Audio Visualizer</label>
+                    <div class="w-full h-10 bg-[#e3e5eb] rounded-lg border border-gray-200 overflow-hidden relative shadow-inner">
+                        <canvas id="responder-visualizer" class="w-full h-full block"></canvas>
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-8">Respond</span>
+                        <span class="font-mono text-[10px] font-bold text-gray-500 w-11 text-right" id="responder-in-db">--</span>
+                        <span class="text-[10px] text-gray-300">in</span>
+                        <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div id="responder-level-bar" class="h-full w-0 bg-gray-300 transition-all duration-75"></div>
+                        </div>
+                        <span class="font-mono text-[10px] font-bold w-11 text-right" id="responder-mix-db">--</span>
+                        <span class="text-[10px] text-gray-300">mix</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Controls Section -->
+        <div class="flex flex-col sm:flex-row items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-5 gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button id="start-btn" class="flex-1 sm:flex-none bg-brand hover:bg-brand-dark text-white font-medium py-2.5 px-6 rounded-xl transition-colors shadow-sm flex items-center justify-center">
+                    <i class="ph-bold ph-play text-lg mr-2"></i>
+                    Start Recording
+                </button>
+                <button id="stop-btn" disabled class="flex-1 sm:flex-none bg-gray-100 text-gray-400 font-medium py-2.5 px-6 rounded-xl cursor-not-allowed transition-colors flex items-center justify-center">
+                    <i class="ph-bold ph-stop text-lg mr-2"></i>
+                    Stop
+                </button>
+            </div>
+            
+            <div class="flex flex-col items-end w-full sm:w-auto">
+                <span class="text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-wider">Session Status</span>
+                <span id="status-indicator" class="flex items-center text-xs font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 uppercase tracking-wide">
+                    <span class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span> Idle
+                </span>
+                <span id="recording-timer" class="text-xs font-bold text-brand mt-1.5 hidden font-mono">00:00</span>
+            </div>
+        </div>
+
+        <!-- Playback Section -->
+        <div id="playback-section" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                <i class="ph-fill ph-waveform text-brand text-lg mr-2"></i>
+                Recorded Mixed Audio
+            </h3>
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <audio id="audio-player" controls class="w-full sm:w-auto flex-grow h-12 outline-none rounded-lg"></audio>
+                <a id="download-link" href="#" class="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white font-medium py-2.5 px-6 rounded-xl transition-colors text-sm flex items-center justify-center shadow-sm">
+                    <i class="ph-bold ph-download-simple text-lg mr-2"></i>
+                    Download Mix
+                </a>
+            </div>
+        </div>
+
+        <!-- Transcription Section -->
+        <div id="transcription-section" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-sm font-bold text-gray-800 mb-4 flex items-center uppercase tracking-wider">
+                <i class="ph-fill ph-magic-wand text-brand text-lg mr-2"></i>
+                Post-Call Transcription
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5 uppercase">API Key</label>
+                    <p class="w-full max-w-md bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium rounded-xl p-3">
+                        <i class="ph-bold ph-key text-sm mr-1"></i>
+                        API key loaded automatically
+                    </p>
+                </div>
+                <button id="transcribe-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-6 rounded-xl transition-colors text-sm flex items-center shadow-sm">
+                    <i class="ph-bold ph-text-aa text-lg mr-2"></i>
+                    Start Transcription
+                </button>
+                <div id="transcript-output" class="mt-4 p-5 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 hidden whitespace-pre-wrap text-sm leading-relaxed max-h-96 overflow-y-auto custom-scrollbar"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Scripts transferred and adapted from new.html -->
+<script>
+(function () {
+    'use strict';
+
+    // The Gemini API key stays server-side; transcription is posted to the
+    // Django endpoint below so the key is never exposed in page source.
+
+    // Shared page state kept on window so it survives AJAX navigation returns.
+    var page = window.callPage = window.callPage || {
+        callerDeviceSelect: null,
+        responderDeviceSelect: null,
+        startBtn: null,
+        stopBtn: null,
+        statusIndicator: null,
+        recordingTimer: null,
+        errorMessage: null,
+        playbackSection: null,
+        transcriptionSection: null,
+        audioPlayer: null,
+        downloadLink: null,
+        transcribeBtn: null,
+        transcriptOutput: null,
+        callerCanvas: null,
+        callerCtx: null,
+        responderCanvas: null,
+        responderCtx: null,
+        frameHandles: [],
+        levelHandle: null,
+        latestUrl: null
+    };
+
+    // Hooks used by main.js around the content swap.
+    window.beforePageSwap = function () { stopVisualizers(); };
+    window.afterContentSwap = function () { initCallSetup(); };
+
+    function grabRefs() {
+        page.callerDeviceSelect = document.getElementById('caller-device');
+        page.responderDeviceSelect = document.getElementById('responder-device');
+        page.startBtn = document.getElementById('start-btn');
+        page.stopBtn = document.getElementById('stop-btn');
+        page.statusIndicator = document.getElementById('status-indicator');
+        page.recordingTimer = document.getElementById('recording-timer');
+        page.errorMessage = document.getElementById('error-message');
+        page.playbackSection = document.getElementById('playback-section');
+        page.transcriptionSection = document.getElementById('transcription-section');
+        page.audioPlayer = document.getElementById('audio-player');
+        page.downloadLink = document.getElementById('download-link');
+        page.transcribeBtn = document.getElementById('transcribe-btn');
+        page.transcriptOutput = document.getElementById('transcript-output');
+        page.callerCanvas = document.getElementById('caller-visualizer');
+        page.callerCtx = page.callerCanvas ? page.callerCanvas.getContext('2d') : null;
+        page.responderCanvas = document.getElementById('responder-visualizer');
+        page.responderCtx = page.responderCanvas ? page.responderCanvas.getContext('2d') : null;
+    }
+
+    function showError(msg) {
+        if (page.errorMessage) {
+            page.errorMessage.textContent = msg;
+            page.errorMessage.classList.remove('hidden');
+        }
+        console.error(msg);
+    }
+
+    function hideError() {
+        if (page.errorMessage) page.errorMessage.classList.add('hidden');
+    }
+
+    function fmt(secs) {
+        secs = Math.max(0, secs | 0);
+        var m = String(Math.floor(secs / 60)).padStart(2, '0');
+        var s = String(secs % 60).padStart(2, '0');
+        return m + ':' + s;
+    }
+
+    async function getDevices() {
+        try {
+            const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            tempStream.getTracks().forEach(track => track.stop());
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+
+            page.callerDeviceSelect.innerHTML = '';
+            page.responderDeviceSelect.innerHTML = '';
+
+            if (audioInputs.length === 0) {
+                const noMicOpt = '<option value="">No microphones found</option>';
+                page.callerDeviceSelect.innerHTML = noMicOpt;
+                page.responderDeviceSelect.innerHTML = noMicOpt;
+                return;
+            }
+
+            audioInputs.forEach((device, index) => {
+                const option1 = document.createElement('option');
+                const option2 = document.createElement('option');
+
+                option1.value = option2.value = device.deviceId;
+                option1.text = option2.text = device.label || `Microphone ${index + 1}`;
+
+                page.callerDeviceSelect.appendChild(option1);
+                page.responderDeviceSelect.appendChild(option2);
+            });
+
+            if (audioInputs.length > 1) {
+                page.responderDeviceSelect.selectedIndex = 1;
+            }
+        } catch (err) {
+            showError("Permission denied or error accessing media devices. Please allow microphone permissions.");
+            page.callerDeviceSelect.innerHTML = '<option value="">Permission denied</option>';
+            page.responderDeviceSelect.innerHTML = '<option value="">Permission denied</option>';
+        }
+    }
+
+    function resizeCanvases() {
+        if (page.callerCanvas) {
+            page.callerCanvas.width = page.callerCanvas.clientWidth;
+            page.callerCanvas.height = page.callerCanvas.clientHeight;
+        }
+        if (page.responderCanvas) {
+            page.responderCanvas.width = page.responderCanvas.clientWidth;
+            page.responderCanvas.height = page.responderCanvas.clientHeight;
+        }
+    }
+
+    function drawLoop(analyser, ctx, canvas, color) {
+        (function step() {
+            if (!analyser || !canvas) return;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            ctx.fillStyle = '#e3e5eb';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * canvas.height / 2;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            page.frameHandles.push(requestAnimationFrame(step));
+        })();
+    }
+
+    // --- Live level meter (diagnostic) -------------------------------------
+    // Shows dBFS straight off each input ("in") next to what actually reaches
+    // the recording ("mix"). If "in" is already very low the hardware or the
+    // browser's own DSP is the problem; if "in" is healthy but "mix" is not,
+    // it is just gain.
+    var METER_FLOOR = -60;
+    var METER_CEIL = 0;
+
+    function dbToPct(db) {
+        if (db === null || db === undefined || !isFinite(db)) return 0;
+        var pct = ((db - METER_FLOOR) / (METER_CEIL - METER_FLOOR)) * 100;
+        return Math.max(0, Math.min(100, pct));
+    }
+
+    function levelColor(db) {
+        if (db === null || db === undefined || !isFinite(db)) return 'text-gray-400';
+        if (db > -30) return 'text-emerald-600';
+        if (db > -45) return 'text-amber-600';
+        return 'text-red-600';
+    }
+
+    function barColor(db) {
+        if (db === null || db === undefined || !isFinite(db)) return 'bg-gray-300';
+        if (db > -30) return 'bg-emerald-500';
+        if (db > -45) return 'bg-amber-500';
+        return 'bg-red-500';
+    }
+
+    function fmtDb(db) {
+        if (db === null || db === undefined || !isFinite(db)) return '--';
+        return (db > 0 ? '+' : '') + db.toFixed(1);
+    }
+
+    function renderLevel(side, data) {
+        if (!data) return;
+        var inEl = document.getElementById(side + '-in-db');
+        var mixEl = document.getElementById(side + '-mix-db');
+        var bar = document.getElementById(side + '-level-bar');
+        if (!inEl || !mixEl || !bar) return;
+
+        var inputDb = data.input ? data.input.rms : null;
+        var mixDb = data.mix ? data.mix.rms : null;
+
+        inEl.textContent = fmtDb(inputDb);
+        inEl.className = 'font-mono text-[10px] font-bold w-11 text-right ' + levelColor(inputDb);
+        mixEl.textContent = fmtDb(mixDb);
+        mixEl.className = 'font-mono text-[10px] font-bold w-11 text-right ' + levelColor(mixDb);
+
+        // The bar tracks the level going into the mix, since that is the one
+        // the responder actually has to hear.
+        bar.style.width = dbToPct(mixDb) + '%';
+        bar.className = 'h-full transition-all duration-75 ' + barColor(mixDb);
+    }
+
+    function startLevelMeter() {
+        stopLevelMeter();
+        const tick = function () {
+            if (!CallRecorder.isRecording()) { stopLevelMeter(); return; }
+            const levels = CallRecorder.getLevels();
+            renderLevel('caller', levels.caller);
+            renderLevel('responder', levels.responder);
+            page.levelHandle = requestAnimationFrame(tick);
+        };
+        page.levelHandle = requestAnimationFrame(tick);
+    }
+
+    function stopLevelMeter() {
+        if (page.levelHandle) {
+            cancelAnimationFrame(page.levelHandle);
+            page.levelHandle = null;
+        }
+    }
+
+    function stopVisualizers() {
+        stopLevelMeter();
+        page.frameHandles.forEach(id => cancelAnimationFrame(id));
+        page.frameHandles = [];
+        if (page.callerCtx && page.callerCanvas) {
+            page.callerCtx.clearRect(0, 0, page.callerCanvas.width, page.callerCanvas.height);
+            page.callerCtx.fillStyle = '#e3e5eb';
+            page.callerCtx.fillRect(0, 0, page.callerCanvas.width, page.callerCanvas.height);
+        }
+        if (page.responderCtx && page.responderCanvas) {
+            page.responderCtx.clearRect(0, 0, page.responderCanvas.width, page.responderCanvas.height);
+            page.responderCtx.fillStyle = '#e3e5eb';
+            page.responderCtx.fillRect(0, 0, page.responderCanvas.width, page.responderCanvas.height);
+        }
+    }
+
+function startVisualizers() {
+        const a = CallRecorder.getAnalysers();
+        if (!a.callerAnalyser || !a.responderAnalyser) return;
+        stopVisualizers();
+        
+        // Use #10b981 for both so they share the exact same visual theme
+        drawLoop(a.callerAnalyser, page.callerCtx, page.callerCanvas, '#10b981');
+        drawLoop(a.responderAnalyser, page.responderCtx, page.responderCanvas, '#10b981'); 
+
+        startLevelMeter();
+    }
+
+    function updateStatus(recording) {
+        if (!page.statusIndicator) return;
+        if (recording) {
+            page.statusIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></span> Recording Mix...';
+            page.statusIndicator.className = 'flex items-center text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 uppercase tracking-wide';
+        } else {
+            page.statusIndicator.innerHTML = '<span class="w-2 h-2 rounded-full bg-gray-400 mr-2"></span> Idle';
+            page.statusIndicator.className = 'flex items-center text-xs font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 uppercase tracking-wide';
+        }
+    }
+
+    function setRecordingUI(recording) {
+        if (recording) {
+            if (page.startBtn) {
+                page.startBtn.disabled = true;
+                page.startBtn.className = 'flex-1 sm:flex-none bg-brand/50 text-white/80 font-medium py-2.5 px-6 rounded-xl cursor-not-allowed flex items-center justify-center';
+            }
+            if (page.stopBtn) {
+                page.stopBtn.disabled = false;
+                page.stopBtn.className = 'flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-6 rounded-xl transition-colors shadow-sm flex items-center justify-center';
+            }
+            if (page.callerDeviceSelect) page.callerDeviceSelect.disabled = true;
+            if (page.responderDeviceSelect) page.responderDeviceSelect.disabled = true;
+        } else {
+            if (page.startBtn) {
+                page.startBtn.disabled = false;
+                page.startBtn.className = 'flex-1 sm:flex-none bg-brand hover:bg-brand-dark text-white font-medium py-2.5 px-6 rounded-xl transition-colors shadow-sm flex items-center justify-center';
+            }
+            if (page.stopBtn) {
+                page.stopBtn.disabled = true;
+                page.stopBtn.className = 'flex-1 sm:flex-none bg-gray-100 text-gray-400 font-medium py-2.5 px-6 rounded-xl cursor-not-allowed transition-colors flex items-center justify-center';
+            }
+            if (page.callerDeviceSelect) page.callerDeviceSelect.disabled = false;
+            if (page.responderDeviceSelect) page.responderDeviceSelect.disabled = false;
+        }
+        if (page.recordingTimer) page.recordingTimer.classList.toggle('hidden', !recording);
+        updateStatus(recording);
+    }
+
+    function pageInDom() {
+        return page.playbackSection && document.body.contains(page.playbackSection);
+    }
+
+    function renderBlob(blob) {
+        if (!blob) return;
+        if (page.latestUrl) { try { URL.revokeObjectURL(page.latestUrl); } catch (e) {} }
+        page.latestUrl = URL.createObjectURL(blob);
+        if (page.audioPlayer) page.audioPlayer.src = page.latestUrl;
+        if (page.downloadLink) {
+            page.downloadLink.href = page.latestUrl;
+            page.downloadLink.download = 'SentiMental_Dual_Mix_' + new Date().getTime() + '.webm';
+        }
+        if (pageInDom()) {
+            if (page.playbackSection) page.playbackSection.classList.remove('hidden');
+            if (page.transcriptionSection) page.transcriptionSection.classList.remove('hidden');
+        }
+    }
+
+    async function startRecording() {
+        const callerId = page.callerDeviceSelect.value;
+        const responderId = page.responderDeviceSelect.value;
+
+        if (!callerId || !responderId) {
+            showError("Please select both input devices before starting.");
+            return;
+        }
+        if (CallRecorder.isRecording()) return;
+        hideError();
+        if (page.playbackSection) page.playbackSection.classList.add('hidden');
+
+        try {
+            if (page.startBtn) page.startBtn.disabled = true;
+            await CallRecorder.start({
+                callerId: callerId,
+                responderId: responderId,
+                callerConstraints: { echoCancellation: true, noiseSuppression: true },
+                responderConstraints: { echoCancellation: true, autoGainControl: false, noiseSuppression: true }
+            });
+        } catch (err) {
+            showError('Error initiating capture: ' + err.message);
+            if (page.startBtn) page.startBtn.disabled = false;
+        }
+    }
+
+    function syncFromRecorder() {
+        const st = CallRecorder.getState();
+        if (st.state === 'recording') {
+            setRecordingUI(true);
+            if (page.recordingTimer) page.recordingTimer.textContent = fmt(st.elapsed);
+            startVisualizers();
+        } else {
+            setRecordingUI(false);
+            const blob = CallRecorder.getLatestBlob();
+            if (blob) renderBlob(blob);
+        }
+    }
+
+    async function transcribe() {
+        const tracks = CallRecorder.getLatestTracks();
+        const callerBlob = tracks && tracks.caller;
+        const responderBlob = tracks && tracks.responder;
+
+        if (!callerBlob || !responderBlob) {
+            showError("The caller and responder tracks were not captured separately. "
+                + "Record a new call with both inputs enabled, then try again.");
+            return;
+        }
+
+        hideError();
+        page.transcribeBtn.disabled = true;
+        page.transcribeBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg mr-2"></i> Transcribing...';
+        page.transcriptOutput.classList.remove('hidden');
+        page.transcriptOutput.innerHTML = '<div class="flex items-center text-gray-500"><i class="ph-bold ph-cloud-arrow-up text-lg mr-2"></i> Separating and transcribing both tracks... Please wait.</div>';
+
+        const stamp = new Date().getTime();
+        const form = new FormData();
+        form.append('caller', callerBlob, 'caller_' + stamp + '.webm');
+        form.append('responder', responderBlob, 'responder_' + stamp + '.webm');
+        // The blob's MIME type carries the audio codec, which lets pydub decode
+        // the track without needing ffprobe on the server.
+        form.append('caller_codec', codecOf(callerBlob));
+        form.append('responder_codec', codecOf(responderBlob));
+
+        try {
+            const response = await fetch("{% url 'callers:transcribe' %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: form
+            });
+
+            let data = null;
+            try { data = await response.json(); }
+            catch (e) { throw new Error("The server returned an unreadable response."); }
+
+            if (!response.ok || data.status !== 'success') {
+                throw new Error(data.message || "Transcription failed.");
+            }
+
+            page.transcriptOutput.innerHTML = renderTranscript(data);
+        } catch (error) {
+            showError('API Error: ' + error.message);
+            page.transcriptOutput.textContent = "Transcription failed.";
+        } finally {
+            page.transcribeBtn.disabled = false;
+            page.transcribeBtn.innerHTML = '<i class="ph-bold ph-text-aa text-lg mr-2"></i> Start Transcription';
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Renders the SentiMental conversation transcript. The plain-text block uses
+    // the exact wording the server built, so the copyable output and the
+    // timestamped view below can never drift apart.
+    function renderTranscript(data) {
+        const segments = Array.isArray(data.segments) ? data.segments : [];
+        let html = '<div class="mb-4">'
+            + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">Final Transcript:</span>'
+            + '<pre class="whitespace-pre-wrap font-mono text-sm leading-relaxed text-gray-800 bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">'
+            + escapeHtml(data.transcript || '')
+            + '</pre></div>';
+
+        if (segments.length) {
+            const rows = segments.map(seg => {
+                const at = Number(seg.start) || 0;
+                const mm = String(Math.floor(at / 60)).padStart(2, '0');
+                const ss = String(Math.floor(at % 60)).padStart(2, '0');
+                const isCaller = seg.speaker === 'Caller';
+                return '<div class="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">'
+                    + '<span class="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5">' + mm + ':' + ss + '</span>'
+                    + '<span class="text-[11px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5 '
+                    + (isCaller ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100')
+                    + '">' + escapeHtml(seg.speaker) + '</span>'
+                    + '<span class="text-sm text-gray-700 leading-relaxed">' + escapeHtml(seg.text) + '</span>'
+                    + '</div>';
+            }).join('');
+            html += '<div class="mt-4">'
+                + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">Timed Segments:</span>'
+                + '<div class="bg-white border border-gray-200 rounded-xl px-4">' + rows + '</div></div>';
+        }
+
+        html += renderTrackLevels(data.levels);
+
+        return html;
+    }
+
+    // Shows what pydub did to each track's loudness. A large boost here on one
+    // side only is the tell that a mic or browser DSP setting is wrong.
+    function renderTrackLevels(levels) {
+        if (!levels) return '';
+        const db = v => (v === null || v === undefined || !isFinite(v)) ? '--' : v.toFixed(1);
+        const row = (name, lv) => {
+            if (!lv) return '';
+            const gain = lv.gain_db;
+            const gainText = (gain > 0 ? '+' : '') + db(gain) + ' dB';
+            const gainClass = gain > 3 ? 'text-amber-600' : 'text-gray-500';
+            return '<div class="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0">'
+                + '<span class="text-xs font-semibold text-gray-600">' + escapeHtml(name) + '</span>'
+                + '<span class="font-mono text-[11px] text-gray-500">'
+                + db(lv.input_dbfs) + ' dBFS &rarr; ' + db(lv.output_dbfs) + ' dBFS '
+                + '<span class="' + gainClass + '">(' + gainText + ')</span>'
+                + '</span></div>';
+        };
+        const body = row('Caller', levels.Caller) + row('Responder', levels.Responder);
+        if (!body) return '';
+        return '<div class="mt-4">'
+            + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">'
+            + 'Track Levels (normalized before speech-to-text)</span>'
+            + '<div class="bg-white border border-gray-200 rounded-xl px-4">' + body + '</div></div>';
+    }
+
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[2]) : '';
+    }
+
+    // Pulls the codec out of a blob type such as "audio/webm;codecs=opus".
+    function codecOf(blob) {
+        const type = (blob && blob.type) || '';
+        const match = type.match(/codecs\s*=\s*"?([a-z0-9_-]+)/i);
+        return match ? match[1].toLowerCase() : '';
+    }
+
+    function bindOnce(el, type, handler) {
+        if (!el) return;
+        if (el.dataset.bound) return;
+        el.dataset.bound = '1';
+        el.addEventListener(type, handler);
+    }
+
+    function bindEvents() {
+        // Re-bind every time the page is shown because the DOM nodes are new.
+        bindOnce(page.startBtn, 'click', startRecording);
+        bindOnce(page.stopBtn, 'click', () => CallRecorder.stop());
+        bindOnce(page.transcribeBtn, 'click', transcribe);
+
+        if (!window.__callSetupResizeBound) {
+            window.__callSetupResizeBound = true;
+            window.addEventListener('resize', resizeCanvases);
+        }
+
+        // Recorder hooks are registered exactly once (the recorder survives
+        // navigation). They read the shared `page` object at call time.
+        if (!window.__callSetupHooks) {
+            window.__callSetupHooks = true;
+            CallRecorder.on('start', () => {
+                setRecordingUI(true);
+                startVisualizers();
+            });
+            CallRecorder.on('tick', (d) => {
+                if (page.recordingTimer) page.recordingTimer.textContent = d.formatted;
+            });
+            CallRecorder.on('stop', (d) => {
+                setRecordingUI(false);
+                stopVisualizers();
+                renderBlob(d.blob);
+            });
+        }
+    }
+
+    function initCallSetup() {
+        if (!document.getElementById('caller-device')) return; // not the call page
+        grabRefs();
+        bindEvents();
+        getDevices();
+        resizeCanvases();
+        syncFromRecorder();
+    }
+    window.initCallSetup = initCallSetup;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCallSetup);
+    } else {
+        initCallSetup();
+    }
+})();
+</script>
+{% endblock %}

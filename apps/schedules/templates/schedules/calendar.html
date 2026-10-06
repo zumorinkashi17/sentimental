@@ -107,92 +107,82 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('fullcalendar');
-        const rawEvents = {{ events_json|safe|default:"[]" }};
+<script id="calendar-data" type="application/json">{{ events_json|safe|default:"[]" }}</script>
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
+<script>
+    (function initCalendar() {
+        var calendarEl = document.getElementById('fullcalendar');
+        if (!calendarEl) return;
+
+        if (typeof FullCalendar === 'undefined') {
+            var wait = setInterval(function() {
+                if (typeof FullCalendar !== 'undefined') {
+                    clearInterval(wait);
+                    initCalendar();
+                }
+            }, 50);
+            return;
+        }
+
+        var rawEvents = JSON.parse(document.getElementById('calendar-data').textContent);
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             height: 'auto',
-            headerToolbar: {
-                left: 'title',
-                center: '',
-                right: 'prev,today,next'
-            },
-            buttonText: {
-                today: 'Today'
-            },
+            headerToolbar: { left: 'title', center: '', right: 'prev,today,next' },
+            buttonText: { today: 'Today' },
             events: rawEvents,
-            
-            // Customizes the day number text (appends "Today" to the current day)
+
             dayCellContent: function(arg) {
-                const isMobile = window.innerWidth <= 640;
-                
+                var isMobile = window.innerWidth <= 640;
                 if (arg.isToday) {
                     if (isMobile) {
-                        return { html: `<div class="flex flex-col items-center"><span>${arg.dayNumberText}</span><span style="font-size: 0.5rem; line-height: 1">Today</span></div>` };
+                        return { html: '<div class="flex flex-col items-center"><span>' + arg.dayNumberText + '</span><span style="font-size:0.5rem;line-height:1">Today</span></div>' };
                     }
-                    return { html: `${arg.dayNumberText} (Today)` };
+                    return { html: arg.dayNumberText + ' (Today)' };
                 }
                 return { html: arg.dayNumberText };
             },
 
-            // Applies outer border classes to the day cell based on event status
             eventDidMount: function(info) {
-                const status = info.event.extendedProps.status;
-                const dayCell = info.el.closest('.fc-daygrid-day');
-                
+                var status = info.event.extendedProps.status;
+                var dayCell = info.el.closest('.fc-daygrid-day');
                 if (dayCell) {
-                    if (status === 'Scheduled') {
-                        dayCell.classList.add('fc-day-scheduled');
-                    } else if (status === 'Day Off') {
-                        dayCell.classList.add('fc-day-dayoff');
-                    } else if (status === 'Leave') {
-                        dayCell.classList.add('fc-day-leave');
-                    }
+                    if (status === 'Scheduled') dayCell.classList.add('fc-day-scheduled');
+                    else if (status === 'Day Off') dayCell.classList.add('fc-day-dayoff');
+                    else if (status === 'Leave') dayCell.classList.add('fc-day-leave');
                 }
             },
 
-            // Injects the custom typography layout inside the event wrapper
             eventContent: function(arg) {
-                const status = arg.event.extendedProps.status;
-                let html = '';
-                
+                var status = arg.event.extendedProps.status;
+                var html = '';
                 if (status === 'Scheduled') {
-                    const timeStr = arg.event.extendedProps.time || '';
-                    const times = timeStr.split(' - ');
-                    
+                    var timeStr = arg.event.extendedProps.time || '';
+                    var times = timeStr.split(' - ');
                     if (times.length === 2) {
-                        html = `
-                            <div class="text-custom-time flex flex-col items-center">
-                                <span>${times[0]}</span>
-                                <span>-</span>
-                                <span>${times[1]}</span>
-                            </div>
-                        `;
+                        html = '<div class="text-custom-time flex flex-col items-center"><span>' + times[0] + '</span><span>-</span><span>' + times[1] + '</span></div>';
                     } else {
-                        html = `<div class="text-custom-time">${timeStr}</div>`;
+                        html = '<div class="text-custom-time">' + timeStr + '</div>';
                     }
                 } else if (status === 'Day Off') {
-                    html = `<div class="text-custom-status text-status-dayoff">Day Off</div>`;
+                    html = '<div class="text-custom-status text-status-dayoff">Day Off</div>';
                 } else if (status === 'Leave') {
-                    html = `<div class="text-custom-status text-status-leave">Leave</div>`;
+                    html = '<div class="text-custom-status text-status-leave">Leave</div>';
                 }
-                
                 return { html: html };
-            },
+            }
         });
 
         calendar.render();
-    });
+    })();
 
     function getCookie(name) {
-        let cookieValue = null;
+        var cookieValue = null;
         if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -223,11 +213,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({
-                    date: reqDate,
-                    reason: reqReason,
-                    notes: reqNotes
-                })
+                body: JSON.stringify({ date: reqDate, reason: reqReason, notes: reqNotes })
             });
 
             const result = await response.json();
@@ -235,17 +221,13 @@
             if (response.ok) {
                 btn.innerHTML = '<i class="ph-bold ph-check"></i> Success!';
                 btn.classList.add('bg-green-600');
-                
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                setTimeout(() => { window.location.reload(); }, 1000);
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
             console.error('Error submitting request:', error);
             alert(error.message || 'An error occurred.');
-            
             btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Submit Request';
             btn.classList.remove('opacity-70', 'pointer-events-none');
         }

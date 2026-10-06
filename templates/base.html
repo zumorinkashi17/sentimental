@@ -41,6 +41,9 @@
     <!-- calendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
+    <!-- Persistent recording engine (keeps recording alive across pages) -->
+    <script src="{% static 'js/recorder.js' %}?v=1"></script>
+
     <!-- Global CSS -->
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/global.css' %}?v=2">
@@ -130,12 +133,14 @@
                 {% endif %}
             </nav>
 
-            <div class="logout-container mt-auto pt-4 mb-4 w-full flex justify-center">
-                <a href="{% url 'accounts:logout' %}" onclick="confirmLogout(event)" class="logout-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Logout">
-                    <i class="ph-bold ph-sign-out text-xl"></i>
-                    <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Logout</div>
+            <!-- Call / Audio Icon -->
+            <div class="call-action-container mt-auto w-full flex justify-center mb-4">
+                <a href="{% url 'callers:call_setup' %}" class="call-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Start Call">
+                    <i class="ph-bold ph-microphone text-xl"></i>
+                    <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Start Call</div>
                 </a>
             </div>
+
         </aside>
 
         <!-- MAIN CONTENT WRAPPER -->
@@ -154,18 +159,38 @@
                     </div>
                 </div>
 
-                <!-- User Info -->
-                <div class="flex items-center gap-2 sm:gap-5 relative flex-shrink-0">
+                <!-- User Info & Actions Container -->
+                <div class="flex items-center gap-3 sm:gap-6 relative flex-shrink-0">
+                    
+                    <!-- Notifications -->
                     <div class="relative">
-                        <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors border border-brand/20">
+                        <button type="button" onclick="toggleNotifications()" id="btn-notifications" class="relative text-brand hover:bg-brand-light p-2 rounded-full transition-colors">
                             <i class="ph ph-bell text-xl pointer-events-none"></i>
-                            <span class="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none"></span>
+                            <span id="notif-badge" class="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white pointer-events-none hidden"></span>
                         </button>
+
+                        <!-- Notification Dropdown -->
+                        <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <span class="text-sm font-bold text-gray-800">Notifications</span>
+                                <span id="notif-count" class="text-xs font-bold text-brand"></span>
+                            </div>
+                            <div id="notif-list" class="overflow-y-auto custom-scrollbar divide-y divide-gray-50 transition-all duration-300" style="max-height: 18rem;">
+                                <p class="text-xs text-gray-400 text-center py-6">Loading...</p>
+                            </div>
+                            {% if request.session.user_role == 'Admin' or request.session.user_role == 'Responder' %}
+                            <button type="button" onclick="toggleExpandNotifications()" id="btn-expand-notif" class="w-full text-center text-xs font-bold text-brand py-3 hover:bg-brand-light transition-colors border-t border-gray-100 flex items-center justify-center gap-1">
+                                <span id="expand-notif-label">View All Notifications</span>
+                                <i id="expand-notif-icon" class="ph ph-caret-down text-sm transition-transform duration-200"></i>
+                            </button>
+                            {% endif %}
+                        </div>
                     </div>
                     
                     <div class="h-8 w-px bg-gray-200 hidden sm:block"></div>
                     
-                    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 sm:gap-3 group cursor-pointer">
+                    <!-- User Profile -->
+                    <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 sm:gap-3 group cursor-pointer pr-2">
                         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-brand overflow-hidden flex items-center justify-center text-brand bg-brand-light font-bold text-lg flex-shrink-0">
                             {% if user_profile.user_image %}
                                 <img src="{{ user_profile.user_image }}" alt="Avatar" class="w-full h-full object-cover">
@@ -182,8 +207,28 @@
                             </p>
                         </div>
                     </a>
+
+                    <!-- Logout Button (Fixed Layout) -->
+                    <a href="{% url 'accounts:logout' %}" onclick="confirmLogout(event)" class="logout-btn w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative flex-shrink-0" aria-label="Logout">
+                        <i class="ph-bold ph-sign-out text-xl"></i>
+                        <!-- Adjusted tooltip positioning for the top header -->
+                        <div class="nav-tooltip hidden md:block absolute top-14 right-0 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Logout</div>
+                    </a>
+
                 </div>
             </header>
+
+            <!-- RECORDING-IN-PROGRESS BANNER (persists across sections) -->
+            <div id="global-call-banner" class="hidden relative z-30 flex-shrink-0 flex items-center justify-between gap-3 px-4 sm:px-6 py-2 bg-red-600 text-white text-sm font-bold">
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0"></span>
+                    <span class="truncate">Recording in Progress — Call:</span>
+                    <span id="global-recording-timer" class="font-mono flex-shrink-0">00:00</span>
+                </div>
+                <button type="button" id="global-end-call-btn" onclick="CallRecorder.stop()" class="bg-white text-red-600 hover:bg-red-50 text-xs font-bold py-1.5 px-3 rounded-lg transition-colors flex-shrink-0">
+                    <i class="ph-bold ph-stop mr-1"></i> End Call
+                </button>
+            </div>
 
             <div class="flex-1 flex flex-col lg:flex-row overflow-visible lg:overflow-hidden bg-bgLight min-w-0">
                 
@@ -202,7 +247,7 @@
     {% include 'partials/modals.html' %}
 
     <!-- Script assets -->
-    <script src="{% static 'js/main.js' %}?v=15"></script>
+    <script src="{% static 'js/main.js' %}?v=16"></script>
     <!-- DJANGO MESSAGES HIDDEN DATA -->
     {% if messages %}
         <div id="django-messages" class="hidden">
@@ -227,6 +272,152 @@
             });
         </script>
     {% endif %}
+    <script>
+    (function() {
+        const NOTIF_URL = '/notifications/api/';
+        const MARK_READ_URL = '/notifications/mark-read/';
+        const role = '{{ request.session.user_role }}';
+        const isAdmin = role === 'Admin';
+        let notifOpen = false;
+        let expanded = false;
+        const COLLAPSED_HEIGHT = '18rem';
+
+        window.toggleNotifications = function() {
+            const dropdown = document.getElementById('notif-dropdown');
+            notifOpen = !notifOpen;
+            dropdown.classList.toggle('hidden', !notifOpen);
+            if (notifOpen) {
+                loadNotifications();
+                if (!isAdmin) {
+                    // Clear badge immediately on open for responder
+                    document.getElementById('notif-badge').classList.add('hidden');
+                    document.getElementById('notif-count').textContent = '';
+                    markAllRead();
+                }
+            }
+        };
+
+        document.addEventListener('click', function(e) {
+            const btn = document.getElementById('btn-notifications');
+            const dropdown = document.getElementById('notif-dropdown');
+            if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                notifOpen = false;
+            }
+        });
+
+        window.toggleExpandNotifications = function() {
+            expanded = !expanded;
+            const list = document.getElementById('notif-list');
+            const label = document.getElementById('expand-notif-label');
+            const icon = document.getElementById('expand-notif-icon');
+            list.style.maxHeight = expanded ? 'none' : COLLAPSED_HEIGHT;
+            label.textContent = expanded ? 'Show Less' : 'View All Notifications';
+            icon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        };
+
+        function loadNotifications() {
+            fetch(NOTIF_URL)
+                .then(r => r.json())
+                .then(data => renderNotifications(data.notifications || []))
+                .catch(() => {});
+        }
+
+        function markAllRead() {
+            fetch(MARK_READ_URL, {
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')}
+            }).then(() => {
+                document.getElementById('notif-badge').classList.add('hidden');
+            });
+        }
+
+        function renderNotifications(items) {
+            const list = document.getElementById('notif-list');
+            const badge = document.getElementById('notif-badge');
+            const count = document.getElementById('notif-count');
+
+            badge.classList.toggle('hidden', items.length === 0);
+            count.textContent = items.length ? `${items.length}` : '';
+
+            if (!items.length) {
+                list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">No notifications.</p>';
+                return;
+            }
+
+            if (isAdmin) {
+                list.innerHTML = items.map(n => `
+                    <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-start gap-2 cursor-pointer" onclick="window.location.href='{% url "schedules:admin_calendar" %}'">
+                            <div class="w-7 h-7 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="ph ph-calendar-check text-brand text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-800 leading-tight">${n.name} requested a day off</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${n.reason} &mdash; <span class="font-semibold text-brand">${n.date}</span></p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-2 pl-9">
+                            <button onclick="handleLeave(${n.id}, 'approve', this)" class="flex-1 text-xs font-bold py-1 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors">Approve</button>
+                            <button onclick="handleLeave(${n.id}, 'deny', this)" class="flex-1 text-xs font-bold py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Decline</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = items.map(n => {
+                    const approved = n.status === 'Approved';
+                    const iconClass = approved ? 'ph-check-circle text-green-500' : 'ph-x-circle text-red-500';
+                    const statusClass = approved ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
+                    const bgClass = approved ? 'bg-green-50' : 'bg-red-50';
+                    return `
+                        <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{% url "schedules:calendar" %}'">
+                            <div class="flex items-start gap-2">
+                                <div class="w-7 h-7 rounded-full ${bgClass} flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ph ${iconClass} text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 leading-tight">Day off request <span class="${statusClass}">${n.status}</span></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">${n.reason} &mdash; <span class="font-semibold text-brand">${n.date}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        window.handleLeave = function(id, action, btn) {
+            btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+            fetch('/schedules/update-dayoff-status/', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken')},
+                body: JSON.stringify({leave_id: id, action: action})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove this item from the list immediately
+                    btn.closest('.px-4').remove();
+                    // Re-fetch to sync badge and count
+                    loadNotifications();
+                }
+            });
+        };
+
+        function getCookie(name) {
+            const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+            return v ? v[2] : '';
+        }
+
+        function refreshBadge() {
+            fetch(NOTIF_URL).then(r => r.json()).then(data => {
+                document.getElementById('notif-badge').classList.toggle('hidden', !(data.notifications || []).length);
+            });
+        }
+        refreshBadge();
+        setInterval(refreshBadge, 30000);
+    })();
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
