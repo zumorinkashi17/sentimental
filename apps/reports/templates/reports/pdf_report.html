@@ -1,0 +1,678 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report_title }} - PDF Export</title>
+    
+    <!-- Update Google Fonts link in <head> -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,300;1,400&family=Oswald:wght@300;400;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">    
+    <!-- Tailwind CSS & Phosphor Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js & DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+    <style>
+        :root {
+            --bg-slide: #e4e4e4;
+            --bg-dark: #4f5052;
+            --green-forest: #3d5a05;
+            --green-olive: #4b830d;
+            --green-lime: #a3d977;
+            --green-bright: #70c156;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #27272a;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .font-bebas {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.03em;
+        }
+
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .font-oswald {
+            font-family: 'Oswald', sans-serif;
+        }
+
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .who-slide-bg {
+            background: linear-gradient(90deg, #b0b0b0 0%, #dcdcdc 45%, #f5f5f5 85%, #ffffff 100%);
+        }
+
+        .cover-slide-bg {
+            background: linear-gradient(100deg, #999999 0%, #c4c4c4 45%, #ececec 85%, #f7f7f7 100%);
+        }
+
+        /* Landscape Slide Page Setup */
+        .report-page {
+            width: 297mm;
+            height: 210mm;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .page-light { background-color: var(--bg-slide); color: var(--green-forest); }
+        .page-dark { background-color: var(--bg-dark); color: #ffffff; }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background-color: transparent;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .report-page {
+                margin: 0;
+                width: 100vw;
+                height: 100vh;
+                box-shadow: none;
+                page-break-after: always;
+                break-after: page;
+            }
+        }
+
+        /* Organogram Pill Styling */
+        .org-pill {
+            background-color: #c9c9c9;
+            border-radius: 9999px;
+            box-shadow: 4px 5px 0px #1f2937;
+            color: #111827;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FLOATING ACTION BAR (Hidden when printing/saving to PDF) -->
+    <div class="no-print fixed top-4 right-6 z-50 flex items-center gap-3 bg-slate-900/90 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 backdrop-blur-md">
+        <span class="text-xs text-slate-300 mr-2">Tip: In the print dialog, set <b>Destination: Save as PDF</b> & enable <b>Background graphics</b>.</span>
+        <button onclick="window.print()" class="bg-[#00a67e] hover:bg-[#007a5d] text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow">
+            <i class="ph-bold ph-printer text-base"></i> Save / Print PDF
+        </button>
+        <button onclick="window.close()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs px-3 py-2 rounded-lg transition-colors">
+            Close
+        </button>
+    </div>
+
+    <!-- ==========================================
+         PAGE 1: EXACT COVER SLIDE
+    =========================================== -->
+    <section class="report-page cover-slide-bg relative flex flex-col justify-between p-14 overflow-hidden">
+        
+        <!-- RIGHT SIDE DECORATIVE HALFTONE DOT PATTERN (SVG) -->
+        <svg class="absolute right-0 top-0 h-full w-[48%] pointer-events-none z-0" viewBox="0 0 500 700" preserveAspectRatio="none">
+            <defs>
+                <pattern id="smallDots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                    <circle cx="10" cy="10" r="3.5" fill="#7d8c65" opacity="0.75" />
+                </pattern>
+                <pattern id="largeDots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                    <circle cx="16" cy="16" r="13.5" fill="#7d8c65" opacity="0.68" />
+                </pattern>
+            </defs>
+            <circle cx="480" cy="290" r="330" fill="url(#smallDots)" />
+            <circle cx="500" cy="650" r="280" fill="url(#largeDots)" />
+        </svg>
+
+        <!-- TOP LEFT LOGOS (TPCB 225x225 white border cropped out via overflow-hidden + scale) -->
+        <div class="relative z-10 flex items-center gap-6 mt-2 ml-4">
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/doh-logo.png' %}" alt="DOH" class="w-full h-full object-cover">
+            </div>
+            
+            <!-- TPCB Logo: scale-[1.32] zooms past the white outer padding so the yellow ring fills the 112px circle -->
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/tpcb-logo.png' %}" alt="Tawag Paglaum" class="w-full h-full object-cover scale-[1.32]">
+            </div>
+
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/vsmmc-logo.png' %}" alt="VSMMC" class="w-full h-full object-cover">
+            </div>
+        </div>
+
+        <!-- CENTER-LEFT ALIGNED TITLE BLOCK -->
+        <div class="relative z-10 my-auto ml-4 max-w-[78%]">
+            <h1 class="font-montserrat font-bold text-[68px] leading-[1.08] text-[#054d22] tracking-wide uppercase">
+                TAWAG PAGLAUM -<br>
+                <span class="inline-block pl-20">CENTRO BISAYA</span>
+            </h1>
+            <div class="w-full flex justify-end pr-24 mt-3">
+                <p class="font-montserrat italic font-light text-[40px] text-[#054d22] tracking-wide">
+                    {% if report_month_title %}{{ report_month_title }}{% else %}{{ report_year }} Report{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="h-8"></div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 2: WHO ARE WE? (EXACT SPLIT LAYOUT)
+    =========================================== -->
+    <section class="report-page flex-row overflow-hidden">
+        <!-- Left Dark Green Sidebar (24% width) -->
+        <div class="w-[24%] h-full bg-[#0b4f24] flex flex-col items-center justify-center px-6 select-none">
+            <div class="font-oswald text-[#d5dcd7] text-center uppercase tracking-wide">
+                <div class="font-light text-[86px] leading-[1.05]">WHO</div>
+                <div class="font-light text-[86px] leading-[1.05] mt-1">ARE</div>
+                <div class="font-bold text-[86px] leading-[1.05] mt-1">WE?</div>
+            </div>
+        </div>
+
+        <!-- Right Gradient Content Area (76% width) -->
+        <div class="w-[76%] h-full who-slide-bg flex flex-col justify-center px-16 py-14">
+            <div class="font-poppins text-[#3d5a05] text-[23px] leading-[1.62] text-justify space-y-10">
+                <p>
+                    Tawag Paglaum Centro Bisaya is a government-run program by the Department of Health - CHD 7 and Vicente Sotto Memorial Medical Center under the Psychiatry Department, with the goal of providing intervention for people having emotional crisis, particularly with suicidal risk.
+                </p>
+                <p>
+                    Tawag Paglaum operates through a call-based service with lines open 24/7 from Monday to Sunday including holidays. Responders attending the calls are mental health professionals who are adept in assisting the callers in any way possible.
+                </p>
+                <p>
+                    Tawag Paglaum was launched last August 2015 formerly known as “Hopeline” under the funding of Natasha Goulbourn Foundation due to unforeseen events Hopeline was eventually adopted by VSMMC in 2017 and was renamed as “Tawag Paglaum-Centro Bisaya”.
+                </p>
+            </div>
+        </div>
+    </section>
+    <!-- ==========================================
+         PAGE 3: SERVICES OFFERED
+    =========================================== -->
+    <section class="report-page page-dark items-center justify-center px-16 py-14">
+        <h2 class="font-bebas text-[88px] text-[#a3d977] tracking-wider mb-16 uppercase text-center">
+            SERVICES OFFERED
+        </h2>
+        
+        <div class="relative w-full max-w-5xl flex items-start justify-between">
+            <!-- Connecting Horizontal Line -->
+            <div class="absolute top-20 left-24 right-24 h-2.5 bg-[#a3d977] z-0"></div>
+            
+            <!-- Node 1 -->
+            <div class="relative z-10 flex flex-col items-center w-56 text-center">
+                <div class="w-40 h-40 rounded-full bg-[#a3d977] text-slate-900 flex items-center justify-center shadow-lg mb-6">
+                    <i class="ph-light ph-chats-circle text-7xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#a3d977] leading-snug">Mental<br>Health<br>Inquiries</h3>
+            </div>
+
+            <!-- Node 2 -->
+            <div class="relative z-10 flex flex-col items-center w-56 text-center">
+                <div class="w-40 h-40 rounded-full bg-[#a3d977] text-slate-900 flex items-center justify-center shadow-lg mb-6">
+                    <i class="ph-light ph-users text-7xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#a3d977] leading-snug">Emotional<br>Support and<br>Psychoeducation</h3>
+            </div>
+
+            <!-- Node 3 -->
+            <div class="relative z-10 flex flex-col items-center w-56 text-center">
+                <div class="w-40 h-40 rounded-full bg-[#a3d977] text-slate-900 flex items-center justify-center shadow-lg mb-6">
+                    <i class="ph-light ph-share-network text-7xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#a3d977] leading-snug">Referral<br>System</h3>
+            </div>
+
+            <!-- Node 4 -->
+            <div class="relative z-10 flex flex-col items-center w-56 text-center">
+                <div class="w-40 h-40 rounded-full bg-[#a3d977] text-slate-900 flex items-center justify-center shadow-lg mb-6">
+                    <i class="ph-light ph-hand-heart text-7xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-[#a3d977] leading-snug">Suicide<br>Prevention</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 4: SECTION ORGANOGRAM
+    =========================================== -->
+    <section class="report-page page-light items-center justify-start pt-10 px-10">
+        <h2 class="font-bebas text-[78px] text-[#3d5a05] tracking-wide leading-none mb-6 uppercase">
+            SECTION ORGANOGRAM
+        </h2>
+
+        <div class="flex flex-col items-center w-full max-w-6xl">
+            <!-- Level 1 -->
+            <div class="org-pill w-[360px] py-3 px-6">
+                <div class="font-bebas text-2xl tracking-wide">GERARDO M. AQUINO JR., MD., CEO VI</div>
+                <div class="text-xs italic font-semibold text-gray-700">Medical Center Chief</div>
+                <div class="text-xs text-gray-700">Vicente Sotto Memorial Medical Center</div>
+            </div>
+            <div class="w-1 h-5 bg-[#4b5d2a]"></div>
+
+            <!-- Level 2 -->
+            <div class="org-pill w-[420px] py-3 px-6">
+                <div class="font-bebas text-2xl tracking-wide">GLENDA C. BASUBAS, MD, FPPA(Life), FPCAM, IFAPA</div>
+                <div class="text-xs italic font-semibold text-gray-700">Department Chairman</div>
+                <div class="text-xs text-gray-700">Center for Behavioral Sciences</div>
+            </div>
+            <div class="w-1 h-5 bg-[#4b5d2a]"></div>
+
+            <!-- Level 3 -->
+            <div class="org-pill w-[310px] py-3.5 px-6">
+                <div class="font-bold text-base leading-tight">Tawag Paglaum Centro Bisaya<br>Responders</div>
+            </div>
+            <div class="w-1 h-6 bg-[#4b5d2a]"></div>
+
+            <!-- Horizontal Branch Bar -->
+            <div class="w-[88%] h-1 bg-[#4b5d2a] relative"></div>
+
+            <!-- Responders Row 1 -->
+            <div class="grid grid-cols-4 gap-8 w-full mt-4">
+                <div class="org-pill py-3 px-4 font-bebas text-xl">DEA T. PILAPIL, RPM</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">TERENCE GABRIEL R. HERMOSA, RPm</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">LAWRENCE L. SOLDEVILLA, RPM</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">ELAINE RUTH A. SALOMON, RPm</div>
+            </div>
+
+            <!-- Responders Row 2 -->
+            <div class="grid grid-cols-4 gap-8 w-[92%] mt-5">
+                <div class="org-pill py-3 px-4 font-bebas text-xl">ALEXIES L. PELIGRO, RPm</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">ABIGAIL C. CAMASO, RPm</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">JOHN GREGG G. ARRDAZA, RN</div>
+                <div class="org-pill py-3 px-4 font-bebas text-xl">EMM JULIE ROSE LUNA, RPM</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 5: ANNUAL NUMBER OF CALLS
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[74px] leading-none text-[#3d5a05] uppercase">ANNUAL NUMBER OF CALLS</h2>
+            <p class="font-bebas text-[42px] leading-none text-[#3d5a05] italic">(2018-April 2026)</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartAnnual"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 6 & 7: INCREASE CALLOUT (DYNAMIC RANGE)
+    =========================================== -->
+    <section class="report-page page-light items-center justify-center px-24 text-center">
+        <h2 class="font-bebas text-[170px] leading-none text-[#4b830d]">{{ annual_increase }}</h2>
+        <p class="font-bebas text-[76px] leading-[1.05] text-[#3d5a05] max-w-4xl uppercase mt-2">
+            INCREASE IN THE NUMBER OF<br>CALLS FOR {{ current_period_label }}<br>COMPARED TO {{ previous_period_label }}.
+        </p>
+    </section>
+
+    <!-- ==========================================
+         PAGE 8: AGE
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">AGE</h2>
+            <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartAge"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 9: GENDER
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="relative mb-2">
+            <p class="font-bebas text-[38px] text-slate-900 absolute left-0 top-2 uppercase">{{ period_label }}</p>
+            <h2 class="font-bebas text-[82px] leading-none text-[#3d5a05] text-center uppercase">GENDER</h2>
+        </div>
+        <div class="flex-1 w-full flex items-center justify-center relative">
+            <div class="w-[540px] h-[620px]">
+                <canvas id="chartGender"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 10: RISK ASSESSMENT
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-2">
+            <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">RISK ASSESSMENT</h2>
+            <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full flex items-center justify-center relative">
+             <div class="w-[500px] h-[520px]">
+                <canvas id="chartRisk"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 11: CIVIL STATUS
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">CIVIL STATUS</h2>
+            <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartCivil"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 12: NUMBER OF CALLS PER SHIFT
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">NUMBER OF CALLS PER SHIFT</h2>
+            <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ shift_period_label }}</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartShift"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 13: REASONS FOR CALLING
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-8 pb-10">
+        <div class="text-center mb-2">
+            <h2 class="font-bebas text-[68px] leading-none text-[#3d5a05] uppercase">REASONS FOR CALLING (MOST OCCURRENCE)</h2>
+            <p class="font-bebas text-[34px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full flex items-center justify-center relative">
+            <div class="w-[780px] h-[520px]">
+                <canvas id="chartReasons"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 14: SOURCES OF INFORMATION
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[74px] leading-none text-[#3d5a05] uppercase">SOURCES OF INFORMATION</h2>
+            <p class="font-bebas text-[34px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartSources"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 15: INTERVENTIONS GIVEN
+    =========================================== -->
+    <section class="report-page page-light px-16 pt-10 pb-12">
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[74px] leading-none text-[#3d5a05] uppercase">INTERVENTIONS GIVEN</h2>
+            <p class="font-bebas text-[34px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
+        </div>
+        <div class="flex-1 w-full relative">
+            <canvas id="chartInterventions"></canvas>
+        </div>
+    </section>
+    <!-- HIDDEN DATA BRIDGE (Eliminates VS Code JS Linter Errors) -->
+    <div id="report-chart-data" class="hidden"
+        data-annual-labels="{{ annual_labels }}"
+        data-annual-values="{{ annual_values }}"
+        data-age-labels="{{ age_labels }}"
+        data-age-values="{{ age_values }}"
+        data-gender-labels="{{ gender_labels }}"
+        data-gender-values="{{ gender_values }}"
+        data-risk-labels="{{ risk_labels }}"
+        data-risk-values="{{ risk_values }}"
+        data-civil-labels="{{ civil_labels }}"
+        data-civil-values="{{ civil_values }}"
+        data-shift-labels="{{ shift_labels }}"
+        data-shift-values="{{ shift_values }}"
+        data-reasons-labels="{{ reasons_labels }}"
+        data-reasons-values="{{ reasons_values }}"
+        data-sources-labels="{{ sources_labels }}"
+        data-sources-values="{{ sources_values }}"
+        data-interventions-labels="{{ interventions_labels }}"
+        data-interventions-values="{{ interventions_values }}">
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Bebas Neue', sans-serif";
+        Chart.defaults.color = '#3d5a05';
+        Chart.defaults.animation = false; // Instant render for immediate PDF printing
+
+        // Parse JSON cleanly from the hidden HTML data attributes
+        const dataEl = document.getElementById('report-chart-data').dataset;
+
+        const annualLabels = JSON.parse(dataEl.annualLabels);
+        const annualValues = JSON.parse(dataEl.annualValues);
+        const ageLabels = JSON.parse(dataEl.ageLabels);
+        const ageValues = JSON.parse(dataEl.ageValues);
+        const genderLabels = JSON.parse(dataEl.genderLabels);
+        const genderValues = JSON.parse(dataEl.genderValues);
+        const riskLabels = JSON.parse(dataEl.riskLabels);
+        const riskValues = JSON.parse(dataEl.riskValues);
+        const civilLabels = JSON.parse(dataEl.civilLabels);
+        const civilValues = JSON.parse(dataEl.civilValues);
+        const shiftLabels = JSON.parse(dataEl.shiftLabels);
+        const shiftValues = JSON.parse(dataEl.shiftValues);
+        const reasonsLabels = JSON.parse(dataEl.reasonsLabels);
+        const reasonsValues = JSON.parse(dataEl.reasonsValues);
+        const sourcesLabels = JSON.parse(dataEl.sourcesLabels);
+        const sourcesValues = JSON.parse(dataEl.sourcesValues);
+        const interventionsLabels = JSON.parse(dataEl.interventionsLabels);
+        const interventionsValues = JSON.parse(dataEl.interventionsValues);
+
+        // 1. Annual Calls Area Chart
+        new Chart(document.getElementById('chartAnnual'), {
+            type: 'line',
+            data: {
+                labels: annualLabels,
+                datasets: [{
+                    data: annualValues,
+                    backgroundColor: '#3d5a05',
+                    borderColor: '#3d5a05',
+                    fill: true,
+                    tension: 0,
+                    pointBackgroundColor: '#76b82a',
+                    pointBorderColor: '#76b82a',
+                    pointRadius: 9
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 35, right: 30, left: 10 } },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        align: 'top',
+                        offset: 8,
+                        color: '#3d5a05',
+                        font: { size: 28, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 2000, ticks: { stepSize: 500, font: { size: 22 } } },
+                    x: { ticks: { font: { size: 22 } }, grid: { display: false } }
+                }
+            }
+        });
+
+        // Reusable Horizontal Bar Config Builder
+        function createHorizontalBar(canvasId, labels, data, barColor, maxScale, stepSize) {
+            new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: barColor,
+                        borderRadius: 4,
+                        barPercentage: 0.85,
+                        categoryPercentage: 0.85
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, max: maxScale, ticks: { stepSize: stepSize, font: { size: 24 } } },
+                        y: { ticks: { font: { size: 22 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 2. Age Horizontal Bar
+        createHorizontalBar('chartAge', ageLabels, ageValues, '#4b830d', 500, 100);
+
+        // 3. Gender Pie Chart
+        new Chart(document.getElementById('chartGender'), {
+            type: 'pie',
+            data: {
+                labels: genderLabels,
+                datasets: [{
+                    data: genderValues,
+                    backgroundColor: ['#4b830d', '#557026', '#3d5207'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 70 },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#3d5a05',
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 10,
+                        textAlign: 'center',
+                        font: { size: 30 }, 
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ''; 
+                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Risk Assessment Pie Chart
+        new Chart(document.getElementById('chartRisk'), {
+            type: 'pie',
+            data: {
+                labels: riskLabels,
+                datasets: [{
+                    data: riskValues,
+                    backgroundColor: ['#4b830d', '#557026', '#3d5207'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 75 },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#3d5a05',
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 10,
+                        textAlign: 'center',
+                        font: { size: 30 },
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ''; 
+                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
+                        }
+                    }
+                }
+            }
+        });
+
+        // 5. Civil Status Horizontal Bar
+        createHorizontalBar('chartCivil', civilLabels, civilValues, '#70c156', 2000, 500);
+
+        // 6. Shift Calls Horizontal Bar
+        createHorizontalBar('chartShift', shiftLabels, shiftValues, '#4b830d', 1200, 200);
+
+        // 7. Reasons Doughnut Chart
+        new Chart(document.getElementById('chartReasons'), {
+            type: 'doughnut',
+            data: {
+                labels: reasonsLabels,
+                datasets: [{
+                    data: reasonsValues,
+                    backgroundColor: [
+                        '#3cb4e5', '#d80056', '#d9e05b', '#335280', '#73509d',
+                        '#ff66b2', '#eeb238', '#00a878', '#337a86', '#ff9130'
+                    ],
+                    borderWidth: 0,
+                    cutout: '52%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 80 },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#3d5a05',
+                        anchor: 'end',
+                        align: 'end',
+                        offset: 8,
+                        textAlign: 'center',
+                        font: { size: 30 }, 
+                        formatter: (value, ctx) => {
+                            if (value === 0) return ''; 
+                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
+                        }
+                    }
+                }
+            }
+        });
+
+        // 8. Sources Horizontal Bar
+        createHorizontalBar('chartSources', sourcesLabels, sourcesValues, '#76b82a', 2000, 500);
+
+        // 9. Interventions Horizontal Bar
+        createHorizontalBar('chartInterventions', interventionsLabels, interventionsValues, '#70c156', 1400, 200);
+
+        // Auto-open PDF print dialog after page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                window.print();
+            }, 600);
+        });
+    </script>
+</body>
+</html>
