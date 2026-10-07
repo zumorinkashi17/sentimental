@@ -7,6 +7,7 @@ from django.http import JsonResponse, request
 from django.views.decorators.http import require_POST
 from .models import ShiftCatalog, ShiftSchedule
 from apps.accounts.models import User, DayOffRequest
+from django.db import transaction
 
 def admin_calendar_view(request):
     shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
@@ -20,7 +21,39 @@ def admin_calendar_view(request):
         'user__user_first_name', 'user__user_last_name', 'user_id', 'shift_date'
     )
     
+    # --- STATS CALCULATIONS ---
     today = date.today()
+    start_of_week = today - timedelta(days=today.weekday()) # Monday
+    end_of_week = start_of_week + timedelta(days=6) # Sunday
+    
+    active_today_count = ShiftSchedule.objects.filter(
+        shift_date=today, 
+        schedule_status='Scheduled'
+    ).values('user').distinct().count()
+    
+    active_week_count = ShiftSchedule.objects.filter(
+        shift_date__range=[start_of_week, end_of_week], 
+        schedule_status='Scheduled'
+    ).values('user').distinct().count()
+    
+    active_month_count = ShiftSchedule.objects.filter(
+        shift_date__year=today.year, 
+        shift_date__month=today.month, 
+        schedule_status='Scheduled'
+    ).values('user').distinct().count()
+    
+    # Separated Queries for Days Off and Leaves
+    dayoff_week_count = ShiftSchedule.objects.filter(
+        shift_date__range=[start_of_week, end_of_week], 
+        schedule_status='Day Off'
+    ).values('user').distinct().count()
+
+    leave_week_count = ShiftSchedule.objects.filter(
+        shift_date__range=[start_of_week, end_of_week], 
+        schedule_status='Leave'
+    ).values('user').distinct().count()
+    # ------------------------------
+
     grouped_roster = []
     
     for user, user_schedules_iter in groupby(scheduled_roster, key=lambda s: s.user):
@@ -65,7 +98,6 @@ def admin_calendar_view(request):
         grouped_roster.append({
             'user': user,
             'schedules': reconstructed_blocks
-            # Removed the complex "months" manual grid calculation here
         })
 
     pending_leaves = DayOffRequest.objects.filter(
@@ -83,6 +115,12 @@ def admin_calendar_view(request):
         'today_date': today,
         'pending_leaves': pending_leaves,
         'processed_leaves': processed_leaves, 
+        
+        'active_today_count': active_today_count,
+        'active_week_count': active_week_count,
+        'active_month_count': active_month_count,
+        'dayoff_week_count': dayoff_week_count,
+        'leave_week_count': leave_week_count,
     }
     return render(request, 'schedules/admin_calendar.html', context)
 
@@ -168,24 +206,37 @@ def save_schedule(request):
         if start_date > end_date:
             return JsonResponse({'status': 'error', 'message': 'Start date cannot be after end date.'}, status=400)
 
-        # 1. Update the overlap check to use the new shift_date field
-        has_overlap = ShiftSchedule.objects.filter(
+        # Fetch all existing schedules in this date range
+        existing_schedules = ShiftSchedule.objects.filter(
             user=responder, 
             shift_date__range=[start_date, end_date]
-        ).exists()
+        )
 
-        if has_overlap:
+        # Check for ACTUAL conflicts. We exclude 'Leave' because we want to allow generating 
+        # schedules around already-approved leaves.
+        actual_conflicts = existing_schedules.exclude(schedule_status='Leave')
+
+        if actual_conflicts.exists():
             return JsonResponse({
                 'status': 'error', 
-                'message': 'This responder already has scheduled days within this date range.'
+                'message': 'This responder already has scheduled shifts or days off within this date range.'
             }, status=400)
 
-        # 2. Loop through the dates and prepare them for bulk creation
+        # 3Get a fast lookup set of the dates that are already saved in the database (e.g., the Leave days)
+        existing_dates = set(existing_schedules.values_list('shift_date', flat=True))
+
         schedules_to_create = []
         delta = timedelta(days=1)
         current_date = start_date
 
+        # Loop through the dates and prepare them for bulk creation
         while current_date <= end_date:
+            
+            # IF THIS DATE ALREADY EXISTS IN THE DB (Like an approved leave), SKIP IT!
+            if current_date in existing_dates:
+                current_date += delta
+                continue
+
             # Get the string name of the day (e.g., 'monday', 'tuesday')
             day_name = current_date.strftime("%A").lower()
             
@@ -208,14 +259,13 @@ def save_schedule(request):
             # Move to the next day
             current_date += delta
 
-        # 3. Bulk insert all days at once for database efficiency
+        # 5. Bulk insert all new days at once for database efficiency
         ShiftSchedule.objects.bulk_create(schedules_to_create)
         
         return JsonResponse({'status': 'success', 'message': 'Shift schedule generated successfully!'})
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
 
 def responder_schedule_view(request):
     # Determine current user
@@ -332,16 +382,31 @@ def update_dayoff_status(request):
         leave_id = data.get('leave_id')
         action = data.get('action')
 
-        leave_request = DayOffRequest.objects.get(request_id=leave_id)
-        if action == 'approve':
-            leave_request.requested_status = DayOffRequest.StatusChoices.APPROVED
-        elif action == 'deny':
-            leave_request.requested_status = DayOffRequest.StatusChoices.DENIED
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Invalid action received.'}, status=400)
+        with transaction.atomic():
+            leave_request = DayOffRequest.objects.select_for_update().get(request_id=leave_id)
+            
+            if action == 'approve':
+                leave_request.requested_status = DayOffRequest.StatusChoices.APPROVED
+                
+                # ... (Keep your existing existing_schedules checking code here) ...
+                
+            elif action == 'deny':
+                leave_request.requested_status = DayOffRequest.StatusChoices.DENIED
+                
+            # NEW: Handle the cancellation from the responder
+            elif action == 'cancel':
+                # Ensure they can only cancel it if it hasn't been approved/denied yet
+                if leave_request.requested_status == DayOffRequest.StatusChoices.PENDING:
+                    # Update this exact string to match whatever 'Cancel' choice is in your models.py
+                    leave_request.requested_status = 'Canceled' 
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Only pending requests can be canceled.'}, status=400)
+                    
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid action received.'}, status=400)
 
-        # Save to database
-        leave_request.save()
+            # Save the DayOffRequest status to the database
+            leave_request.save()
 
         return JsonResponse({'status': 'success', 'message': f'Request {action}d successfully.'})
 
