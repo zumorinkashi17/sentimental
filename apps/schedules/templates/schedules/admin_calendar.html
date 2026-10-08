@@ -30,7 +30,6 @@
             </div>
         </div>
 
-        
         <!-- QUICK STATS METRICS -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
             
@@ -220,8 +219,12 @@
                             <!-- Row Design (Grouped by User) -->
                             <div class="flex justify-between items-center p-4 border border-gray-100 bg-white hover:border-brand/30 transition-all rounded-xl shadow-sm mb-3">
                                 <div class="flex items-center gap-4 min-w-0">
-                                    <div class="w-12 h-12 rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center flex-shrink-0 border border-brand/20 text-lg">
-                                        {{ roster.user.user_first_name|first|upper }}
+                                    <div class="w-12 h-12 rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center flex-shrink-0 border border-brand/20 text-lg overflow-hidden">
+                                        {% if roster.user.user_image %}
+                                            <img src="{{ roster.user.user_image }}" alt="{{ roster.user.user_first_name }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                            {{ roster.user.user_first_name|first|upper }}
+                                        {% endif %}
                                     </div>
                                     <div class="min-w-0">
                                         <p class="font-bold text-gray-800 text-base truncate">
