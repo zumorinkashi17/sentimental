@@ -932,3 +932,72 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Target all sidebar navigation links (nav items + the Start Call button)
+    const navLinks = document.querySelectorAll('.nav-btn, .call-btn');
+    const contentContainer = document.getElementById('tab-content-container');
+
+    if (!contentContainer) return;
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            const url = link.getAttribute('href');
+            
+            // Do not intercept logout, external links, or empty links
+            if (!url || url === '#' || url.includes('logout')) return;
+
+            e.preventDefault(); // Stop the browser from refreshing
+
+            try {
+                // Allow the current page to clean up before being swapped out
+                if (typeof window.beforePageSwap === 'function') {
+                    try { window.beforePageSwap(); } catch (err) { console.error(err); }
+                }
+
+                // Fetch the new page in the background
+                const response = await fetch(url);
+                const html = await response.text();
+                
+                // Parse the downloaded HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Extract just the dynamic center content
+                const newContent = doc.getElementById('tab-content-container');
+                
+                if (newContent) {
+                    // Swap the content
+                    contentContainer.innerHTML = newContent.innerHTML;
+
+                    // inline <script> blocks do NOT run when inserted via
+                    // innerHTML, so re-execute them manually
+                    contentContainer.querySelectorAll('script').forEach(oldScript => {
+                        const fresh = document.createElement('script');
+                        fresh.textContent = oldScript.textContent;
+                        oldScript.getAttributeNames().forEach(name => {
+                            const val = oldScript.getAttribute(name);
+                            if (val !== null) fresh.setAttribute(name, val);
+                        });
+                        oldScript.replaceWith(fresh);
+                    });
+
+                    // Update the browser's URL bar silently
+                    window.history.pushState({}, '', url);
+                    
+                    // Re-initialize scripts specific to the new page (like charts)
+                    if (typeof window.afterContentSwap === 'function') {
+                        try { window.afterContentSwap(); } catch (err) { console.error(err); }
+                    }
+                    if (typeof initCharts === 'function') initCharts();
+                } else {
+                    // Fallback if the layout is different
+                    window.location.href = url; 
+                }
+            } catch (err) {
+                console.error("AJAX navigation failed:", err);
+                window.location.href = url; // Fallback to normal navigation on error
+            }
+        });
+    });
+});

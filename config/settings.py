@@ -172,6 +172,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+
 EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
