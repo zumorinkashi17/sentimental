@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Admin Dashboard - Sentimental{% endblock %}
+
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
     <div class="max-w-6xl mx-auto space-y-6">
@@ -9,38 +11,79 @@
                 <h1 class="text-2xl font-bold text-gray-800">Helpline Manager Dashboard</h1>
                 <p class="text-gray-500">Macro-level system performance and current status.</p>
             </div>
-            <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
-                <option>Today</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-                <option>Year to Date</option>
-            </select>
+            <div class="relative flex flex-wrap sm:flex-nowrap items-center gap-2">
+                <select id="adminPeriod" class="form-input bg-white w-full sm:w-auto sm:shrink-0 py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm cursor-pointer">
+                    {% for value, label in period_options %}
+                    <option value="{{ value }}" {% if value == period %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button id="adminRangeChip" type="button"
+                        class="{% if period == 'range' %}inline-flex{% else %}hidden{% endif %} items-center gap-1.5 bg-brand/10 text-brand text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-brand/20 transition-colors">
+                    <i class="ph ph-calendar-blank text-[11px]"></i>
+                    <span id="adminRangeLabel">{{ range_label }}</span>
+                    <span id="adminRangeClear" class="text-brand/60 hover:text-brand" title="Clear range">
+                        <i class="ph ph-x text-xs"></i>
+                    </span>
+                </button>
+                <div id="adminRange" class="hidden absolute right-0 top-full mt-2 z-50">
+                    <div class="w-80 bg-white p-3 rounded-2xl border border-gray-100 shadow-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Custom Range</span>
+                            <button id="adminRangeClose" type="button" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close date range">
+                                <i class="ph ph-x text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1 min-w-0">
+                                <label for="adminRangeStart" class="block text-[9px] font-bold text-gray-500 uppercase mb-1">From</label>
+                                <input id="adminRangeStart" type="date" value="{{ range_start }}" class="form-input py-1.5 text-xs text-gray-600 w-full">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <label for="adminRangeEnd" class="block text-[9px] font-bold text-gray-500 uppercase mb-1">To</label>
+                                <input id="adminRangeEnd" type="date" value="{{ range_end }}" class="form-input py-1.5 text-xs text-gray-600 w-full">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-[10px] text-gray-400">Applies to the cards on this dashboard</span>
+                            <button id="adminRangeApply" type="button" class="bg-brand text-white text-xs font-semibold px-4 py-2 rounded-lg hover:opacity-90">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-16 h-16 bg-brand-light rounded-bl-full -z-10"></div>
                 <p class="text-xs text-gray-500 font-bold uppercase mb-1">Total Calls</p>
-                <h3 class="text-3xl font-bold text-slate-800 mb-2">3,492</h3>
-                <p class="text-xs text-brand font-medium flex items-center gap-1"><i class="ph-bold ph-trend-up"></i> +12% vs last period</p>
+                <h3 class="text-3xl font-bold text-slate-800 mb-2">{{ total }}</h3>
+                <p class="text-xs {{ trend.color }} font-medium flex items-center gap-1">
+                    {% if trend.note %}
+                        <span>{{ trend.note }}</span>
+                    {% else %}
+                        {% if trend.dir == "up" %}<i class="ph-bold ph-trend-up"></i>
+                        {% elif trend.dir == "down" %}<i class="ph-bold ph-trend-down"></i>{% endif %}
+                        {{ trend.label }}
+                    {% endif %}
+                </p>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-16 h-16 bg-red-50 rounded-bl-full -z-10"></div>
                 <p class="text-xs text-gray-500 font-bold uppercase mb-1">High Risk Interventions</p>
-                <h3 class="text-3xl font-bold text-red-500 mb-2">142</h3>
+                <h3 class="text-3xl font-bold text-red-500 mb-2">{{ high }}</h3>
                 <p class="text-xs text-gray-400 font-medium">Require immediate follow-up</p>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute right-0 top-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-10"></div>
                 <p class="text-xs text-gray-500 font-bold uppercase mb-1">Active Responders</p>
-                <h3 class="text-3xl font-bold text-slate-800 mb-2">24 <span class="text-lg text-gray-400">/ 30</span></h3>
+                <h3 class="text-3xl font-bold text-slate-800 mb-2">{{ active_responders }} <span class="text-lg text-gray-400">/ {{ total_responders }}</span></h3>
                 <p class="text-xs text-brand font-medium flex items-center gap-1">Optimal staffing level</p>
             </div>
             <div class="bg-gradient-to-br from-brand to-brand-dark p-5 rounded-2xl border border-brand-dark shadow-md text-white relative overflow-hidden">
                 <i class="ph-fill ph-sparkle text-white/10 text-6xl absolute -right-2 -bottom-2"></i>
                 <p class="text-xs text-brand-light font-bold uppercase mb-1">AI Volume Prediction</p>
-                <h3 class="text-2xl font-bold mb-2">Surge Alert</h3>
-                <p class="text-xs font-medium text-brand-light">Expected +40% increase on Friday. Implement 4hr consecutive shifts.</p>
+                <h3 class="text-2xl font-bold mb-2">{{ ai.status }}</h3>
+                <p class="text-xs font-medium text-brand-light">{{ ai.message }}</p>
             </div>
         </div>
 
@@ -48,29 +91,22 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col min-w-0">
                 <div class="p-5 border-b border-gray-100 flex justify-between items-center">
                     <h2 class="text-sm font-bold text-gray-700 uppercase flex items-center gap-2"><i class="ph-fill ph-warning-circle text-red-500 text-lg"></i> Recent Critical Alerts</h2>
-                    <button type="button" class="text-xs text-brand font-bold hover:underline">View All</button>
                 </div>
                 <div class="table-scroll">
                     <table class="w-full text-left">
                         <tbody class="text-sm divide-y divide-gray-50">
+                            {% for alert in alerts %}
                             <tr class="hover:bg-gray-50">
-                                <td class="p-4"><span class="font-bold text-gray-800 block">TPCB10-4899</span><span class="text-xs text-gray-500">Just now</span></td>
-                                <td class="p-4"><span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High Risk</span></td>
-                                <td class="p-4 text-gray-600 text-xs">Cebu City • Handled by: Maria S.</td>
-                                <td class="p-4 text-right"><button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:underline font-bold text-xs">Review</button></td>
+                                <td class="p-4"><span class="font-bold text-gray-800 block">{{ alert.id }}</span><span class="text-xs text-gray-500">{{ alert.time_ago }}</span></td>
+                                <td class="p-4"><span class="px-2.5 py-1 uppercase rounded-full font-bold text-[10px] {{ alert.badge }}">{{ alert.risk }}</span></td>
+                                <td class="p-4 text-gray-600 text-xs">{{ alert.location }} • Handled by: {{ alert.handled_by }}</td>
+                                <td class="p-4 text-right"><a href="{% url 'documentation:master_history' %}?highlight={{ alert.id|urlencode }}" class="text-brand hover:underline font-bold text-xs">Review</a></td>
                             </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-4"><span class="font-bold text-gray-800 block">TPCB10-4896</span><span class="text-xs text-gray-500">15 mins ago</span></td>
-                                <td class="p-4"><span class="px-2.5 py-1 bg-orange-100 text-orange-700 text-[10px] uppercase rounded-full font-bold">Medium Risk</span></td>
-                                <td class="p-4 text-gray-600 text-xs">Mandaue • Handled by: Carlos R.</td>
-                                <td class="p-4 text-right"><button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:underline font-bold text-xs">Review</button></td>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-gray-400 text-sm">No calls recorded in this period.</td>
                             </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-4"><span class="font-bold text-gray-800 block">TPCB10-4888</span><span class="text-xs text-gray-500">1 hr ago</span></td>
-                                <td class="p-4"><span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] uppercase rounded-full font-bold">High Risk</span></td>
-                                <td class="p-4 text-gray-600 text-xs">Talisay • Handled by: Quev C.</td>
-                                <td class="p-4 text-right"><button type="button" onclick="openModal('modal-view-docs')" class="text-brand hover:underline font-bold text-xs">Review</button></td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -80,23 +116,100 @@
                 <h2 class="text-sm font-bold text-gray-700 mb-6 uppercase">Helpline Operational Metrics</h2>
                 <div class="space-y-5 flex-1">
                     <div>
-                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">Average Call Duration</span><span class="text-brand">24 Mins</span></div>
-                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand w-[60%] rounded-full"></div></div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">Average Call Duration</span><span class="text-brand">{{ duration_label }}</span></div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand rounded-full" style="width: {{ duration_pct }}%"></div></div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">High-Risk Escalation Rate</span><span class="text-red-500">12%</span></div>
-                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 w-[12%] rounded-full"></div></div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">High-Risk Escalation Rate</span><span class="text-red-500">{{ escalation }}%</span></div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 rounded-full" style="width: {{ escalation }}%"></div></div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">Referral Success Rate</span><span class="text-brand">85%</span></div>
-                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand w-[85%] rounded-full"></div></div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">Referral Rate</span><span class="text-brand">{{ referral_rate }}%</span></div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand rounded-full" style="width: {{ referral_rate }}%"></div></div>
                     </div>
                 </div>
                 <div class="mt-4 pt-4 border-t border-gray-100">
-                    <p class="text-xs text-gray-500 font-medium"><i class="ph-bold ph-trend-up"></i> Operational efficiency remains consistently high.</p>
+                    <p class="text-xs text-gray-500 font-medium"><i class="ph-bold ph-trend-up"></i> {{ referrals }} referral{{ referrals|pluralize }} logged for this period.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        function apply(params, remove) {
+            var query = new URLSearchParams(window.location.search);
+            (remove || []).forEach(function (key) { query.delete(key); });
+            for (var key in params) query.set(key, params[key]);
+            window.location.search = query.toString();
+        }
+
+        var period = document.getElementById('adminPeriod');
+        var panel = document.getElementById('adminRange');
+        var startInput = document.getElementById('adminRangeStart');
+        var endInput = document.getElementById('adminRangeEnd');
+        var applyBtn = document.getElementById('adminRangeApply');
+        var closeBtn = document.getElementById('adminRangeClose');
+        var chip = document.getElementById('adminRangeChip');
+        var clear = document.getElementById('adminRangeClear');
+        var previous = period && period.value !== 'range' ? period.value : 'week';
+
+        function closePanel() {
+            if (panel) panel.classList.add('hidden');
+            if (period && period.value === 'range') period.value = previous;
+        }
+
+        if (period) {
+            period.addEventListener('change', function () {
+                if (this.value === 'range') {
+                    if (panel) panel.classList.remove('hidden');
+                    return;
+                }
+                if (panel) panel.classList.add('hidden');
+                previous = this.value;
+                apply({ period: this.value }, ['start', 'end']);
+            });
+        }
+
+        if (chip) {
+            chip.addEventListener('click', function (event) {
+                if (event.target.closest('#adminRangeClear')) return;
+                if (!panel) return;
+                if (panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                } else {
+                    closePanel();
+                }
+            });
+        }
+
+        if (clear) {
+            clear.addEventListener('click', function () {
+                apply({ period: 'week' }, ['start', 'end']);
+            });
+        }
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+                if (!startInput || !endInput || !startInput.value || !endInput.value) return;
+                apply({ period: 'range', start: startInput.value, end: endInput.value });
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                apply({ period: previous }, ['start', 'end']);
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!panel || panel.classList.contains('hidden')) return;
+            if (event.target.closest('#adminPeriod') || event.target.closest('#adminRange') || event.target.closest('#adminRangeChip')) return;
+            closePanel();
+        });
+    })();
+</script>
 {% endblock %}

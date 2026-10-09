@@ -82,7 +82,7 @@ def _upload_to_supabase(file_obj, file_name):
 
 def manage_users(request):
     if request.session.get('user_role') != 'Admin':
-        return redirect('dashboard:responder_dashboard')
+        return redirect('dashboard:index')
         
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
@@ -517,7 +517,7 @@ def process_reset_password_view(request):
 
 def _redirect_by_role(role):
     if role == User.RoleChoices.ADMIN:
-        return redirect("dashboard:admin_dashboard")
-    return redirect("dashboard:responder_dashboard")
+        return redirect("dashboard:admin_index")
+    return redirect("dashboard:index")
 
 

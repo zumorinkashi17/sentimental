@@ -11,6 +11,7 @@
                 <p class="text-gray-500">Master database of all approved session documentations.</p>
             </div>
             <form method="GET" action="" class="flex flex-col sm:flex-row gap-2">
+                <input type="hidden" name="highlight" value="{{ request.GET.highlight|default:highlight }}">
                 <!-- Responder Filter -->
                 <select name="responder" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg cursor-pointer">
                     <option value="">All Responders</option>
@@ -44,7 +45,7 @@
                     </thead>
                     <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
                         {% for session in sessions %}
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr id="call-{{ session.session_id }}" class="hover:bg-gray-50 transition-colors{% if highlight and session.session_id == highlight %} bg-emerald-50 ring-2 ring-emerald-400{% endif %}">
                             <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-{{ session.session_id }}</td>
                             <td class="p-4">{{ session.session_call_date|date:"M d, Y" }} • {{ session.session_time_called|time:"h:i A" }}</td>
                             <td class="p-4 font-medium text-gray-800">
@@ -205,5 +206,32 @@
         // Depending on your JS logic, you may need to open the backdrop first, then show the specific modal inside it.
         openModal('modal-view-docs');
     }
+
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get('highlight');
+        if (!id) return;
+        var row = document.getElementById('call-' + id);
+        if (!row) return;
+        var attempts = 0;
+        var scrollAndHighlight = function () {
+            attempts++;
+            if (attempts > 20) return;
+            if (row.getBoundingClientRect().top < 0 || row.getBoundingClientRect().top > window.innerHeight - 100) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                row.scrollIntoView({ block: 'center' });
+            }
+            row.classList.add('bg-emerald-50', 'ring-2', 'ring-emerald-400', 'transition-colors');
+            setTimeout(function () {
+                row.classList.remove('bg-emerald-50', 'ring-2', 'ring-emerald-400');
+            }, 4000);
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', scrollAndHighlight);
+        } else {
+            scrollAndHighlight();
+        }
+    })();
 </script>
 {% endblock %}

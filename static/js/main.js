@@ -48,7 +48,7 @@ function applySelectedRole(role) {
 function goHome() {
     const role = getSelectedRole();
     if (role === 'admin') {
-        window.location.href = '/dashboard/admin/';
+        window.location.href = '/dashboard/admin/index/';
     } else {
         window.location.href = '/dashboard/';
     }
@@ -58,7 +58,7 @@ function handleLogin() {
     const roleSelect = document.getElementById('login-role');
     const role = roleSelect ? roleSelect.value : 'responder';
     applySelectedRole(role);
-    window.location.href = role === 'admin' ? '/dashboard/admin/' : '/dashboard/';
+    window.location.href = role === 'admin' ? '/dashboard/admin/index/' : '/dashboard/';
 }
 
 function handleLogout() {
@@ -452,6 +452,20 @@ function toggleDocMode(mode) {
 // }
 
 // --- Chart.js Initialization ---
+// Reads server-provided values from the canvas' data-values attribute,
+// falling back to the seeded design values when none were injected.
+function chartValues(canvas, fallback) {
+    if (!canvas) return fallback;
+    const raw = canvas.getAttribute('data-values');
+    if (!raw) return fallback;
+    try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) && parsed.length ? parsed : fallback;
+    } catch (err) {
+        return fallback;
+    }
+}
+
 function initCharts() {
     if (typeof Chart === 'undefined') return;
 
@@ -470,7 +484,7 @@ function initCharts() {
             data: {
                 labels: ['Relationships', 'Suicidal Crisis', 'Career', 'Others'],
                 datasets: [{
-                    data: [25, 25, 25, 25],
+                    data: chartValues(ctxReasons, [25, 25, 25, 25]),
                     backgroundColor: ['#00a67e', '#fbbf24', '#34d399', '#047857'],
                     borderWidth: 0,
                     cutout: '75%',
@@ -494,7 +508,7 @@ function initCharts() {
                 labels: ['Men', 'Women', 'LGBTQIA'],
                 datasets: [
                     { 
-                        data: [25, 70, 5],
+                        data: chartValues(ctxCallers, [25, 70, 5]),
                         backgroundColor: ['#00a67e', '#34d399', '#a7f3d0'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
@@ -527,7 +541,7 @@ function initCharts() {
             data: {
                 labels: ['High Risk', 'Low/No Risk'],
                 datasets: [{
-                    data: [32, 68],
+                    data: chartValues(ctxSuicide, [32, 68]),
                     backgroundColor: ['#00a67e', '#e2e8f0'],
                     borderWidth: 0,
                     cutout: '80%',
@@ -555,7 +569,7 @@ function initCharts() {
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
                 datasets: [{
-                    data: [45, 60, 75, 75, 50, 40, 50, 65, 85, 15, 5, 5],
+                    data: chartValues(ctxVolume, [45, 60, 75, 75, 50, 40, 50, 65, 85, 15, 5, 5]),
                     backgroundColor: gradient,
                     borderRadius: 10,
                     borderSkipped: false,
