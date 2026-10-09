@@ -103,6 +103,7 @@ canvas {
     padding-left: 1.5rem !important;
 }
 
+
 .modal-content {
     transition: transform 0.2s ease, opacity 0.2s ease;
 }

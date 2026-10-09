@@ -13,6 +13,7 @@ def history_list_view(request):
 
     responder_filter = request.GET.get('responder', '')
     date_filter = request.GET.get('date_filter', '')
+    highlight = request.GET.get('highlight', '')
 
     if responder_filter:
         sessions = sessions.filter(user_id=responder_filter)
@@ -47,6 +48,7 @@ def history_list_view(request):
         'responders': responders,
         'current_responder': responder_filter,
         'current_date_filter': date_filter,
+        'highlight': highlight,
     }
     return render(request, 'documentation/master_history.html', context)
 
