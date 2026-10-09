@@ -1,0 +1,329 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forecast vs Actuals Report</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Montserrat:ital,wght@0,700;0,800;1,300;1,400&family=Oswald:wght@300;400;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Chart.js & DataLabels -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+    <style>
+        :root {
+            --bg-slide: #e4e4e4;
+            --green-forest: #3d5a05;
+            --green-olive: #4b830d;
+            --gray-forecast: #8b9982;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #27272a;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .font-bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.03em; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+
+        .report-page {
+            width: 297mm;
+            height: 210mm;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background-color: var(--bg-slide);
+        }
+
+        .cover-slide-bg {
+            background: linear-gradient(100deg, #999999 0%, #c4c4c4 45%, #ececec 85%, #f7f7f7 100%);
+        }
+
+        @media print {
+            @page { size: A4 landscape; margin: 0; }
+            body { background-color: transparent; }
+            .no-print { display: none !important; }
+            .report-page { margin: 0; width: 100vw; height: 100vh; box-shadow: none; page-break-after: always; break-after: page; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FLOATING ACTION BAR -->
+    <div class="no-print fixed top-4 right-6 z-50 flex items-center gap-3 bg-slate-900/90 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 backdrop-blur-md">
+        <button onclick="window.print()" class="bg-[#00a67e] hover:bg-[#007a5d] text-white font-bold text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 shadow">
+            <i class="ph-bold ph-printer text-base"></i> Save / Print PDF
+        </button>
+        <button onclick="window.close()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs px-3 py-2 rounded-lg">Close</button>
+    </div>
+
+    <!-- ==========================================
+         PAGE 1: COVER SLIDE
+    =========================================== -->
+    <section class="report-page cover-slide-bg relative flex flex-col justify-between p-14 overflow-hidden">
+        <svg class="absolute right-0 top-0 h-full w-[48%] pointer-events-none z-0" viewBox="0 0 500 700" preserveAspectRatio="none">
+            <defs>
+                <pattern id="smallDots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                    <circle cx="10" cy="10" r="3.5" fill="#7d8c65" opacity="0.75" />
+                </pattern>
+                <pattern id="largeDots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                    <circle cx="16" cy="16" r="13.5" fill="#7d8c65" opacity="0.68" />
+                </pattern>
+            </defs>
+            <circle cx="480" cy="290" r="330" fill="url(#smallDots)" />
+            <circle cx="500" cy="650" r="280" fill="url(#largeDots)" />
+        </svg>
+
+        <div class="relative z-10 flex items-center gap-6 mt-2 ml-4">
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/doh-logo.png' %}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover">
+            </div>
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/Sentimental-logo.png' %}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover scale-[1.32]">
+            </div>
+            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
+                <img src="{% static 'images/vsmmc-logo.png' %}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover">
+            </div>
+        </div>
+
+        <div class="relative z-10 my-auto ml-4 max-w-[78%]">
+            <h1 class="font-montserrat font-bold text-[64px] leading-[1.08] text-[#054d22] tracking-wide uppercase">
+                FORECAST VS ACTUALS<br>
+                <span class="inline-block pl-20">PERFORMANCE REPORT</span>
+            </h1>
+            <div class="w-full flex justify-end pr-24 mt-3">
+                <p class="font-montserrat italic font-light text-[36px] text-[#054d22] tracking-wide">
+                    Q1 - Q2 2026 Analysis
+                </p>
+            </div>
+        </div>
+        <div class="h-8"></div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 2: EXECUTIVE SUMMARY (KPIs)
+    =========================================== -->
+    <section class="report-page items-center justify-center p-16">
+        <h2 class="font-bebas text-[78px] text-[#3d5a05] tracking-wide mb-12 uppercase text-center w-full border-b-[6px] border-[#3d5a05] pb-4">
+            PERFORMANCE SUMMARY
+        </h2>
+        
+        <div class="w-full flex justify-between items-center px-12 mt-8">
+            <!-- Actuals -->
+            <div class="flex flex-col items-center text-center w-1/3 border-r-4 border-gray-300">
+                <p class="font-oswald font-bold text-3xl text-gray-500 uppercase tracking-widest mb-2">Total Actual Calls</p>
+                <h3 class="font-bebas text-[140px] leading-none text-[#4b830d]">781</h3>
+            </div>
+            
+            <!-- Forecast -->
+            <div class="flex flex-col items-center text-center w-1/3 border-r-4 border-gray-300">
+                <p class="font-oswald font-bold text-3xl text-gray-500 uppercase tracking-widest mb-2">Total Predicted</p>
+                <h3 class="font-bebas text-[140px] leading-none text-[#8b9982]">775</h3>
+            </div>
+            
+            <!-- Variance -->
+            <div class="flex flex-col items-center text-center w-1/3">
+                <p class="font-oswald font-bold text-3xl text-gray-500 uppercase tracking-widest mb-2">Overall Variance</p>
+                <h3 class="font-bebas text-[140px] leading-none text-[#eab308]">+0.7%</h3>
+                <p class="text-sm font-bold text-gray-400 mt-2">Model Accuracy: 99.2%</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 3: MONTHLY TREND (COMBO CHART)
+    =========================================== -->
+    <section class="report-page px-16 pt-10 pb-12">
+        <div class="text-center mb-6">
+            <h2 class="font-bebas text-[68px] leading-none text-[#3d5a05] uppercase">MONTHLY VOLUME VS PREDICTION</h2>
+            <p class="font-bebas text-[32px] leading-none text-gray-500 uppercase">JANUARY 2026 - JUNE 2026</p>
+        </div>
+        
+        <!-- Custom Legend -->
+        <div class="flex justify-center gap-8 mb-4 no-print">
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-[#4b830d] rounded"></div><span class="font-bold text-gray-700">Actual Calls</span></div>
+            <div class="flex items-center gap-2"><div class="w-8 h-1 bg-gray-600 border-t-4 border-dashed border-gray-600"></div><span class="font-bold text-gray-700">Forecasted Calls</span></div>
+        </div>
+
+        <div class="flex-1 w-full relative">
+            <canvas id="chartMonthlyCombo"></canvas>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PAGE 4: SHIFT ACCURACY (GROUPED BAR)
+    =========================================== -->
+    <section class="report-page px-16 pt-10 pb-12">
+        <div class="text-center mb-6">
+            <h2 class="font-bebas text-[68px] leading-none text-[#3d5a05] uppercase">FORECAST ACCURACY BY SHIFT</h2>
+            <p class="font-bebas text-[32px] leading-none text-gray-500 uppercase">JANUARY 2026 - JUNE 2026</p>
+        </div>
+
+        <!-- Custom Legend -->
+        <div class="flex justify-center gap-8 mb-6 no-print">
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-[#4b830d] rounded"></div><span class="font-bold text-gray-700">Actual Calls</span></div>
+            <div class="flex items-center gap-2"><div class="w-6 h-6 bg-[#a8ba9a] rounded"></div><span class="font-bold text-gray-700">Forecasted Calls</span></div>
+        </div>
+
+        <div class="flex-1 w-full relative">
+            <canvas id="chartShiftGrouped"></canvas>
+        </div>
+    </section>
+
+    <!-- HIDDEN MOCK DATA BRIDGE -->
+    <div id="forecast-data" class="hidden"
+        data-months='["January", "February", "March", "April", "May", "June"]'
+        data-actual-monthly='[118, 135, 133, 119, 125, 151]'
+        data-forecast-monthly='[110, 140, 128, 125, 120, 152]'
+        
+        data-shifts='["6AM - 2PM", "2PM - 10PM", "10PM - 6AM"]'
+        data-actual-shift='[295, 345, 141]'
+        data-forecast-shift='[290, 360, 125]'>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = "'Bebas Neue', sans-serif";
+        Chart.defaults.color = '#3d5a05';
+        Chart.defaults.animation = false;
+
+        const dataEl = document.getElementById('forecast-data').dataset;
+        const monthLabels = JSON.parse(dataEl.months);
+        const actualMonthly = JSON.parse(dataEl.actualMonthly);
+        const forecastMonthly = JSON.parse(dataEl.forecastMonthly);
+        
+        const shiftLabels = JSON.parse(dataEl.shifts);
+        const actualShift = JSON.parse(dataEl.actualShift);
+        const forecastShift = JSON.parse(dataEl.forecastShift);
+
+        // 1. MONTHLY COMBO CHART (Bar = Actual, Line = Forecast)
+        new Chart(document.getElementById('chartMonthlyCombo'), {
+            type: 'bar',
+            data: {
+                labels: monthLabels,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Forecast',
+                        data: forecastMonthly,
+                        borderColor: '#52525b', // Dark Gray
+                        borderWidth: 6,
+                        borderDash: [10, 10], // Dashed line for predictions
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#52525b',
+                        pointRadius: 8,
+                        pointBorderWidth: 4,
+                        fill: false,
+                        tension: 0.3,
+                        datalabels: {
+                            align: 'top',
+                            offset: 15,
+                            color: '#52525b',
+                            font: { size: 24, family: "'Inter', sans-serif", weight: 'bold' },
+                            formatter: (val) => `~${val}` // Adds a tilde to indicate prediction
+                        }
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Actual',
+                        data: actualMonthly,
+                        backgroundColor: '#4b830d',
+                        borderRadius: 8,
+                        barPercentage: 0.6,
+                        datalabels: {
+                            align: 'center',
+                            color: '#ffffff',
+                            font: { size: 36, letterSpacing: 2 }
+                        }
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 40, bottom: 20 } },
+                plugins: {
+                    legend: { display: false } // Hidden because we built a custom HTML legend above it
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 200, ticks: { font: { size: 22 } } },
+                    x: { ticks: { font: { size: 26 } }, grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. SHIFT GROUPED BAR CHART (Side-by-side comparison)
+        new Chart(document.getElementById('chartShiftGrouped'), {
+            type: 'bar',
+            data: {
+                labels: shiftLabels,
+                datasets: [
+                    {
+                        label: 'Actual',
+                        data: actualShift,
+                        backgroundColor: '#4b830d',
+                        borderRadius: 6,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.9,
+                        datalabels: {
+                            align: 'end',
+                            anchor: 'end',
+                            offset: 4,
+                            color: '#4b830d',
+                            font: { size: 28 }
+                        }
+                    },
+                    {
+                        label: 'Forecast',
+                        data: forecastShift,
+                        backgroundColor: '#a8ba9a', // Muted olive for forecast
+                        borderRadius: 6,
+                        categoryPercentage: 0.8,
+                        barPercentage: 0.9,
+                        datalabels: {
+                            align: 'end',
+                            anchor: 'end',
+                            offset: 4,
+                            color: '#76856a',
+                            font: { size: 28, family: "'Inter', sans-serif", weight: 'bold' }
+                        }
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y', // Makes it horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { right: 60 } },
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true, max: 400, ticks: { font: { size: 22 } } },
+                    y: { ticks: { font: { size: 32 } }, grid: { display: false } }
+                }
+            }
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(() => { window.print(); }, 600);
+        });
+    </script>
+</body>
+</html>

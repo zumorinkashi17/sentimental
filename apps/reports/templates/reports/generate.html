@@ -4,69 +4,205 @@
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
     <div class="max-w-6xl mx-auto w-full space-y-6">
+        
         <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Reports Generation</h1>
-                <p class="text-gray-500">Generate formatted exports for DOH and stakeholders.</p>
+                <p class="text-gray-500 text-sm sm:text-base">Generate formatted exports for DOH and stakeholders.</p>
             </div>
-            <div class="flex gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option>All Report Types</option>
-                    <option>Compliance</option>
-                    <option>Security/Incidents</option>
-                    <option>Analytics</option>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <select id="filter-report-year" class="form-input bg-white py-2 px-3 text-xs text-gray-600 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand/20">
+                    <!-- Populated dynamically by JavaScript -->
+                    <option value="All">All Years</option>
                 </select>
+                <button type="button" onclick="openReportModal()" class="bg-brand text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap shadow-sm">
+                    <i class="ph-bold ph-plus"></i> Create Report
+                </button>
             </div>
         </div>
+
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
-            <div class="table-scroll">
-            <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
-                <thead>
-                    <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
-                        <th scope="col" class="p-3 font-bold">Report Title</th>
-                        <th scope="col" class="p-3 font-bold">Generated Date</th>
-                        <th scope="col" class="p-3 font-bold">Type</th>
-                        <th scope="col" class="p-3 font-bold text-right">Download Options</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
-                    <tr>
-                        <td class="p-3 font-bold text-gray-800">DOH Monthly Call Volume - Oct 2024</td>
-                        <td class="p-3 text-gray-600">Nov 01, 2024</td>
-                        <td class="p-3"><span class="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-full font-bold">Compliance</span></td>
-                        <td class="p-3 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 font-bold text-gray-800">High Risk Incidents Log - Q3 2024</td>
-                        <td class="p-3 text-gray-600">Oct 05, 2024</td>
-                        <td class="p-3"><span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">Security</span></td>
-                        <td class="p-3 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="p-3 font-bold text-gray-800">Forecast vs. Actuals Performance</td>
-                        <td class="p-3 text-gray-600">Oct 01, 2024</td>
-                        <td class="p-3"><span class="px-2 py-1 bg-purple-100 text-purple-700 text-[10px] rounded-full font-bold">Analytics</span></td>
-                        <td class="p-3 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button type="button" class="bg-brand text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-brand-dark flex items-center gap-1"><i class="ph-bold ph-file-pdf"></i> PDF</button>
-                                <button type="button" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-gray-200 border border-gray-200 flex items-center gap-1"><i class="ph-bold ph-file-csv"></i> CSV</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="overflow-x-auto rounded-lg border border-gray-100">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th scope="col" class="p-4 font-bold">Report Title</th>
+                            <th scope="col" class="p-4 font-bold">Generated Date</th>
+                            <th scope="col" class="p-4 font-bold">Type</th>
+                            <th scope="col" class="p-4 font-bold text-right">Download Options</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-reports" class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for report in reports %}
+                        <tr class="report-row hover:bg-gray-50/50 transition-colors" data-year="{{ report.target_year }}">
+                            <td class="p-4 font-bold text-gray-800">
+                                {{ report.display_title }}
+                                {% if report.target_period %}
+                                    <span class="block text-xs font-normal text-gray-400 mt-0.5">Target: {{ report.target_period }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-gray-600">{{ report.report_generated_date|date:"M d, Y" }}</td>
+                            <td class="p-4">
+                                {% if report.report_type == 'Compliance' %}
+                                    <span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-[10px] rounded-full font-bold">Compliance</span>
+                                {% elif report.report_type == 'Security' %}
+                                    <span class="px-2.5 py-1 bg-red-100 text-red-700 text-[10px] rounded-full font-bold">Security</span>
+                                {% else %}
+                                    <span class="px-2.5 py-1 bg-purple-100 text-purple-700 text-[10px] rounded-full font-bold">Analytics</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="openEditModal('{{ report.report_id }}', '{{ report.display_title|escapejs }}', '{{ report.report_type }}')" class="bg-white text-gray-700 border border-gray-200 text-xs font-bold px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                                        <i class="ph-bold ph-pencil-simple text-sm"></i> Edit
+                                    </button>
+                                    <a href="{% url 'reports:export_pdf' report.report_id %}" target="_blank" class="bg-brand text-white text-xs font-bold px-3.5 py-2 rounded-lg hover:bg-brand-dark transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                                        <i class="ph-bold ph-file-pdf text-sm"></i> PDF
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="p-6 text-center text-gray-400">No reports generated yet. Click "Create Report" to start.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- CREATE REPORT MODAL -->
+<div id="modal-create-report" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800 text-lg">Generate New Report</h3>
+            <button type="button" onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'reports:generate' %}" class="p-5 flex flex-col gap-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_report">
+            
+            <div>
+                <label class="form-label text-xs font-bold text-gray-600 uppercase">Report Title</label>
+                <input type="text" name="report_title" placeholder="e.g. DOH Call Volume Report" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label text-xs font-bold text-gray-600 uppercase">Start Period</label>
+                    <input type="month" name="start_period" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2 bg-gray-50 focus:bg-white text-gray-700" required>
+                </div>
+                <div>
+                    <label class="form-label text-xs font-bold text-gray-600 uppercase">End Period</label>
+                    <input type="month" name="end_period" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2 bg-gray-50 focus:bg-white text-gray-700" required>
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label text-xs font-bold text-gray-600 uppercase">Report Type</label>
+                <select name="report_type" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
+                    {% for value, label in report_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p class="text-[11px] text-gray-400 italic mb-2"><i class="ph-fill ph-info text-brand mr-1"></i> The system will extract actual data for this range directly from your database.</p>
+
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark shadow-sm">
+                Generate Database Report
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT REPORT MODAL -->
+<div id="modal-edit-report" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800 text-lg">Edit Report Details</h3>
+            <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+        <form method="POST" action="{% url 'reports:generate' %}" class="p-5 flex flex-col gap-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_report">
+            <input type="hidden" name="report_id" id="edit_report_id">
+            
+            <div>
+                <label class="form-label text-xs font-bold text-gray-600 uppercase">Report Title</label>
+                <input type="text" name="report_title" id="edit_report_title" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
+            </div>
+            
+            <div>
+                <label class="form-label text-xs font-bold text-gray-600 uppercase">Report Type</label>
+                <select name="report_type" id="edit_report_type" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
+                    {% for value, label in report_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <p class="text-[11px] text-gray-400 italic mb-2 mt-2"><i class="ph-fill ph-info text-brand mr-1"></i> Target dates are locked to preserve the report's original data scope.</p>
+
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-sm">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DYNAMIC YEAR FILTER BUILDER ---
+        const yearSelect = document.getElementById('filter-report-year');
+        const rows = document.querySelectorAll('.report-row');
+        const uniqueYears = new Set();
+
+        rows.forEach(row => {
+            const year = row.getAttribute('data-year');
+            if (year && year.trim() !== '') uniqueYears.add(year);
+        });
+
+        // Sort descending and append to dropdown
+        const sortedYears = Array.from(uniqueYears).sort((a, b) => b - a);
+        sortedYears.forEach(year => {
+            yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+        });
+
+        // Handle filtering
+        yearSelect.addEventListener('change', function() {
+            const selected = this.value;
+            rows.forEach(row => {
+                row.style.display = (selected === 'All' || row.getAttribute('data-year') === selected) ? '' : 'none';
+            });
+        });
+    });
+
+    // Create Modal Logic
+    function openReportModal() {
+        document.getElementById('modal-create-report').classList.remove('hidden');
+        document.getElementById('modal-create-report').classList.add('flex');
+    }
+    function closeReportModal() {
+        document.getElementById('modal-create-report').classList.remove('flex');
+        document.getElementById('modal-create-report').classList.add('hidden');
+    }
+
+    // Edit Modal Logic
+    function openEditModal(id, title, type) {
+        document.getElementById('edit_report_id').value = id;
+        document.getElementById('edit_report_title').value = title;
+        document.getElementById('edit_report_type').value = type;
+        
+        document.getElementById('modal-edit-report').classList.remove('hidden');
+        document.getElementById('modal-edit-report').classList.add('flex');
+    }
+    function closeEditModal() {
+        document.getElementById('modal-edit-report').classList.remove('flex');
+        document.getElementById('modal-edit-report').classList.add('hidden');
+    }
+</script>
 {% endblock %}
