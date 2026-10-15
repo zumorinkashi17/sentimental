@@ -47,6 +47,25 @@ LOCATION_COORDS = {
     "Legazpi City": (13.1391, 123.7438), "Daet": (14.1122, 122.9550),
     "Vigan City": (17.5747, 120.3869), "Laoag City": (18.1977, 120.5936),
     "Tuguegarao City": (17.6132, 121.7270), "Ilagan City": (17.1486, 121.8892),
+
+    # Regional Fallbacks 
+    "Region I": (16.0832, 120.6200),
+    "Region Ii": (17.3510, 121.7720),
+    "Region Iii": (15.4755, 120.7118),
+    "Region Iv-A": (14.1008, 121.0794),
+    "Region Iv-B": (12.8797, 121.7740),
+    "Region V": (13.4213, 123.4136),
+    "Region Vi": (11.0000, 122.5000),
+    "Region Vii": (10.3157, 123.8854),
+    "Region Viii": (11.2543, 125.0000),
+    "Region Ix": (7.8278, 123.4378),
+    "Region X": (8.4542, 124.6319),
+    "Region Xi": (7.1907, 125.4553),
+    "Region Xii": (6.2700, 124.6850),
+    "Region Xiii": (8.9475, 125.5406),
+    "Ncr": (14.5995, 120.9842),
+    "Car": (17.3510, 121.1720),
+    "Barmm": (6.9214, 124.1800),
 }
 
 REGIONS = [
@@ -102,6 +121,25 @@ CITY_REGION = {
     "Lucena City": "IV-A", "Naga City": "V", "Legazpi City": "V",
     "Daet": "V", "Vigan City": "I", "Laoag City": "I",
     "Tuguegarao City": "II", "Ilagan City": "II",
+
+    # Regional Fallback Mappings
+    "Region I": "I",
+    "Region Ii": "II",
+    "Region Iii": "III",
+    "Region Iv-A": "IV-A",
+    "Region Iv-B": "IV-B",
+    "Region V": "V",
+    "Region Vi": "VI",
+    "Region Vii": "VII",
+    "Region Viii": "VIII",
+    "Region Ix": "IX",
+    "Region X": "X",
+    "Region Xi": "XI",
+    "Region Xii": "XII",
+    "Region Xiii": "XIII",
+    "Ncr": "NCR",
+    "Car": "CAR",
+    "Barmm": "BARMM",
 }
 
 # Region center coordinates for map focus
