@@ -19,10 +19,13 @@
                 
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- Search Institutions -->
-                    <div class="relative w-full sm:w-64">
+                    <form id="inst-filters" method="get" class="relative w-full sm:w-64">
                         <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="search-manage-inst" placeholder="Search institutions..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
-                    </div>
+                        <input type="text" id="search-manage-inst" name="inst_search" value="{{ current_inst_search }}" placeholder="Search institutions..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                        <input type="hidden" name="prof_search" value="{{ current_prof_search }}">
+                        <input type="hidden" name="prof_spec" value="{{ current_prof_spec }}">
+                        <input type="hidden" name="prof_page" value="{{ request.GET.prof_page|default:'' }}">
+                    </form>
                     <button type="button" id="btn-add-inst" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap w-full sm:w-auto">
                         <i class="ph-bold ph-plus"></i> Add Institution
                     </button>
@@ -40,7 +43,7 @@
                         </tr>
                     </thead>
                     <tbody id="tbody-manage-inst" class="text-sm text-gray-700 divide-y divide-gray-100">
-                        {% for inst in institutions %}
+                        {% for inst in institution_list %}
                         <tr class="inst-row" data-search="{{ inst.institution_name|lower }} {{ inst.institution_location|lower }}">
                             <td class="p-3 font-bold text-gray-800 truncate">{{ inst.institution_name }}</td>
                             <td class="p-3 truncate">{{ inst.institution_location }}</td>
@@ -68,12 +71,13 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr id="empty-inst"><td colspan="5" class="p-4 text-center text-gray-400">No institutions found.</td></tr>
+                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No institutions found.</td></tr>
                         {% endfor %}
-                        <tr id="no-match-inst" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching institutions found.</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            {% include 'components/pagination.html' with page_obj=inst_page_obj querystring=inst_querystring %}
         </div>
 
         <!-- PROFESSIONALS SECTION -->
@@ -83,17 +87,21 @@
                 
                 <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- Filter Specialization -->
-                    <select id="filter-manage-spec" class="form-input bg-gray-50 border-gray-200 text-sm py-2 rounded-lg w-full sm:w-auto focus:bg-white">
-                        <option value="All">All Specializations</option>
-                        {% for value, label in specialization_choices %}
-                            <option value="{{ value }}">{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                    <!-- Search Professionals -->
-                    <div class="relative w-full sm:w-56">
-                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="search-manage-prof" placeholder="Search name or clinic..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
-                    </div>
+                    <form id="prof-filters" method="get" class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <input type="hidden" name="inst_search" value="{{ current_inst_search }}">
+                        <input type="hidden" name="inst_page" value="{{ request.GET.inst_page|default:'' }}">
+                        <select id="filter-manage-spec" name="prof_spec" onchange="this.form.submit()" class="form-input bg-gray-50 border-gray-200 text-sm py-2 rounded-lg w-full sm:w-auto focus:bg-white">
+                            <option value="All" {% if current_prof_spec == 'All' or not current_prof_spec %}selected{% endif %}>All Specializations</option>
+                            {% for value, label in specialization_choices %}
+                                <option value="{{ value }}" {% if current_prof_spec == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <!-- Search Professionals -->
+                        <div class="relative w-full sm:w-56">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-manage-prof" name="prof_search" value="{{ current_prof_search }}" placeholder="Search name or clinic..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
+                        </div>
+                    </form>
                     <button type="button" id="btn-add-prof" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap w-full sm:w-auto">
                         <i class="ph-bold ph-plus"></i> Add Professional
                     </button>
@@ -166,12 +174,13 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr id="empty-prof"><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
+                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
                         {% endfor %}
-                        <tr id="no-match-prof" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching professionals found.</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            {% include 'components/pagination.html' with page_obj=prof_page_obj querystring=prof_querystring %}
         </div>
 
     </div>
@@ -294,52 +303,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-
-        const searchManageInst = document.getElementById('search-manage-inst');
-        if (searchManageInst) searchManageInst.addEventListener('keyup', filterManageInst);
-
-        const searchManageProf = document.getElementById('search-manage-prof');
-        const filterManageSpec = document.getElementById('filter-manage-spec');
-        if (searchManageProf) searchManageProf.addEventListener('keyup', filterManageProf);
-        if (filterManageSpec) filterManageSpec.addEventListener('change', filterManageProf);
-
-        function filterManageInst() {
-            const query = searchManageInst.value.toLowerCase();
-            const rows = document.querySelectorAll('.inst-row');
-            let visibleCount = 0;
-            rows.forEach(row => {
-                const text = row.getAttribute('data-search');
-                if (text.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            const noMatchRow = document.getElementById('no-match-inst');
-            if (noMatchRow) noMatchRow.classList.toggle('hidden', visibleCount > 0);
-        }
-
-        function filterManageProf() {
-            const query = searchManageProf.value.toLowerCase();
-            const spec = filterManageSpec.value;
-            const rows = document.querySelectorAll('.prof-row');
-            let visibleCount = 0;
-            rows.forEach(row => {
-                const text = row.getAttribute('data-search');
-                const rowSpec = row.getAttribute('data-spec');
-                const matchesSearch = text.includes(query);
-                const matchesSpec = (spec === 'All' || spec === rowSpec);
-                if (matchesSearch && matchesSpec) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-            const noMatchRow = document.getElementById('no-match-prof');
-            if (noMatchRow) noMatchRow.classList.toggle('hidden', visibleCount > 0);
-        }
 
         function closeModals() {
             document.getElementById('modal-institution')?.classList.remove('flex');

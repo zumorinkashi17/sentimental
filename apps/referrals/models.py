@@ -16,6 +16,9 @@ class Institution(models.Model):
 
     class Meta:
         db_table = 'institution'
+        indexes = [
+            models.Index(fields=['institution_status'], name='inst_status_idx'),
+        ]
    
 
 
@@ -56,6 +59,10 @@ class Professional(models.Model):
     
     class Meta:
         db_table = 'professional'
+        indexes = [
+            models.Index(fields=['professional_status'], name='prof_status_idx'),
+            models.Index(fields=['professional_specialization'], name='prof_spec_idx'),
+        ]
 
 
 class ProfessionalContact(models.Model):

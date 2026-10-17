@@ -45,9 +45,7 @@
     <script src="{% static 'js/recorder.js' %}?v=1"></script>
 
     <!-- Global CSS -->
-    <link rel="stylesheet" href="{% static 'css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/global.css' %}?v=2">
-      <link rel="stylesheet" href="{% static 'css/global.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/global.css' %}?v=3">
 </head>
 <body class="bg-bgLight text-slate-800 min-h-screen overflow-x-hidden lg:overflow-hidden relative">
 
@@ -410,12 +408,21 @@
         }
 
         function refreshBadge() {
+            // Skip while the tab is in the background so inactive pages stop
+            // hammering the endpoint; a fresh fetch runs as soon as it returns.
+            if (document.hidden) return;
             fetch(NOTIF_URL).then(r => r.json()).then(data => {
                 document.getElementById('notif-badge').classList.toggle('hidden', !(data.notifications || []).length);
             });
         }
-        refreshBadge();
-        setInterval(refreshBadge, 30000);
+
+        if (role) {
+            refreshBadge();
+            setInterval(refreshBadge, 30000);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) refreshBadge();
+            });
+        }
     })();
     </script>
     {% block extra_js %}{% endblock %}

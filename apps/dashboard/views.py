@@ -4,29 +4,30 @@ from apps.accounts.models import User
 from apps.dashboard import services
 
 def _get_session_user(request, required_role=None):
-    """Return (user, None) or (None, redirect_response)."""
-    user_id = request.session.get("user_id")
-    print(f"DEBUG: Checking session. user_id = {user_id}") # <-- ADD THIS
-    
-    if not user_id:
-        return None, redirect("accounts:login")
+    """Return (user, None) or (None, redirect_response).
 
-    try:
-        user = User.objects.get(user_id=user_id)
-    except User.DoesNotExist:
-        print("DEBUG: User found in session, but not in DB!") # <-- ADD THIS
-        request.session.flush()
-        return None, redirect("accounts:login")
+    The resolved user is cached on the request as ``_sentimental_user`` so the
+    ``user_profile`` context processor can reuse it instead of issuing a second
+    lookup while rendering the template.
+    """
+    if not hasattr(request, "_sentimental_user"):
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return None, redirect("accounts:login")
 
-    print(f"DEBUG: User found. Status = {user.user_status}, Role = {user.user_role}") # <-- ADD THIS
+        try:
+            request._sentimental_user = User.objects.get(user_id=user_id)
+        except User.DoesNotExist:
+            request.session.flush()
+            return None, redirect("accounts:login")
+
+    user = request._sentimental_user
 
     if user.user_status != User.StatusChoices.ACTIVE:
-        print("DEBUG: User is NOT Active. Kicking out.") # <-- ADD THIS
         request.session.flush()
         return None, redirect("accounts:login")
 
     if required_role and user.user_role != required_role:
-        print(f"DEBUG: Role mismatch! Required: {required_role}, Actual: {user.user_role}") # <-- ADD THIS
         if user.user_role == User.RoleChoices.ADMIN:
             return None, redirect("dashboard:admin_index")
         elif user.user_role == User.RoleChoices.RESPONDER:
@@ -35,7 +36,6 @@ def _get_session_user(request, required_role=None):
             request.session.flush()
             return None, redirect("accounts:login")
 
-    print("DEBUG: User passed all checks. Allowing access.") # <-- ADD THIS
     return user, None
 
 

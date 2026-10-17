@@ -9,6 +9,7 @@ from django.utils import timezone
 from .models import Report
 from apps.accounts.models import User
 from apps.callers.models import CallSession, Caller
+from apps.pagination import paginate
 
 def generate_view(request):
     user_id = request.session.get('user_id')
@@ -63,7 +64,7 @@ def generate_view(request):
             messages.success(request, 'Report updated successfully.')
             return redirect('reports:generate')
 
-    reports = Report.objects.all().order_by('-report_generated_date', '-report_id')
+    reports = list(Report.objects.all().order_by('-report_generated_date', '-report_id'))
 
     # Clean titles and extract the Target Year for the frontend UI filter
     for r in reports:
@@ -93,8 +94,19 @@ def generate_view(request):
             r.target_year = r.report_generated_date.year
             r.target_period = ""
     
+    report_years = sorted({str(r.target_year) for r in reports}, reverse=True)
+    selected_year = request.GET.get('year', 'All')
+    if selected_year and selected_year != 'All':
+        reports = [r for r in reports if str(r.target_year) == str(selected_year)]
+
+    page_obj, querystring = paginate(request, reports)
+
     return render(request, 'reports/generate.html', {
-        'reports': reports,
+        'reports': page_obj.object_list,
+        'page_obj': page_obj,
+        'querystring': querystring,
+        'report_years': report_years,
+        'selected_year': selected_year,
         'report_types': Report.ReportTypeChoices.choices,
     })
 

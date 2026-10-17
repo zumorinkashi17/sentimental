@@ -7,7 +7,10 @@ from django.http import JsonResponse, request
 from django.views.decorators.http import require_POST
 from .models import ShiftCatalog, ShiftSchedule
 from apps.accounts.models import User, DayOffRequest
+from apps.pagination import paginate
 from django.db import transaction
+
+ROSTER_PAGE_SIZE = 10
 
 def admin_calendar_view(request):
     shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
@@ -17,7 +20,20 @@ def admin_calendar_view(request):
         user_status=User.StatusChoices.ACTIVE 
     ).order_by('user_first_name')
     
-    scheduled_roster = ShiftSchedule.objects.select_related('user', 'shift').order_by(
+    # Paginate by responder: fetch the page of users first, then their schedules.
+    roster_users = (
+        User.objects.filter(shiftschedule__isnull=False)
+        .distinct()
+        .order_by('user_first_name', 'user_last_name', 'user_id')
+    )
+    page_obj, querystring = paginate(
+        request, roster_users, per_page=ROSTER_PAGE_SIZE, page_param='roster_page'
+    )
+    page_user_ids = [u.user_id for u in page_obj.object_list]
+
+    scheduled_roster = ShiftSchedule.objects.select_related('user', 'shift').filter(
+        user_id__in=page_user_ids
+    ).order_by(
         'user__user_first_name', 'user__user_last_name', 'user_id', 'shift_date'
     )
     
@@ -112,6 +128,8 @@ def admin_calendar_view(request):
         'shifts': shifts,
         'responders': responders,
         'grouped_roster': grouped_roster,
+        'page_obj': page_obj,
+        'querystring': querystring,
         'today_date': today,
         'pending_leaves': pending_leaves,
         'processed_leaves': processed_leaves, 

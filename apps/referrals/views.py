@@ -1,10 +1,31 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
+from apps.pagination import paginate
 from .models import (
     Institution, InstitutionContact, Professional, ProfessionalContact, Affiliation
 )
+
+
+def _filter_professionals(professionals, search, specialization):
+    """Apply the shared directory/manager professional filters server-side."""
+    search = (search or '').strip()
+    if search:
+        professionals = professionals.filter(
+            Q(professional_name__icontains=search)
+            | Q(institution__institution_name__icontains=search)
+            | Q(institution__institution_location__icontains=search)
+            | Q(affiliation__institution__institution_name__icontains=search)
+            | Q(affiliation__institution__institution_location__icontains=search)
+        ).distinct()
+
+    if specialization and specialization != 'All':
+        professionals = professionals.filter(professional_specialization=specialization)
+
+    return professionals
+
 
 def directory_view(request):
     # 1. Check if the user is logged in at all
@@ -17,9 +38,21 @@ def directory_view(request):
     ).select_related('institution').prefetch_related(
         'professionalcontact_set', 'affiliation_set__institution'
     )
-    
+
+    professionals = _filter_professionals(
+        professionals,
+        request.GET.get('search'),
+        request.GET.get('specialization'),
+    ).order_by('professional_name')
+
+    page_obj, querystring = paginate(request, professionals)
+
     return render(request, 'referrals/directory.html', {
-        'professionals': professionals,
+        'professionals': page_obj.object_list,
+        'page_obj': page_obj,
+        'querystring': querystring,
+        'current_search': request.GET.get('search', ''),
+        'current_specialization': request.GET.get('specialization', 'All'),
         'specialization_choices': Professional.SpecializationChoices.choices,
     })
 
@@ -168,14 +201,37 @@ def manage_view(request):
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Server Error: {str(e)}'})
 
-    institutions = Institution.objects.prefetch_related('institutioncontact_set').all()
+    institutions = Institution.objects.prefetch_related('institutioncontact_set').order_by('institution_name')
+    inst_search = (request.GET.get('inst_search') or '').strip()
+    inst_queryset = institutions
+    if inst_search:
+        inst_queryset = inst_queryset.filter(
+            Q(institution_name__icontains=inst_search)
+            | Q(institution_location__icontains=inst_search)
+        )
+    inst_page_obj, inst_querystring = paginate(request, inst_queryset, page_param='inst_page')
+
     professionals = Professional.objects.select_related('institution').prefetch_related(
         'professionalcontact_set', 'affiliation_set__institution'
-    ).all()
+    )
+    professionals = _filter_professionals(
+        professionals,
+        request.GET.get('prof_search'),
+        request.GET.get('prof_spec'),
+    ).order_by('professional_name')
+    prof_page_obj, prof_querystring = paginate(request, professionals, page_param='prof_page')
 
     return render(request, 'referrals/manage.html', {
         'institutions': institutions,
-        'professionals': professionals,
+        'institution_list': inst_page_obj.object_list,
+        'inst_page_obj': inst_page_obj,
+        'inst_querystring': inst_querystring,
+        'professionals': prof_page_obj.object_list,
+        'prof_page_obj': prof_page_obj,
+        'prof_querystring': prof_querystring,
+        'current_inst_search': inst_search,
+        'current_prof_search': request.GET.get('prof_search', ''),
+        'current_prof_spec': request.GET.get('prof_spec', 'All'),
         'specialization_choices': Professional.SpecializationChoices.choices,
         'contact_type_choices': ProfessionalContact.ContactTypeChoices.choices,
         'status_choices': Institution.StatusChoices.choices,

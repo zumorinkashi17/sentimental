@@ -34,6 +34,9 @@ class User(models.Model):
 
     class Meta:
         db_table = 'user'
+        indexes = [
+            models.Index(fields=['user_role', 'user_status'], name='user_role_status_idx'),
+        ]
 
     def __str__(self):
         return f"{self.user_first_name} {self.user_last_name}"
@@ -78,3 +81,6 @@ class DayOffRequest(models.Model):
 
     class Meta:
         db_table = 'day_off_request'
+        indexes = [
+            models.Index(fields=['requested_status', 'requested_date'], name='dor_status_date_idx'),
+        ]

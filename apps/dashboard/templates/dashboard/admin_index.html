@@ -17,6 +17,12 @@
                     <option value="{{ value }}" {% if value == period %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
+                <select id="adminResponder" title="Filter by responder" class="form-input bg-white w-full sm:w-auto sm:shrink-0 py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm cursor-pointer">
+                    <option value="">All Responders</option>
+                    {% for responder in responders %}
+                    <option value="{{ responder.user_id }}" {% if current_responder == responder.user_id|stringformat:"s" %}selected{% endif %}>{{ responder.user_first_name|default:"Unknown Responder" }}{% if responder.user_last_name %} {{ responder.user_last_name }}{% endif %}</option>
+                    {% endfor %}
+                </select>
                 <button id="adminRangeChip" type="button"
                         class="{% if period == 'range' %}inline-flex{% else %}hidden{% endif %} items-center gap-1.5 bg-brand/10 text-brand text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-brand/20 transition-colors">
                     <i class="ph ph-calendar-blank text-[11px]"></i>
@@ -85,6 +91,11 @@
                 <h3 class="text-2xl font-bold mb-2">{{ ai.status }}</h3>
                 <p class="text-xs font-medium text-brand-light">{{ ai.message }}</p>
             </div>
+        </div>
+
+        <div class="pt-2">
+            <h2 class="text-sm font-bold text-gray-700 uppercase mb-3">Call Analytics</h2>
+            {% include 'components/dashboard_analytics.html' %}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 mt-4">
@@ -189,6 +200,17 @@
         if (clear) {
             clear.addEventListener('click', function () {
                 apply({ period: 'week' }, ['start', 'end']);
+            });
+        }
+
+        var responder = document.getElementById('adminResponder');
+        if (responder) {
+            responder.addEventListener('change', function () {
+                if (this.value) {
+                    apply({ responder: this.value });
+                } else {
+                    apply({}, ['responder']);
+                }
             });
         }
 

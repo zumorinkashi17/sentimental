@@ -2,6 +2,7 @@ from django.shortcuts import render
 from apps.accounts.models import User
 from django.utils import timezone
 from apps.callers.models import CallSession
+from apps.pagination import DEFAULT_PAGE_SIZE, paginate
 
 from apps.dashboard.views import _get_session_user
 
@@ -9,7 +10,7 @@ def history_list_view(request):
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
-    sessions = CallSession.objects.all()
+    sessions = CallSession.objects.select_related('user', 'caller')
 
     responder_filter = request.GET.get('responder', '')
     date_filter = request.GET.get('date_filter', '')
@@ -39,12 +40,27 @@ def history_list_view(request):
             )
 
     sessions = sessions.order_by('-session_call_date', '-session_time_called')
-    
+
     responder_ids = CallSession.objects.values_list('user_id', flat=True).distinct()
     responders = User.objects.filter(user_id__in=responder_ids)
 
+    # When a highlighted session is requested, jump to the page that contains it
+    # so pagination does not hide the row the link pointed at.
+    page_number = None
+    if highlight and not request.GET.get('page'):
+        session_ids = list(sessions.values_list('session_id', flat=True))
+        try:
+            index = session_ids.index(str(highlight))
+            page_number = index // DEFAULT_PAGE_SIZE + 1
+        except (ValueError, TypeError):
+            page_number = None
+
+    page_obj, querystring = paginate(request, sessions, page_number=page_number)
+
     context = {
-        'sessions': sessions,
+        'sessions': page_obj.object_list,
+        'page_obj': page_obj,
+        'querystring': querystring,
         'responders': responders,
         'current_responder': responder_filter,
         'current_date_filter': date_filter,
@@ -60,7 +76,11 @@ def user_history_view(request):
 
     current_user_id = request.session.get('user_id')
     
-    sessions = CallSession.objects.filter(user_id=current_user_id)
+    sessions = (
+        CallSession.objects
+        .filter(user_id=current_user_id)
+        .select_related('user', 'caller')
+    )
 
     date_filter = request.GET.get('date_filter', '')
 
@@ -85,9 +105,13 @@ def user_history_view(request):
             )
 
     sessions = sessions.order_by('-session_call_date', '-session_time_called')
-    
+
+    page_obj, querystring = paginate(request, sessions)
+
     context = {
-        'sessions': sessions,
+        'sessions': page_obj.object_list,
+        'page_obj': page_obj,
+        'querystring': querystring,
         'current_date_filter': date_filter,
     }
     return render(request, 'documentation/history.html', context)

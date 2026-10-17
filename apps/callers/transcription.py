@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 REQUEST_TIMEOUT = 300
+REQUEST_CONNECT_TIMEOUT = 10
 
 CALLER = "Caller"
 RESPONDER = "Responder"
@@ -165,7 +166,7 @@ def transcribe_track(wav_bytes, speaker, api_key):
             url,
             params={"key": api_key},
             json=payload,
-            timeout=REQUEST_TIMEOUT,
+            timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_TIMEOUT),
         )
     except requests.RequestException as exc:
         raise TranscriptionError(

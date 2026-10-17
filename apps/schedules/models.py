@@ -20,3 +20,7 @@ class ShiftSchedule(models.Model):
 
     class Meta:
         db_table = 'shift_schedule'
+        indexes = [
+            models.Index(fields=['shift_date', 'schedule_status'], name='ss_date_status_idx'),
+            models.Index(fields=['user', 'shift_date'], name='ss_user_date_idx'),
+        ]
