@@ -10,19 +10,22 @@
                 <p class="text-gray-500 text-sm sm:text-base">Database of external psychologists, psychiatrists, and partner clinics.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <select id="filter-dir-spec" class="form-input bg-white w-full sm:w-auto py-2 text-sm text-gray-600 border-gray-200 shadow-sm rounded-lg">
-                    <option value="All">All Specializations</option>
-                    {% for value, label in specialization_choices %}
-                        <option value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
+                <form id="dir-filters" method="get" class="w-full sm:w-auto">
+                    <select id="filter-dir-spec" name="specialization" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-2 text-sm text-gray-600 border-gray-200 shadow-sm rounded-lg">
+                        <option value="All" {% if current_specialization == 'All' or not current_specialization %}selected{% endif %}>All Specializations</option>
+                        {% for value, label in specialization_choices %}
+                            <option value="{{ value }}" {% if current_specialization == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
             </div>
         </div>
         
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
-                <input type="text" id="search-dir-prof" placeholder="Search by clinic name, or location..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+                <label for="search-dir-prof" class="sr-only">Search professionals</label>
+                <input type="text" id="search-dir-prof" name="search" form="dir-filters" value="{{ current_search }}" placeholder="Search by clinic name, or location..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
             
             <div class="md:max-h-76 sm:max-h-96 overflow-auto rounded-lg border border-gray-100">
@@ -72,50 +75,14 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr id="empty-prof"><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
+                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
                         {% endfor %}
-                        <tr id="no-match-dir" class="hidden"><td colspan="5" class="p-4 text-center text-gray-400">No matching professionals found.</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            {% include 'components/pagination.html' %}
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchDirProf = document.getElementById('search-dir-prof');
-        const filterDirSpec = document.getElementById('filter-dir-spec');
-
-        if (searchDirProf) searchDirProf.addEventListener('keyup', filterDirectory);
-        if (filterDirSpec) filterDirSpec.addEventListener('change', filterDirectory);
-
-        function filterDirectory() {
-            const query = searchDirProf.value.toLowerCase();
-            const spec = filterDirSpec.value;
-            const rows = document.querySelectorAll('.dir-row');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                const text = row.getAttribute('data-search');
-                const rowSpec = row.getAttribute('data-spec');
-                
-                const matchesSearch = text.includes(query);
-                const matchesSpec = (spec === 'All' || spec === rowSpec);
-
-                if (matchesSearch && matchesSpec) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            const noMatchRow = document.getElementById('no-match-dir');
-            if (noMatchRow) {
-                noMatchRow.classList.toggle('hidden', visibleCount > 0);
-            }
-        }
-    });
-</script>
 {% endblock %}

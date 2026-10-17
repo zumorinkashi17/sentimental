@@ -11,6 +11,7 @@ from django.db.models import Q
 from supabase import create_client, Client
 from .models import User, UserLog
 from apps.callers.models import CallSession
+from apps.pagination import paginate
 from django.utils import timezone
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -100,9 +101,14 @@ def manage_users(request):
         
     if status_filter != 'all':
         users = users.filter(user_status__iexact=status_filter)
-        
+
+    users = users.order_by('user_id')
+    page_obj, querystring = paginate(request, users)
+
     return render(request, "accounts/manage.html", {
-        "users": users,
+        "users": page_obj.object_list,
+        "page_obj": page_obj,
+        "querystring": querystring,
         "search_query": search_query,
         "status_filter": status_filter
     })

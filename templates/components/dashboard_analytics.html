@@ -1,0 +1,78 @@
+{% comment %}
+Shared analytics layout: Reasons for Calling, Callers (gender), High-Risk Calls.
+Renders on both the responder and admin dashboards. Expects in the context:
+  reasons, reasons_total, reasons_chart,
+  callers, callers_total, callers_chart, gauge
+Optional: show_year_selector (with years, year) for the year dropdown.
+{% endcomment %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <!-- Card 1: Reasons for Calling -->
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+        <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Reasons for Calling</h2>
+        <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+            <canvas id="chartReasons" height="140" data-values="{{ reasons_chart }}"></canvas>
+            <div class="absolute left-2 top-10 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">RELATIONSHIPS</div>
+            <div class="absolute right-0 bottom-10 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">OTHERS</div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-xl font-bold text-slate-800">{{ reasons_total }}</span>
+                <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Calls</span>
+            </div>
+        </div>
+        <div class="mt-4 space-y-2">
+            {% for item in reasons %}
+            <div class="flex justify-between items-center text-xs text-gray-500">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: {{ item.color }}"></span>{{ item.label }}</div><span>{{ item.pct }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Card 2: Callers -->
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col">
+        <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">Callers</h2>
+        <div class="relative flex-1 flex items-center justify-center min-h-[160px]">
+            <canvas id="chartCallers" height="140" data-values="{{ callers_chart }}"></canvas>
+            <div class="absolute left-2 top-8 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">MEN</div>
+            <div class="absolute right-0 bottom-8 bg-brand text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">WOMEN</div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-xl font-bold text-slate-800">{{ callers_total }}</span>
+                <span class="text-[9px] font-semibold text-brand uppercase tracking-wider">Callers</span>
+            </div>
+        </div>
+        <div class="mt-4 space-y-3">
+            {% for item in callers %}
+            <div class="flex items-center gap-3 text-xs text-gray-500">
+                <div class="w-16 flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background: {{ item.color }}"></span>{{ item.label }}</div>
+                <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full" style="background: {{ item.color }}; width: {{ item.pct }}%"></div></div>
+                <span class="w-6 text-right font-medium">{{ item.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Card 3: High-Risk Calls -->
+    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col relative overflow-hidden sm:col-span-2 xl:col-span-1">
+        <h2 class="text-xs font-bold text-gray-600 mb-4 uppercase">High-Risk Calls</h2>
+        <div class="relative flex-1 flex flex-col items-center justify-end pb-4">
+            <div class="w-full relative h-[120px]">
+                <canvas id="chartSuicide" data-values="{{ gauge.chart }}"></canvas>
+                <div class="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center text-center">
+                    <span class="text-3xl font-bold text-brand">{{ gauge.pct }}%</span>
+                    <span class="text-[10px] font-bold text-brand uppercase">High Level of<br>Risk</span>
+                </div>
+            </div>
+        </div>
+        {% if show_year_selector %}
+        <div class="mt-auto flex justify-center">
+            <div class="relative inline-flex items-center">
+                <select id="dashYear" class="appearance-none bg-white pl-4 pr-8 py-1.5 border border-gray-200 rounded-full text-xs text-gray-500 font-medium hover:bg-gray-50 cursor-pointer">
+                    {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <i class="ph ph-caret-down absolute right-3 text-gray-500 pointer-events-none"></i>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

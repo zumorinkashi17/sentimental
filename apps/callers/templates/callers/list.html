@@ -9,28 +9,28 @@
                 <h1 class="text-2xl font-bold text-gray-800">Callers Database</h1>
                 <p class="text-gray-500">Find past callers and view their documented risk profiles.</p>
             </div>
-            <!-- Your search/filter dropdowns remain here -->
-            <div class="flex flex-col sm:flex-row gap-2">
-                <select id="time-filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
+            <!-- Search/filter dropdowns submit as GET so filtering happens server-side -->
+            <form id="caller-filters" method="get" class="flex flex-col sm:flex-row gap-2">
+                <select id="time-filter" name="period" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium">
+                    <option value="all" {% if request.GET.period == 'all' or not request.GET.period %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if request.GET.period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="week" {% if request.GET.period == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if request.GET.period == 'month' %}selected{% endif %}>This Month</option>
                 </select>
-                <select id="risk-filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                    <option value="all">All Risk Levels</option>
-                    <option value="high">High Risk</option>
-                    <option value="medium">Medium Risk</option>
-                    <option value="low">Low Risk</option>
+                <select id="risk-filter" name="risk" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
+                    <option value="all" {% if request.GET.risk == 'all' or not request.GET.risk %}selected{% endif %}>All Risk Levels</option>
+                    <option value="high" {% if request.GET.risk == 'high' %}selected{% endif %}>High Risk</option>
+                    <option value="medium" {% if request.GET.risk == 'medium' %}selected{% endif %}>Medium Risk</option>
+                    <option value="low" {% if request.GET.risk == 'low' %}selected{% endif %}>Low Risk</option>
                 </select>
-            </div>
+            </form>
         </div>
         
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
-                <label for="caller-search" class="sr-only">Search callers</label>
-                <input id="search" type="text" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
+                <label for="search" class="sr-only">Search callers</label>
+                <input id="search" name="search" form="caller-filters" type="text" value="{{ request.GET.search|default:'' }}" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
 
             <!-- Dynamic Data Loop Starts Here -->
@@ -94,6 +94,8 @@
                 </div>
                 {% endfor %}
             </div>
+
+            {% include 'components/pagination.html' %}
         </div>
     </div>
 </div>
@@ -193,86 +195,5 @@
         // 3. Open the modal (Ensure openModal logic toggles the backdrop properly)
         openModal('modal-caller-details');
     }
-
-   document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('search');
-        const riskFilter = document.getElementById('risk-filter');
-        const timeFilter = document.getElementById('time-filter');
-        
-        // Attach event listeners to ALL THREE inputs
-        if (searchInput) searchInput.addEventListener('input', filterList);
-        if (riskFilter) riskFilter.addEventListener('change', filterList);
-        if (timeFilter) timeFilter.addEventListener('change', filterList);
-
-        function filterList() {
-            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-            const selectedRisk = riskFilter ? riskFilter.value : 'all';
-            const selectedTime = timeFilter ? timeFilter.value : 'all';
-            
-            // Set up date boundaries for time filtering
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            const firstDayOfWeek = new Date(today);
-            firstDayOfWeek.setDate(today.getDate() - today.getDay());
-            
-            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-            const callerCards = document.querySelectorAll('.space-y-3 > .group');
-
-            callerCards.forEach(card => {
-                const callerInfoDiv = card.querySelector('.min-w-0');
-                const riskBadgeSpan = card.querySelector('span.rounded-full');
-                const cardDateStr = card.getAttribute('data-date');
-                
-                if (callerInfoDiv) {
-                    // 1. Check Text Match
-                    const textMatches = callerInfoDiv.textContent.toLowerCase().includes(searchTerm);
-                    
-                    // 2. Check Risk Match
-                    let riskMatches = false;
-                    const cellRiskText = riskBadgeSpan ? riskBadgeSpan.textContent.toLowerCase().trim() : '';
-                    
-                    if (selectedRisk === 'all') {
-                        riskMatches = true;
-                    } else if (selectedRisk === 'high' && cellRiskText.includes('high')) {
-                        riskMatches = true;
-                    } else if (selectedRisk === 'medium' && cellRiskText.includes('medium')) {
-                        riskMatches = true;
-                    } else if (selectedRisk === 'low' && cellRiskText.includes('low')) {
-                        riskMatches = true;
-                    }
-
-                    // 3. Check Time Match
-                    let timeMatches = false;
-                    
-                    if (selectedTime === 'all') {
-                        timeMatches = true;
-                    } else if (cardDateStr) {
-                        // Split date to avoid timezone offset issues in Javascript
-                        const [year, month, day] = cardDateStr.split('-');
-                        const cardDate = new Date(year, month - 1, day);
-                        
-                        if (selectedTime === 'today') {
-                            timeMatches = cardDate.getTime() === today.getTime();
-                        } else if (selectedTime === 'week') {
-                            timeMatches = cardDate >= firstDayOfWeek;
-                        } else if (selectedTime === 'month') {
-                            timeMatches = cardDate >= firstDayOfMonth;
-                        }
-                    }
-
-                    // Show the card ONLY if it matches ALL THREE conditions
-                    if (textMatches && riskMatches && timeMatches) {
-                        card.style.display = ''; 
-                    } else {
-                        card.style.display = 'none'; 
-                    }
-                }
-            });
-        }
-    });
-
-
 </script>
 {% endblock %}

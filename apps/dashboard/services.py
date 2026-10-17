@@ -4,7 +4,7 @@ from collections import Counter
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 
@@ -131,12 +131,23 @@ def _breakdown(queryset, field, categories, bucket_fn):
     ]
 
 
-def _gauge(year):
-    sessions = CallSession.objects.filter(session_call_date__year=year)
-    total = sessions.count()
-    high = sessions.filter(session_risk_assessment__icontains="high").count()
+def _gauge_for(queryset):
+    """High-risk gauge for any session queryset in a single aggregate query."""
+    stats = queryset.aggregate(
+        total=Count("session_id"),
+        high=Count("session_id", filter=Q(session_risk_assessment__icontains="high")),
+    )
+    total = stats["total"] or 0
+    high = stats["high"] or 0
     pct = round(high * 100 / total) if total else 0
     return {"pct": pct, "high": high, "total": total, "chart": json.dumps([pct, 100 - pct])}
+
+
+def _gauge(year, user=None):
+    qs = CallSession.objects.filter(session_call_date__year=year)
+    if user:
+        qs = qs.filter(user=user)
+    return _gauge_for(qs)
 
 
 def _month_delta(counts):
@@ -150,9 +161,12 @@ def _month_delta(counts):
     return {"label": f"{round(abs(pct))}%", "dir": "up" if pct >= 0 else "down"}
 
 
-def _volume(year):
+def _volume(year, user=None):
+    qs = CallSession.objects.filter(session_call_date__year=year)
+    if user:
+        qs = qs.filter(user=user)
     rows = (
-        CallSession.objects.filter(session_call_date__year=year)
+        qs
         .values(month=ExtractMonth("session_call_date"))
         .annotate(total=Count("session_id"))
     )
@@ -221,7 +235,12 @@ def responder_context(request, user):
     year = _resolve_year(request.GET.get("year"), years)
 
     start, end = period_bounds(period, range_start, range_end)
-    in_period = CallSession.objects.filter(session_call_date__gte=start, session_call_date__lte=end)
+    in_period = CallSession.objects.filter(
+        session_call_date__gte=start,
+        session_call_date__lte=end,
+    )
+    if user:
+        in_period = in_period.filter(user=user)
 
     reasons = _breakdown(in_period, "session_reason_for_calling", REASON_CATEGORIES, reason_category)
     callers = _breakdown(in_period, "caller__caller_gender", GENDER_CATEGORIES, gender_bucket)
@@ -242,8 +261,8 @@ def responder_context(request, user):
         "callers": callers,
         "callers_total": sum(item["count"] for item in callers),
         "callers_chart": json.dumps([item["count"] for item in callers]),
-        "gauge": _gauge(year),
-        "volume": _volume(year),
+        "gauge": _gauge(year, user=user),
+        "volume": _volume(year, user=user),
         "referrals": _referrals(),
         "contacts": _contacts(),
     }
@@ -357,6 +376,21 @@ def _alerts(sessions, limit=ADMIN_ALERTS_LIMIT):
     return alerts
 
 
+def responder_options():
+    """Responders who have handled at least one session, for filter dropdowns."""
+    return (
+        User.objects
+        .annotate(session_total=Count("callsession"))
+        .filter(session_total__gt=0)
+        .order_by("user_first_name", "user_last_name", "user_id")
+    )
+
+
+def _resolve_responder(request):
+    """Selected responder id from the querystring ("" means all responders)."""
+    return (request.GET.get("responder") or "").strip()
+
+
 def admin_context(request, user=None):
     """Everything the admin dashboard needs, ready for the template."""
     period = request.GET.get("period", DEFAULT_ADMIN_PERIOD)
@@ -367,14 +401,29 @@ def admin_context(request, user=None):
     range_start = _parse_date(request.GET.get("start"))
     range_end = _parse_date(request.GET.get("end"))
     start, end = admin_period_bounds(period, range_start, range_end)
-    in_period = CallSession.objects.filter(session_call_date__gte=start, session_call_date__lte=end)
+
+    responder_filter = _resolve_responder(request)
+
+    def scoped(queryset):
+        """Narrow a CallSession queryset to the selected responder, if any."""
+        if responder_filter:
+            return queryset.filter(user_id=responder_filter)
+        return queryset
+
+    in_period = scoped(CallSession.objects.filter(session_call_date__gte=start, session_call_date__lte=end))
     range_label = f"{start.strftime('%b %d')} – {end.strftime('%b %d, %Y')}" if period == "range" else ""
 
-    total = in_period.count()
-    high = in_period.filter(session_risk_assessment__icontains="high").count()
+    stats = in_period.aggregate(
+        total=Count("session_id"),
+        high=Count("session_id", filter=Q(session_risk_assessment__icontains="high")),
+    )
+    total = stats["total"] or 0
+    high = stats["high"] or 0
 
     prev_start, prev_end = _previous_window(period, start, end)
-    prev_total = CallSession.objects.filter(session_call_date__gte=prev_start, session_call_date__lte=prev_end).count()
+    prev_total = scoped(
+        CallSession.objects.filter(session_call_date__gte=prev_start, session_call_date__lte=prev_end)
+    ).count()
     trend = _trend(total, prev_total)
 
     escalation = round(high * 100 / total) if total else 0
@@ -383,28 +432,42 @@ def admin_context(request, user=None):
     duration_label = "—" if not duration_count else f"{avg_seconds // 60} Mins"
     duration_pct = 0 if not duration_count else min(round(avg_seconds * 100 / 3600), 100)
 
-    referrals = SessionReferral.objects.filter(
+    referral_qs = SessionReferral.objects.filter(
         session__session_call_date__gte=start, session__session_call_date__lte=end
-    ).count()
+    )
+    if responder_filter:
+        referral_qs = referral_qs.filter(session__user_id=responder_filter)
+    referrals = referral_qs.count()
     referral_rate = round(referrals * 100 / total) if total else 0
 
-    active_responders = User.objects.filter(
-        user_role=User.RoleChoices.RESPONDER, user_status=User.StatusChoices.ACTIVE
-    ).count()
-    total_responders = User.objects.filter(user_role=User.RoleChoices.RESPONDER).count()
+    responder_stats = User.objects.filter(user_role=User.RoleChoices.RESPONDER).aggregate(
+        total=Count("user_id"),
+        active=Count("user_id", filter=Q(user_status=User.StatusChoices.ACTIVE)),
+    )
+    active_responders = responder_stats["active"] or 0
+    total_responders = responder_stats["total"] or 0
 
     month_start = today.replace(day=1)
-    month_count = CallSession.objects.filter(session_call_date__gte=month_start, session_call_date__lte=today).count()
     last_month_end = month_start - timedelta(days=1)
     last_month_start = last_month_end.replace(day=1)
-    last_count = CallSession.objects.filter(
-        session_call_date__gte=last_month_start, session_call_date__lte=last_month_end
-    ).count()
+    month_stats = scoped(CallSession.objects.filter(
+        session_call_date__gte=last_month_start, session_call_date__lte=today
+    )).aggregate(
+        current=Count("session_id", filter=Q(session_call_date__gte=month_start)),
+        previous=Count("session_id", filter=Q(session_call_date__lte=last_month_end)),
+    )
+    month_count = month_stats["current"] or 0
+    last_count = month_stats["previous"] or 0
     if last_count and month_count >= last_count * 1.15:
         bump = round((month_count - last_count) * 100 / last_count)
         ai = {"status": "Surge Alert", "message": f"Expected +{bump}% increase this month. Review staffing levels."}
     else:
         ai = {"status": "Stable", "message": f"{month_count} call{'s' if month_count != 1 else ''} so far this month. Maintain current staffing."}
+
+    reasons = _breakdown(in_period, "session_reason_for_calling", REASON_CATEGORIES, reason_category)
+    callers = _breakdown(in_period, "caller__caller_gender", GENDER_CATEGORIES, gender_bucket)
+    gauge_pct = round(high * 100 / total) if total else 0
+    gauge = {"pct": gauge_pct, "high": high, "total": total, "chart": json.dumps([gauge_pct, 100 - gauge_pct])}
 
     return {
         "period": period,
@@ -412,6 +475,8 @@ def admin_context(request, user=None):
         "range_start": start.isoformat(),
         "range_end": end.isoformat(),
         "range_label": range_label,
+        "responders": responder_options(),
+        "current_responder": responder_filter,
         "total": total,
         "trend": trend,
         "high": high,
@@ -424,4 +489,11 @@ def admin_context(request, user=None):
         "referral_rate": referral_rate,
         "alerts": _alerts(in_period),
         "ai": ai,
+        "reasons": reasons,
+        "reasons_total": sum(item["count"] for item in reasons),
+        "reasons_chart": json.dumps([item["count"] for item in reasons]),
+        "callers": callers,
+        "callers_total": sum(item["count"] for item in callers),
+        "callers_chart": json.dumps([item["count"] for item in callers]),
+        "gauge": gauge,
     }

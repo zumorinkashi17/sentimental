@@ -266,6 +266,10 @@
                     </div>
                 </div>
 
+                {% if page_obj %}
+                    {% include 'components/pagination.html' %}
+                {% endif %}
+
             </div>
 
             <!-- ================= RIGHT COLUMN ================= -->

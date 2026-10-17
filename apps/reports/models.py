@@ -16,4 +16,7 @@ class Report(models.Model):
 
     class Meta:
         db_table = 'report'
+        indexes = [
+            models.Index(fields=['report_generated_date'], name='report_date_idx'),
+        ]
         

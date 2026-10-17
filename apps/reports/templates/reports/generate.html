@@ -11,10 +11,14 @@
                 <p class="text-gray-500 text-sm sm:text-base">Generate formatted exports for DOH and stakeholders.</p>
             </div>
             <div class="flex gap-2 w-full sm:w-auto">
-                <select id="filter-report-year" class="form-input bg-white py-2 px-3 text-xs text-gray-600 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand/20">
-                    <!-- Populated dynamically by JavaScript -->
-                    <option value="All">All Years</option>
-                </select>
+                <form id="report-year-form" method="get" class="w-full sm:w-auto">
+                    <select id="filter-report-year" name="year" onchange="this.form.submit()" class="form-input bg-white py-2 px-3 text-xs text-gray-600 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand/20">
+                        <option value="All" {% if selected_year == 'All' or not selected_year %}selected{% endif %}>All Years</option>
+                        {% for year in report_years %}
+                            <option value="{{ year }}" {% if selected_year|stringformat:"s" == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
                 <button type="button" onclick="openReportModal()" class="bg-brand text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap shadow-sm">
                     <i class="ph-bold ph-plus"></i> Create Report
                 </button>
@@ -70,6 +74,8 @@
                     </tbody>
                 </table>
             </div>
+
+            {% include 'components/pagination.html' %}
         </div>
     </div>
 </div>
@@ -155,32 +161,6 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- DYNAMIC YEAR FILTER BUILDER ---
-        const yearSelect = document.getElementById('filter-report-year');
-        const rows = document.querySelectorAll('.report-row');
-        const uniqueYears = new Set();
-
-        rows.forEach(row => {
-            const year = row.getAttribute('data-year');
-            if (year && year.trim() !== '') uniqueYears.add(year);
-        });
-
-        // Sort descending and append to dropdown
-        const sortedYears = Array.from(uniqueYears).sort((a, b) => b - a);
-        sortedYears.forEach(year => {
-            yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
-        });
-
-        // Handle filtering
-        yearSelect.addEventListener('change', function() {
-            const selected = this.value;
-            rows.forEach(row => {
-                row.style.display = (selected === 'All' || row.getAttribute('data-year') === selected) ? '' : 'none';
-            });
-        });
-    });
-
     // Create Modal Logic
     function openReportModal() {
         document.getElementById('modal-create-report').classList.remove('hidden');

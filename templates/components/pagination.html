@@ -1,0 +1,30 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4" aria-label="Pagination">
+    <p class="text-xs text-gray-500">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+    </p>
+    <div class="flex items-center gap-1">
+        {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}{{ page_obj.page_param|default:'page' }}={{ page_obj.previous_page_number }}" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Prev</a>
+        {% else %}
+            <span class="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-100 text-gray-300 cursor-not-allowed">Prev</span>
+        {% endif %}
+
+        {% for num in page_obj.elided_page_range %}
+            {% if num == page_obj.paginator.ELLIPSIS %}
+                <span class="px-2 text-xs text-gray-400">…</span>
+            {% elif num == page_obj.number %}
+                <span class="px-3 py-1.5 text-xs font-bold rounded-lg bg-brand text-white">{{ num }}</span>
+            {% else %}
+                <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}{{ page_obj.page_param|default:'page' }}={{ num }}" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&amp;{% endif %}{{ page_obj.page_param|default:'page' }}={{ page_obj.next_page_number }}" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Next</a>
+        {% else %}
+            <span class="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-100 text-gray-300 cursor-not-allowed">Next</span>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}

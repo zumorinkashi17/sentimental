@@ -1,6 +1,14 @@
-from django.db import models
+from django.db import connection, models, transaction
+from django.db.models import IntegerField, Max
+from django.db.models.functions import Cast, Substr
 from apps.accounts.models import User
 from apps.schedules.models import ShiftCatalog
+
+SESSION_ID_PREFIX = 'TPCB10-'
+# Fixed key for a transaction-scoped advisory lock that serialises session-ID
+# allocation on PostgreSQL. Without it two concurrent saves could read the same
+# max and try to insert the same primary key.
+_SESSION_ID_LOCK_KEY = 0x53454E54
 
 
 class Caller(models.Model):
@@ -35,32 +43,56 @@ class CallSession(models.Model):
     session_additional_comments = models.TextField(blank=True, null=True)
     session_summarization = models.TextField()
 
+    @classmethod
+    def _next_session_number(cls):
+        """Return the next integer session number stored in the database.
+
+        The numeric suffix is extracted and compared as an integer rather than
+        as a string, so IDs keep incrementing correctly past 9999 (a plain
+        ``order_by('-session_id')`` sort would break at five digits).
+        """
+        current_max = (
+            cls.objects
+            .filter(session_id__regex=rf'^{SESSION_ID_PREFIX}[0-9]+$')
+            .aggregate(
+                max_number=Max(
+                    Cast(
+                        Substr('session_id', len(SESSION_ID_PREFIX) + 1),
+                        output_field=IntegerField(),
+                    )
+                )
+            )['max_number']
+        )
+        return (current_max or 0) + 1
+
+    @classmethod
+    def next_session_preview(cls):
+        """Formatted session ID the next saved call would receive."""
+        return f"{SESSION_ID_PREFIX}{cls._next_session_number():04d}"
+
     def save(self, *args, **kwargs):
         # Only generate a new ID if this is a new record
-        if not self.session_id:
-            prefix = 'TPCB10-'
-            
-            # Find the most recently created session with this prefix
-            last_session = CallSession.objects.filter(
-                session_id__startswith=prefix
-            ).order_by('-session_id').first()
-            
-            if last_session:
-                # Split 'TPCB10-0005' -> ['TPCB10', '0005']
-                # Grab the '0005', turn into integer, and add 1
-                last_number = int(last_session.session_id.split('-')[1])
-                new_number = last_number + 1
-            else:
-                # If no records exist, start at 1
-                new_number = 1
-                
-            # Format the new number with leading zeros (e.g., 0001, 0002)
-            self.session_id = f"{prefix}{new_number:04d}"
-            
-        super().save(*args, **kwargs)
+        if self.session_id:
+            super().save(*args, **kwargs)
+            return
+
+        with transaction.atomic():
+            # Serialise ID allocation across concurrent inserts on PostgreSQL.
+            if connection.vendor == 'postgresql':
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        'SELECT pg_advisory_xact_lock(%s)', [_SESSION_ID_LOCK_KEY]
+                    )
+            self.session_id = f"{SESSION_ID_PREFIX}{self._next_session_number():04d}"
+            super().save(*args, **kwargs)
         
     class Meta:
         db_table = 'call_session'
+        indexes = [
+            models.Index(fields=['session_call_date', 'session_time_called'], name='cs_date_time_idx'),
+            models.Index(fields=['user', 'session_call_date', 'session_time_called'], name='cs_user_dt_idx'),
+            models.Index(fields=['caller', 'session_call_date', 'session_time_called'], name='cs_caller_dt_idx'),
+        ]
 
 
 class CallTranscript(models.Model):
