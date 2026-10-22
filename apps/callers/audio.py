@@ -1,18 +1,7 @@
 """
-pydub setup and helpers for turning the browser's isolated WebM tracks
-(caller-only / responder-only) into speech-to-text friendly audio.
-
-The browser hands us raw WebM/Opus chunks produced by MediaRecorder. Those are
-stripped-down containers that speech-to-text models handle inconsistently, and
-their container often carries no duration metadata at all. We therefore use
-pydub to decode each track and re-encode it as 16 kHz mono 16-bit PCM WAV,
-which is the format every STT backend expects and which decodes deterministically
-so the timestamps the model reports line up with the call timeline.
-
-A note on binaries: pydub shells out to ffmpeg (to decode) and ffprobe (to read
-container metadata). We ship the ffmpeg binary through the imageio-ffmpeg wheel
-so nothing has to be installed by hand, and we avoid needing ffprobe at all by
-passing an explicit decoder to pydub, which makes it skip the metadata probe.
+Converts caller and responder WebM audio tracks into 16 kHz mono WAV files
+for speech-to-text processing. Uses imageio-ffmpeg for decoding and an
+explicit decoder to avoid requiring ffprobe.
 """
 
 import io
@@ -22,20 +11,16 @@ from typing import NamedTuple, Optional
 
 logger = logging.getLogger(__name__)
 
-# pydub probes for ffmpeg at import time and warns when it is not on PATH. We
-# supply the binary ourselves immediately afterwards, so the import happens with
-# that one probe warning silenced.
+# Checks for ffmpeg and warns if it is missing from PATH.
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", RuntimeWarning)
     from pydub import AudioSegment
     from pydub.audio_segment import CouldntDecodeError
 
-# pydub shells out to ffmpeg. Rather than require every developer and every
-# deployment to install it separately, we use the ffmpeg binary that ships with
-# the imageio-ffmpeg wheel and point pydub at it.
 _CONVERTER_CONFIGURED = False
 
 
+# Sets pydub to use the bundled ffmpeg, or falls back to PATH.
 def configure_converter():
     """Point pydub at an ffmpeg binary, preferring the pip-bundled one."""
     global _CONVERTER_CONFIGURED
@@ -61,15 +46,14 @@ def configure_converter():
 configure_converter()
 
 
-# 16 kHz mono 16-bit PCM is the common denominator for speech-to-text APIs.
+# 16 kHz mono 16-bit PCM Standard audio format for speech-to-text APIs.
 STT_SAMPLE_RATE = 16000
 STT_CHANNELS = 1
 STT_SAMPLE_WIDTH = 2
 
 MIME_WAV = "audio/wav"
 
-# Decoders to try per container, best first. MediaRecorder emits Opus almost
-# everywhere, but Safari-style MP4/AAC uploads show up too.
+# Supported audio formats to try.
 _CODEC_CANDIDATES = {
     "webm": ("opus", "vorbis"),
     "ogg": ("opus", "vorbis"),
@@ -78,28 +62,21 @@ _CODEC_CANDIDATES = {
     "mp4": ("aac",),
     "m4a": ("aac",),
     "mp3": ("mp3",),
-    "wav": (),  # pydub reads PCM WAV natively, no converter involved
+    "wav": (),  # WAV files can be read directly without a converter.
 }
 
 SUPPORTED_FORMATS = tuple(_CODEC_CANDIDATES)
 
-# --- Speech level targets -------------------------------------------------
-# Roughly -20 dBFS RMS: comfortably above the noise floor of most office gear
-# while leaving plenty of headroom, which is where speech-to-text models are
-# happiest.
+# Speech level targets
 TARGET_SPEECH_DBFS = -20.0
-# Never let a boost push the loudest sample into clipping.
 PEAK_CEILING_DBFS = -1.5
-# Anything quieter than this is treated as silence/room tone, not speech, and is
-# deliberately left alone. Boosting it would only amplify hiss.
 NOISE_FLOOR_DBFS = -55.0
-# Bounds so a pathological track cannot be swung to an absurd level.
 MAX_BOOST_DB = 30.0
 MAX_CUT_DB = -20.0
 
 
 class NormalizedTrack(NamedTuple):
-    """A decoded, leveled track plus the measurements taken along the way."""
+    """Stores the processed audio track and its measurements."""
 
     wav: bytes
     duration_ms: int
@@ -109,6 +86,7 @@ class NormalizedTrack(NamedTuple):
     output_peak_dbfs: Optional[float] = None
     gain_db: float = 0.0
 
+    # Saves track measurements for the call_setup's Track Levels panel.
     def as_levels(self):
         return {
             "input_dbfs": self.input_dbfs,
@@ -120,24 +98,22 @@ class NormalizedTrack(NamedTuple):
 
 
 class AudioProcessingError(Exception):
-    """Raised when a track cannot be decoded or re-encoded."""
+    """Raised when audio decoding or conversion fails."""
 
 
+# Decodes WebM/Opus using ffmpeg without requiring ffprobe.
 def _decode(audio_bytes, source_format, codec):
-    """
-    Decode raw track bytes into an AudioSegment.
+    """Decodes audio bytes into an AudioSegment using ffmpeg only."""
 
-    Passing an explicit ``codec`` makes pydub skip the ffprobe metadata call,
-    so the bundled ffmpeg is the only external binary we depend on.
-    """
     kwargs = {"format": source_format}
     if codec:
         kwargs["codec"] = codec
     return AudioSegment.from_file(io.BytesIO(audio_bytes), **kwargs)
 
 
+# Converts audio to 16 kHz mono 16-bit PCM WAV. The format every STT backend expects.
 def _to_stt_format(segment):
-    """Force a segment into the layout every STT backend expects."""
+    """Converts audio to the standard format for speech-to-text."""
     segment = segment.set_frame_rate(STT_SAMPLE_RATE)
     segment = segment.set_channels(STT_CHANNELS)
     segment = segment.set_sample_width(STT_SAMPLE_WIDTH)
@@ -153,6 +129,7 @@ def _to_stt_format(segment):
     return buffer.getvalue()
 
 
+# Adjusts audio volume while preventing silence and clipping and Returns the adjusted audio and applied gain in dB.
 def normalize_speech_level(
     segment,
     target_dbfs=TARGET_SPEECH_DBFS,
@@ -160,29 +137,16 @@ def normalize_speech_level(
     max_cut_db=MAX_CUT_DB,
 ):
     """
-    Bring a track up to a consistent speech loudness.
-
-    The two sides of a call arrive at wildly different levels: a USB dongle
-    carrying a phone line is hot, while a desk mic that the browser's echo
-    canceller has already attenuated can be 30-40 dB down. Relying on the
-    hand-tuned gain values in the browser graph to fix that is fragile, because
-    it depends entirely on which microphone happens to be plugged in. Measuring
-    the track and correcting it here means the AI hears both sides equally well
-    regardless of hardware.
-
-    RMS is used rather than peak, since peak normalisation would just track
-    whatever transient happens to be loudest. Two guards keep this from making
-    things worse: a noise floor (so near-silence is not amplified into a wall
-    of hiss) and a peak ceiling (so boosting cannot introduce clipping).
-
-    Returns ``(segment, gain_db)``; ``gain_db`` is 0.0 when no change was made.
+    Adjusts audio volume to a consistent speech level while avoiding noise
+    amplification and clipping. Returns the adjusted audio and gain in dB.
     """
+
     if len(segment) == 0:
         return segment, 0.0
 
     measured = segment.dBFS
     if measured == float("-inf") or measured <= NOISE_FLOOR_DBFS:
-        # Silence or noise only. Boosting this would just amplify hiss.
+        # Skips silent or very quiet audio to avoid amplifying noise.
         logger.info("Skipping normalization: track is at the noise floor (%.1f dBFS)", measured)
         return segment, 0.0
 
@@ -192,8 +156,7 @@ def normalize_speech_level(
 
     leveled = segment.apply_gain(gain)
 
-    # Boosting can push peaks past full scale; pull the whole track back just
-    # enough to keep the loudest sample below clipping.
+    # Skips near-silent audio to avoid amplifying background noise. Reduces volume if boosting would cause clipping.
     peak = leveled.max_dBFS
     if peak != float("-inf") and peak > PEAK_CEILING_DBFS:
         leveled = leveled.apply_gain(PEAK_CEILING_DBFS - peak)
@@ -203,6 +166,7 @@ def normalize_speech_level(
     return leveled, gain
 
 
+# Measures audio volume and peak levels, returning None for silence.
 def _measure(segment):
     """Return (rms_dbfs, peak_dbfs) for a segment, or (None, None) if silent."""
     if len(segment) == 0:
@@ -214,20 +178,9 @@ def _measure(segment):
     return round(rms, 1), round(peak, 1)
 
 
+# MAIN-PYDUB: Decodes, converts, adjusts volume, and exports audio as WAV.
 def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
-    """
-    Decode raw track bytes, level them, and re-encode as 16 kHz mono 16-bit WAV.
-
-    Returns a :class:`NormalizedTrack`. ``duration_ms`` is measured from the
-    decoded audio rather than the container, because MediaRecorder output
-    frequently reports a zero or absent duration.
-
-    ``codec`` should be the audio codec the browser reported for the track; when
-    omitted the usual decoders for the container are tried in turn.
-
-    ``normalize`` applies speech-level correction. Pass False to inspect a track
-    at its original level.
-    """
+    """Converts a track to normalized 16 kHz mono WAV for speech-to-text."""
     if not audio_bytes:
         raise AudioProcessingError("Track is empty.")
 
@@ -239,8 +192,7 @@ def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
     else:
         candidates = _CODEC_CANDIDATES.get(source_format, ("opus", "vorbis"))
 
-    # A None entry means "let pydub auto-detect", which needs ffprobe, so it is
-    # only used when the container is one pydub can read on its own.
+    # None lets pydub auto-detect the format, which requires ffprobe.
     attempts = list(candidates)
     if not attempts:
         attempts = [None]
@@ -260,8 +212,7 @@ def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
             errors.append(f"{candidate or 'auto'}: decoded to zero audio")
             continue
 
-        # Convert first, then level: the dBFS math and the noise/peak guards
-        # should run against exactly the samples that get sent to the AI.
+        # Convert first so volume adjustments match the audio sent to the AI.
         segment = segment.set_frame_rate(STT_SAMPLE_RATE)
         segment = segment.set_channels(STT_CHANNELS)
         segment = segment.set_sample_width(STT_SAMPLE_WIDTH)
@@ -299,6 +250,7 @@ def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
     )
 
 
+# Audio duration in milliseconds; uses decoded audio, or 0 if unknown.
 def get_duration_ms(audio_bytes, source_format="webm", codec=None):
     """Return the decoded length of a track in milliseconds, or 0 if unknown."""
     if not audio_bytes:

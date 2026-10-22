@@ -1,20 +1,11 @@
-"""
-Speech-to-text for the isolated caller / responder tracks.
-
-Each track is transcribed on its own so the model only ever has to identify one
-speaker, and we ask for structured output (start second, end second, text)
-rather than prose. The two segment lists are then merged and ordered by start
-time to rebuild the original conversation.
-"""
+"""Transcribes each speaker separately and merges their segments by start time."""
 
 import base64
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-
 import requests
 from django.conf import settings
-
 from .audio import MIME_WAV, SUPPORTED_FORMATS, AudioProcessingError, to_stt_wav
 
 logger = logging.getLogger(__name__)
@@ -27,8 +18,7 @@ CALLER = "Caller"
 RESPONDER = "Responder"
 TRANSCRIPT_HEADER = "------- Sentimental Conversation Transcript ------"
 
-# Forces the model to answer with a JSON array of utterance objects instead of
-# prose, which is what makes the timestamps usable.
+# Requires JSON output so that timestamps can be processed.
 RESPONSE_SCHEMA = {
     "type": "ARRAY",
     "items": {
@@ -56,10 +46,12 @@ class TranscriptionError(Exception):
     """Raised when a track could not be transcribed."""
 
 
+# Gets the configured Gemini model or uses the default Flash-Lite model.
 def get_model_name():
     return getattr(settings, "GEMINI_TRANSCRIBE_MODEL", "gemini-3.5-flash-lite")
 
 
+# Builds instructions to transcribe one speaker at a time for accurate labels.
 def build_prompt(speaker):
     return (
         f"Transcribe the speech in this audio clip. The clip contains only the "
@@ -75,9 +67,9 @@ def build_prompt(speaker):
         f"- If the clip contains no speech at all, return an empty array []."
     )
 
-
+# Cleans the JSON reply, removes invalid entries, and sorts segments.
 def _parse_segments(raw_text, speaker):
-    """Coerce the model's JSON reply into a clean, sorted list of segments."""
+    """Cleans and sorts the model's JSON segments."""
     if raw_text is None:
         return []
 
@@ -85,7 +77,7 @@ def _parse_segments(raw_text, speaker):
     if not text:
         return []
 
-    # Some responses arrive wrapped in a markdown fence despite the schema.
+    # Removes markdown fences if present.
     if text.startswith("```"):
         text = text.split("\n", 1)[-1]
         if text.endswith("```"):
@@ -99,7 +91,7 @@ def _parse_segments(raw_text, speaker):
             f"{speaker} track returned malformed JSON: {exc}"
         ) from exc
 
-    # The schema asks for an array, but a bare object still means one utterance.
+    # Accepts a single utterance object as well as an array.
     if isinstance(data, dict):
         data = [data]
     if not isinstance(data, list):
@@ -130,8 +122,8 @@ def _parse_segments(raw_text, speaker):
     return segments
 
 
+# Sends a WAV track to Gemini and returns segments, raising an error if it fails.
 def transcribe_track(wav_bytes, speaker, api_key):
-    """Send one normalized WAV track to Gemini and return its segments."""
     if not api_key:
         raise TranscriptionError(
             "Gemini API key is not configured. Add GEMINI_API_KEY=AIza... to your .env file."
@@ -194,6 +186,7 @@ def transcribe_track(wav_bytes, speaker, api_key):
     return _parse_segments(raw_text, speaker)
 
 
+# Merges both speaker lists and sorts by start and end time.
 def merge_segments(caller_segments, responder_segments):
     """Interleave both sides into one conversation ordered by start time."""
     return sorted(
@@ -202,15 +195,9 @@ def merge_segments(caller_segments, responder_segments):
     )
 
 
+# Formats segments into text that the UI can parse into checkbox rows.
 def render_transcript(segments):
-    """
-    Build the plain-text conversation shown to the responder.
-
-    Example:
-        ------- Sentimental Conversation Transcript ------
-        [Caller] Hi, I need help.
-        [Responder] Sure, SentiMental is here for you.
-    """
+    """Formats the caller and responder segments into a conversation transcript."""
     if not segments:
         return f"{TRANSCRIPT_HEADER}\n(no speech detected)"
 
@@ -220,13 +207,8 @@ def render_transcript(segments):
     return "\n".join(lines)
 
 
+# Transcribes both tracks in parallel, then merges and formats the conversation.
 def transcribe_tracks(caller_wav, responder_wav, api_key):
-    """
-    Transcribe both tracks concurrently, then return the merged conversation.
-
-    Raises TranscriptionError if either track fails, so a partial conversation
-    is never presented as if it were the whole call.
-    """
     with ThreadPoolExecutor(max_workers=2) as pool:
         caller_future = pool.submit(transcribe_track, caller_wav, CALLER, api_key)
         responder_future = pool.submit(
@@ -239,13 +221,9 @@ def transcribe_tracks(caller_wav, responder_wav, api_key):
     return segments, render_transcript(segments)
 
 
+# Converts the uploaded track into a NormalizedTrack using pydub.
 def normalize_track(uploaded_file, label, codec=None, normalize=True):
-    """
-    Read an uploaded track and return a :class:`NormalizedTrack`.
-
-    ``codec`` is the audio codec the browser reported for the blob. Passing it
-    through lets pydub decode without shelling out to ffprobe.
-    """
+    """Decodes the uploaded audio using the provided codec, without ffprobe."""
     uploaded_file.seek(0)
     raw = uploaded_file.read()
     source_format = (getattr(uploaded_file, "name", "") or "").rsplit(".", 1)[-1].lower()

@@ -31,13 +31,7 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET"])
 @ensure_csrf_cookie
 def call_setup_view(request):
-    """
-    Serve the call setup page.
-
-    ``ensure_csrf_cookie`` guarantees the csrftoken cookie exists, because the
-    page posts the separated tracks to the transcribe endpoint and this page
-    itself renders no ``{% csrf_token %}``.
-    """
+    """Displays the call setup page and ensures the CSRF cookie is set."""
     user, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
@@ -51,8 +45,8 @@ def call_setup_view(request):
         'next_session_id': next_session_id,
     })
 
+# Gets a field from the caller's latest session.
 def _latest_session_subquery():
-    """Correlated subquery selecting the most recent session id per caller."""
     return (
         CallSession.objects
         .filter(caller=OuterRef('pk'))
@@ -60,9 +54,8 @@ def _latest_session_subquery():
         .values('pk')[:1]
     )
 
-
+# Correlated subquery selecting ``field`` from a caller's latest session.
 def _latest_session_value(field):
-    """Correlated subquery selecting ``field`` from a caller's latest session."""
     return (
         CallSession.objects
         .filter(caller=OuterRef('pk'))
@@ -70,9 +63,8 @@ def _latest_session_value(field):
         .values(field)[:1]
     )
 
-
+# Builds the base caller queryset with required annotations
 def _annotated_callers(include_totals=False):
-    """Base caller queryset with the annotations the list views rely on."""
     callers = Caller.objects.annotate(
         caller_id_text=Cast('caller_id', output_field=CharField()),
         latest_session_id=Subquery(_latest_session_subquery()),
@@ -83,9 +75,8 @@ def _annotated_callers(include_totals=False):
         callers = callers.annotate(total_sessions=Count('callsession'))
     return callers
 
-
+# Applies search, risk, and time filters on the server.
 def _apply_caller_filters(callers, request):
-    """Apply the list page's search/risk/time filters server-side."""
     search = (request.GET.get('search') or '').strip()
     risk = (request.GET.get('risk') or 'all').lower()
     period = (request.GET.get('period') or 'all').lower()
@@ -112,12 +103,7 @@ def _apply_caller_filters(callers, request):
 
 
 def _build_caller_list(callers, include_totals=False):
-    """Assemble template rows with latest sessions fetched in a single query.
-
-    ``callers`` must be annotated with ``latest_session_id`` (and
-    ``total_sessions`` when ``include_totals`` is set). This replaces the old
-    per-caller queries with one ``IN`` lookup for the latest sessions.
-    """
+    """Builds template rows using one query to fetch the latest sessions."""
     session_ids = [caller.latest_session_id for caller in callers if caller.latest_session_id]
     sessions_by_id = CallSession.objects.select_related('user').in_bulk(session_ids)
 
@@ -163,23 +149,22 @@ def database_view(request):
         'querystring': querystring,
     })
 
-
+# Keeps the codec hint simple, such as 'opus'.
 def _clean_codec(value):
-    """Keep the codec hint to a plain token; the browser sends e.g. 'opus'."""
     if not value:
         return None
     cleaned = "".join(ch for ch in str(value).lower() if ch.isalnum())
     return cleaned or None
 
 
+# Handles the transcription POST request, normalizes both tracks, transcribes them, and returns the results as JSON.
 @require_POST
 def transcribe_audio(request):
     """
-    Transcribe the isolated caller and responder tracks separately.
+    Transcribes the caller and responder audio separately.
 
-    Expects multipart/form-data with a `caller` and a `responder` audio file.
-    Each track is normalized with pydub, transcribed on its own, and the two
-    segment lists are merged by start time into a single conversation.
+    Expects caller and responder audio files.
+    Normalizes each track, transcribes them, and merges the segments by start time.
     """
     user, redirect_response = _get_session_user(request)
     if redirect_response:
@@ -215,9 +200,7 @@ def transcribe_audio(request):
         )
 
     try:
-        # Normalize both tracks side by side; pydub decodes each one in its own
-        # ffmpeg subprocess, so overlapping the two roughly halves this stage's
-        # wall-clock time instead of paying for them one after the other.
+        # Normalizes both tracks at the same time to reduce processing time by using pydub to decodes each one.
         with ThreadPoolExecutor(max_workers=2) as pool:
             caller_future = pool.submit(
                 normalize_track,
@@ -251,7 +234,7 @@ def transcribe_audio(request):
             "transcript": transcript,
             "segments": segments,
             "durations": {CALLER: caller_track.duration_ms, RESPONDER: responder_track.duration_ms},
-            # Reported back so the responder can see how each side was leveled.
+            # Shows the responder the audio levels of both tracks.
             "levels": {CALLER: caller_track.as_levels(), RESPONDER: responder_track.as_levels()},
         }
     )

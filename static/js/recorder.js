@@ -1,29 +1,16 @@
-/*
-    CallRecorder - persistent recording engine.
-
-    The recording logic used to live inside the call-setup page, so any
-    in-app (AJAX) navigation swapped that page away and the browser garbage
-    collected the MediaRecorder, stopping the recording.
-
-    This module is rooted on window.CallRecorder and loaded on every page,
-    so the recording keeps running no matter which section the responder
-    navigates to. Pages subscribe to events (start / tick / stop) to update
-    their own UI.
-*/
+/*  CallRecorder - keeps recordings running across pages. */
 (function (global) {
     'use strict';
 
     var S = {
-        state: 'idle',              // 'idle' | 'recording'
+        state: 'idle',           
         audioContext: null,
         callerStream: null,
         responderStream: null,
         callerAnalyser: null,
         responderAnalyser: null,
-        // Diagnostic-only taps taken straight off each input, before any
-        // filtering or gain, so the level meter can show what the hardware and
-        // the browser's own DSP actually delivered. An AnalyserNode passes
-        // audio through, so these do not alter what is recorded.
+        
+        // Measures each input before filtering or gain to show the raw audio levels. AnalyserNode does not change the recorded audio.
         callerInputAnalyser: null,
         responderInputAnalyser: null,
         levelBuffer: null,
@@ -35,9 +22,7 @@
         latestBlob: null,
         latestURL: null,
 
-        // Isolated per-speaker taps. These are fed from the same analyser
-        // nodes that feed the mix, so the mix recording itself is untouched
-        // while we still capture each side on its own for transcription.
+        // Captures each speaker separately for transcription without changing the mix recording.
         callerTrackDestination: null,
         responderTrackDestination: null,
         callerTrackRecorder: null,
@@ -52,6 +37,7 @@
 
     var listeners = {};
 
+    //// SUBSCRIBE: Registers an event handler and returns an unsubscribe function.
     function on(event, cb) {
         (listeners[event] = listeners[event] || []).push(cb);
         return function off() {
@@ -62,6 +48,7 @@
         };
     }
 
+    /// BROADCAST: Sends an event to all handlers and ignores individual errors.
     function emit(event, payload) {
         (listeners[event] || []).slice().forEach(function (cb) {
             try { cb(payload); }
@@ -69,6 +56,7 @@
         });
     }
 
+    /// CLOCK: Converts seconds to "mm:ss" for the timer and banner.
     function formatted(secs) {
         secs = Math.max(0, secs | 0);
         var m = String(Math.floor(secs / 60)).padStart(2, '0');
@@ -76,29 +64,32 @@
         return m + ':' + s;
     }
 
+    /// FLAG: True while recording; prevents duplicate actions.
     function isRecording() {
         return S.state === 'recording';
     }
 
+    /// AGE: Seconds since recording started, or 0 when idle.
     function getElapsed() {
         return S.startTime ? Math.floor((Date.now() - S.startTime) / 1000) : 0;
     }
 
+    /// SNAPSHOT: Returns the recording state and elapsed time.
     function getState() {
         return { state: S.state, elapsed: getElapsed() };
     }
 
+    /// TAPS: Provides both speaker analysers for the waveforms.
     function getAnalysers() {
         return { callerAnalyser: S.callerAnalyser, responderAnalyser: S.responderAnalyser };
     }
 
+    /// LINEAR->DB: Converts amplitude to dBFS; silence returns -Infinity.
     function toDb(linear) {
         return linear > 0 ? 20 * Math.log10(linear) : -Infinity;
     }
 
-    // Reads one analyser's float time-domain data and reports true dBFS, which
-    // is what tells us whether a side is genuinely quiet rather than merely
-    // looking quiet on the waveform.
+    /// MEASURE: Gets RMS and peak levels in dBFS, or null if silent. Uses dBFS to measure actual audio levels, not just waveform appearance.
     function readLevel(analyser) {
         if (!analyser) return null;
         var size = analyser.fftSize || 2048;
@@ -121,9 +112,7 @@
         return { rms: toDb(rms), peak: toDb(peak) };
     }
 
-    // input = straight off the device, mix = what actually reaches the
-    // recording. Comparing the two tells us whether a quiet side is a hardware
-    // or browser-DSP problem, or just not enough gain.
+    // Compares raw device audio with recorded audio to identify low volume caused by hardware, browser processing, or insufficient gain.
     function getLevels() {
         return {
             caller: { input: readLevel(S.callerInputAnalyser), mix: readLevel(S.callerAnalyser) },
@@ -131,18 +120,22 @@
         };
     }
 
+    /// LAST-MIX: Stores the latest combined recording, or null if none exists.
     function getLatestBlob() {
         return S.latestBlob;
     }
 
+    /// LAST-TRACKS: Stores separate caller and responder recordings for transcription.
     function getLatestTracks() {
         return { caller: S.latestCallerBlob, responder: S.latestResponderBlob };
     }
 
+    /// LAST-URL: URL used to play the latest combined recording.
     function getLatestURL() {
         return S.latestURL;
     }
 
+    /// COUNT-UP: Starts a 1-second timer that sends tick events to subscribers
     function startTimer() {
         stopTimer();
         S.timerInterval = setInterval(function () {
@@ -150,6 +143,7 @@
         }, 1000);
     }
 
+    /// CANCEL-TIMER: clears the tick interval. Void. Idempotent.
     function stopTimer() {
         if (S.timerInterval) {
             clearInterval(S.timerInterval);
@@ -157,6 +151,7 @@
         }
     }
 
+    /// DISMANTLE: Stops both input streams, closes the AudioContext, and clears all audio nodes. Called after finalize.
     function teardownGraph() {
         [S.callerStream, S.responderStream].forEach(function (stream) {
             if (stream) stream.getTracks().forEach(function (track) { try { track.stop(); } catch (e) {} });
@@ -176,11 +171,13 @@
         S.audioContext = null;
     }
 
+    /// WRAP: Combines chunks into a Blob using the recorder's MIME type for call_setup.
     function buildBlob(chunks, recorder) {
         var type = (recorder && recorder.mimeType) || 'audio/webm';
         return new Blob(chunks, { type: type });
     }
 
+    /// SEAL: Creates the mix and track blobs, saves the URL, cleans up the audio graph, and emits 'stop' once.
     function finalizeRecorded() {
         if (S.finalized) return;
         S.finalized = true;
@@ -189,8 +186,7 @@
         S.recordedChunks = [];
         S.latestBlob = blob;
 
-        // Only expose a per-speaker track if that recorder actually produced
-        // audio, so a failed tap never masquerades as a silent conversation.
+        // Only save a speaker's track if it contains audio, so failed recordings aren't treated as silence.
         S.latestCallerBlob = S.callerTrackChunks.length
             ? buildBlob(S.callerTrackChunks, S.callerTrackRecorder)
             : null;
@@ -216,8 +212,7 @@
         });
     }
 
-    // All three recorders are stopped together; wait for every one of them to
-    // flush before building the blobs so no track is truncated.
+    // Stops all three recorders and waits for them to finish before creating the blobs.
     function handleRecorderStopped() {
         S.pendingStops -= 1;
         if (S.pendingStops <= 0) {
@@ -226,6 +221,7 @@
         }
     }
 
+    /// HALT-ALL: stops the mix + both track recorders together
     function stopAllRecorders() {
         var recorders = [S.mediaRecorder, S.callerTrackRecorder, S.responderTrackRecorder];
         var active = recorders.filter(function (r) { return r && r.state !== 'inactive'; });
@@ -245,6 +241,7 @@
         }, 3000);
     }
 
+    /// ENGINE: Opens both audio devices, builds the audio graph, and starts three recorders. Returns the waveform analysers. Throws if a device is missing.
     async function start(userOptions) {
         if (S.state === 'recording') {
             throw new Error('A recording is already in progress.');
@@ -322,10 +319,7 @@
             responderGain.connect(S.responderAnalyser);
             S.responderAnalyser.connect(S.mixerDestination);
 
-            // Tap the same two signals into separate destinations. An
-            // AnalyserNode passes audio through, so these branches carry the
-            // exact caller/responder audio that feeds the mix without
-            // altering what the mix records.
+            // Sends each speaker's audio to a separate destination without changing the mix.
             S.callerTrackDestination = S.audioContext.createMediaStreamDestination();
             S.responderTrackDestination = S.audioContext.createMediaStreamDestination();
             S.callerAnalyser.connect(S.callerTrackDestination);
@@ -346,8 +340,7 @@
                 if (S.state === 'recording') stopAllRecorders();
             };
 
-            // A per-speaker track only needs to be intelligible, so prefer Opus
-            // where it exists and fall back to the browser default otherwise.
+            // Uses Opus for each speaker's recording when supported, otherwise uses the browser default.
             var trackOptions = pickTrackOptions();
 
             S.callerTrackRecorder = new MediaRecorder(S.callerTrackDestination.stream, trackOptions);
@@ -376,7 +369,7 @@
             throw err;
         }
 
-        // Give the audio graph a moment to warm up before the recorders start.
+        // Gives the audio graph time to initialize before recording starts.
         setTimeout(function () {
             [S.mediaRecorder, S.callerTrackRecorder, S.responderTrackRecorder].forEach(function (recorder) {
                 if (recorder && recorder.state === 'inactive') {
@@ -394,6 +387,7 @@
         return { callerAnalyser: S.callerAnalyser, responderAnalyser: S.responderAnalyser };
     }
 
+    /// PICK-MIME: Uses Opus for speaker tracks when supported, otherwise uses the browser default.
     function pickTrackOptions() {
         try {
             if (window.MediaRecorder && typeof MediaRecorder.isTypeSupported === 'function'
@@ -404,12 +398,13 @@
         return undefined;
     }
 
+    /// HALT: Stops all recorders when active; does nothing when idle.
     function stop() {
         if (S.state !== 'recording') return;
         stopAllRecorders();
     }
 
-    // Recover the audio clock when the responder comes back to the tab.
+    // Restarts the audio clock when the responder returns to the tab.
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) return;
         if (S.state === 'recording' && S.audioContext && S.audioContext.state === 'suspended') {
@@ -418,17 +413,19 @@
         emit('tick', { elapsed: getElapsed(), formatted: formatted(getElapsed()) });
     });
 
-    // --- Persistent "Recording in Progress" banner (live in base.html) ---
+    /// REVEAL: Shows the recording banner when recording starts (live in base.html).
     function showBanner() {
         var b = document.getElementById('global-call-banner');
         if (b) b.classList.remove('hidden');
     }
 
+    /// CONCEAL: Hides the recording banner when recording stops.
     function hideBanner() {
         var b = document.getElementById('global-call-banner');
         if (b) b.classList.add('hidden');
     }
 
+    /// RETIME: Updates the banner timer on every tick.
     function updateBannerTimer(elapsed) {
         var t = document.getElementById('global-recording-timer');
         if (t) t.textContent = formatted(elapsed);
@@ -438,8 +435,7 @@
     on('tick', function (d) { updateBannerTimer(d.elapsed); });
     on('stop', hideBanner);
 
-    // If the page we load is mid-recording (e.g. returning to the call page),
-    // keep the banner consistent with the actual recorder state.
+    // Shows the banner if recording is already active when the page loads.
     document.addEventListener('DOMContentLoaded', function () {
         if (isRecording()) showBanner();
     });

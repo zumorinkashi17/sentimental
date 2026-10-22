@@ -142,15 +142,11 @@
     </div>
 </div>
 
-<!-- Scripts transferred and adapted from new.html -->
 <script>
 (function () {
     'use strict';
 
-    // The Gemini API key stays server-side; transcription is posted to the
-    // Django endpoint below so the key is never exposed in page source.
-
-    // Shared page state kept on window so it survives AJAX navigation returns.
+    // Stores shared page state on window so it survives AJAX navigation.
     var page = window.callPage = window.callPage || {
         callerDeviceSelect: null,
         responderDeviceSelect: null,
@@ -174,10 +170,14 @@
         latestUrl: null
     };
 
-    // Hooks used by main.js around the content swap.
+    // Hooks used by main.js during page changes.
+    /// HALT: Stops visualizer loops before the page content is removed.
     window.beforePageSwap = function () { stopVisualizers(); };
+
+    /// RELOAD: Reconnects references and events after new page content loads.
     window.afterContentSwap = function () { initCallSetup(); };
 
+    /// GRAB: Saves element references and canvas context. Run after each page swap.
     function grabRefs() {
         page.callerDeviceSelect = document.getElementById('caller-device');
         page.responderDeviceSelect = document.getElementById('responder-device');
@@ -198,6 +198,7 @@
         page.responderCtx = page.responderCanvas ? page.responderCanvas.getContext('2d') : null;
     }
 
+    /// ALERT: Shows the error banner and logs the message to the console.
     function showError(msg) {
         if (page.errorMessage) {
             page.errorMessage.textContent = msg;
@@ -206,10 +207,12 @@
         console.error(msg);
     }
 
+    /// CLEAR: Hides the error banner before each new attempt.
     function hideError() {
         if (page.errorMessage) page.errorMessage.classList.add('hidden');
     }
 
+    /// CLOCK: Converts seconds to "mm:ss" format. Keeps negative values at zero.
     function fmt(secs) {
         secs = Math.max(0, secs | 0);
         var m = String(Math.floor(secs / 60)).padStart(2, '0');
@@ -217,6 +220,7 @@
         return m + ':' + s;
     }
 
+    /// ENUMERATE: Requests mic permission and fills both device lists. Shows an error if denied.
     async function getDevices() {
         try {
             const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -255,6 +259,7 @@
         }
     }
 
+   /// FIT: Resizes each canvas to match its display size on load and window resize.
     function resizeCanvases() {
         if (page.callerCanvas) {
             page.callerCanvas.width = page.callerCanvas.clientWidth;
@@ -266,6 +271,7 @@
         }
     }
 
+    /// WAVE: Draws live audio waves on the canvas until stopped.
     function drawLoop(analyser, ctx, canvas, color) {
         (function step() {
             if (!analyser || !canvas) return;
@@ -302,20 +308,18 @@
         })();
     }
 
-    // --- Live level meter (diagnostic) -------------------------------------
-    // Shows dBFS straight off each input ("in") next to what actually reaches
-    // the recording ("mix"). If "in" is already very low the hardware or the
-    // browser's own DSP is the problem; if "in" is healthy but "mix" is not,
-    // it is just gain.
+    // --- Live audio level meter ---
     var METER_FLOOR = -60;
     var METER_CEIL = 0;
 
+    /// SCALE: Converts dBFS to 0–100% using a -60 to 0 range. Invalid values become 0.
     function dbToPct(db) {
         if (db === null || db === undefined || !isFinite(db)) return 0;
         var pct = ((db - METER_FLOOR) / (METER_CEIL - METER_FLOOR)) * 100;
         return Math.max(0, Math.min(100, pct));
     }
 
+    /// TINT: Chooses a green, amber, or red text color based on dBFS.
     function levelColor(db) {
         if (db === null || db === undefined || !isFinite(db)) return 'text-gray-400';
         if (db > -30) return 'text-emerald-600';
@@ -323,6 +327,7 @@
         return 'text-red-600';
     }
 
+    /// FILL: Chooses a green, amber, or red bar color based on dBFS.
     function barColor(db) {
         if (db === null || db === undefined || !isFinite(db)) return 'bg-gray-300';
         if (db > -30) return 'bg-emerald-500';
@@ -330,11 +335,13 @@
         return 'bg-red-500';
     }
 
+    /// READOUT: Formats dBFS as a number or shows "--" if invalid.
     function fmtDb(db) {
         if (db === null || db === undefined || !isFinite(db)) return '--';
         return (db > 0 ? '+' : '') + db.toFixed(1);
     }
 
+    /// POUR: Updates one speaker's meter numbers, bar width, and color.
     function renderLevel(side, data) {
         if (!data) return;
         var inEl = document.getElementById(side + '-in-db');
@@ -356,6 +363,7 @@
         bar.className = 'h-full transition-all duration-75 ' + barColor(mixDb);
     }
 
+    /// POLL: Updates both audio meters until recording stops.
     function startLevelMeter() {
         stopLevelMeter();
         const tick = function () {
@@ -368,6 +376,7 @@
         page.levelHandle = requestAnimationFrame(tick);
     }
 
+    /// CANCEL-METER: Stops the level-meter loop safely.
     function stopLevelMeter() {
         if (page.levelHandle) {
             cancelAnimationFrame(page.levelHandle);
@@ -375,6 +384,7 @@
         }
     }
 
+    /// CANCEL-ALL: Stops all audio loops and clears both waveform canvases.
     function stopVisualizers() {
         stopLevelMeter();
         page.frameHandles.forEach(id => cancelAnimationFrame(id));
@@ -391,12 +401,12 @@
         }
     }
 
+/// DRAW-START: Gets analysers, resets loops, and starts both waveforms and meters. Stops if analysers are missing.
 function startVisualizers() {
         const a = CallRecorder.getAnalysers();
         if (!a.callerAnalyser || !a.responderAnalyser) return;
         stopVisualizers();
-        
-        // Use #10b981 for both so they share the exact same visual theme
+
         drawLoop(a.callerAnalyser, page.callerCtx, page.callerCanvas, '#10b981');
         drawLoop(a.responderAnalyser, page.responderCtx, page.responderCanvas, '#10b981'); 
 
@@ -441,11 +451,12 @@ function startVisualizers() {
         if (page.recordingTimer) page.recordingTimer.classList.toggle('hidden', !recording);
         updateStatus(recording);
     }
-
+    /// ALIVE: Checks if the playback section is still mounted before updating it.
     function pageInDom() {
         return page.playbackSection && document.body.contains(page.playbackSection);
     }
 
+    /// PUBLISH: Updates the audio player and download link with the new recording, then shows playback and transcription.
     function renderBlob(blob) {
         if (!blob) return;
         if (page.latestUrl) { try { URL.revokeObjectURL(page.latestUrl); } catch (e) {} }
@@ -461,6 +472,7 @@ function startVisualizers() {
         }
     }
 
+    /// RECORD: Checks both devices and starts recording. Shows errors if something fails.
     async function startRecording() {
         const callerId = page.callerDeviceSelect.value;
         const responderId = page.responderDeviceSelect.value;
@@ -487,6 +499,7 @@ function startVisualizers() {
         }
     }
 
+    /// REHYDRATE: Restores the recording UI, timer, or last recording when returning to the page.
     function syncFromRecorder() {
         const st = CallRecorder.getState();
         if (st.state === 'recording') {
@@ -500,6 +513,7 @@ function startVisualizers() {
         }
     }
 
+    /// TRANSCRIBE: Sends both audio files to Django and displays the transcript. Shows a spinner while processing and an error if it fails.
     async function transcribe() {
         const tracks = CallRecorder.getLatestTracks();
         const callerBlob = tracks && tracks.caller;
@@ -521,8 +535,8 @@ function startVisualizers() {
         const form = new FormData();
         form.append('caller', callerBlob, 'caller_' + stamp + '.webm');
         form.append('responder', responderBlob, 'responder_' + stamp + '.webm');
-        // The blob's MIME type carries the audio codec, which lets pydub decode
-        // the track without needing ffprobe on the server.
+
+        //The MIME type identifies the audio codec, so pydub can decode it without ffprobe.
         form.append('caller_codec', codecOf(callerBlob));
         form.append('responder_codec', codecOf(responderBlob));
 
@@ -542,6 +556,7 @@ function startVisualizers() {
             }
 
             page.transcriptOutput.innerHTML = renderTranscript(data);
+            updateTranscriptSelection();
         } catch (error) {
             showError('API Error: ' + error.message);
             page.transcriptOutput.textContent = "Transcription failed.";
@@ -551,6 +566,7 @@ function startVisualizers() {
         }
     }
 
+    /// SANITIZE: Escapes HTML characters to prevent unsafe transcript content.
     function escapeHtml(str) {
         return String(str)
             .replace(/&/g, '&amp;')
@@ -560,43 +576,223 @@ function startVisualizers() {
             .replace(/'/g, '&#39;');
     }
 
-    // Renders the SentiMental conversation transcript. The plain-text block uses
-    // the exact wording the server built, so the copyable output and the
-    // timestamped view below can never drift apart.
+    // Displays the transcript as one list with checkboxes, timestamps, speakers, and text.
     function renderTranscript(data) {
         const segments = Array.isArray(data.segments) ? data.segments : [];
+        const takeSegment = makeSegmentMatcher(segments);
+        let selectable = 0;
+
+        const lineRows = String(data.transcript || '').split('\n').map(line => {
+            if (!line) return '';
+            const parts = line.match(/^\[([^\]]+)\]\s?(.*)$/);
+            if (!parts) {
+                return '<div class="font-mono text-[11px] text-gray-400 px-4 py-2 border-b border-gray-100 last:border-0">'
+                    + escapeHtml(line) + '</div>';
+            }
+            const speaker = parts[1];
+            const text = parts[2];
+            const isCaller = speaker === 'Caller';
+            const match = takeSegment(speaker, text);
+            const stamp = match ? fmtClock(match.start) : null;
+            selectable++;
+            return '<div class="transcript-row flex items-start gap-3 pl-4 pr-4 py-2.5 border-b border-gray-100 last:border-0">'
+                + '<input type="checkbox" class="transcript-line peer mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-brand" data-line="' + escapeHtml(line) + '" data-speaker="' + escapeHtml(speaker) + '">'
+                + '<span class="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5">'
+                + (stamp ? escapeHtml(stamp) : '--:--') + '</span>'
+                + '<span class="text-[11px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5 border border-gray-200 bg-gray-100 text-gray-400 '
+                + (isCaller
+                    ? 'peer-checked:border-indigo-100 peer-checked:bg-indigo-50 peer-checked:text-indigo-600'
+                    : 'peer-checked:border-emerald-100 peer-checked:bg-emerald-50 peer-checked:text-emerald-600')
+                + '">' + escapeHtml(speaker) + '</span>'
+                + '<div contenteditable="true" spellcheck="true" role="textbox" aria-label="Transcript line text" data-transcript-text data-original="' + escapeHtml(text) + '" '
+                + 'class="transcript-text flex-1 min-w-0 text-sm leading-relaxed text-gray-400 peer-checked:text-gray-700 rounded-lg px-2 py-1 -mx-2 -my-1 outline-none transition-colors hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border focus:border-brand cursor-text">'
+                + escapeHtml(text) + '</div>'
+                + '</div>';
+        }).join('');
+
+        const toolbar = selectable
+            ? '<div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-200">'
+                + '<button type="button" data-transcript-action="toggle-all" class="text-[11px] font-bold uppercase tracking-wider text-gray-500 hover:text-brand transition-colors">Select all</button>'
+                + '<div class="flex items-center gap-3">'
+                + '<span class="font-mono text-[11px] text-gray-400" data-transcript-count></span>'
+                + '<button type="button" data-transcript-action="copy" class="text-[11px] font-bold uppercase tracking-wider bg-brand hover:bg-brand-dark disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">'
+                + '<i class="ph-bold ph-copy"></i> Copy selected</button>'
+                + '</div></div>'
+            : '';
+
         let html = '<div class="mb-4">'
             + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">Final Transcript:</span>'
-            + '<pre class="whitespace-pre-wrap font-mono text-sm leading-relaxed text-gray-800 bg-white border border-gray-200 rounded-xl p-4 overflow-x-auto">'
-            + escapeHtml(data.transcript || '')
-            + '</pre></div>';
-
-        if (segments.length) {
-            const rows = segments.map(seg => {
-                const at = Number(seg.start) || 0;
-                const mm = String(Math.floor(at / 60)).padStart(2, '0');
-                const ss = String(Math.floor(at % 60)).padStart(2, '0');
-                const isCaller = seg.speaker === 'Caller';
-                return '<div class="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">'
-                    + '<span class="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5">' + mm + ':' + ss + '</span>'
-                    + '<span class="text-[11px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5 '
-                    + (isCaller ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100')
-                    + '">' + escapeHtml(seg.speaker) + '</span>'
-                    + '<span class="text-sm text-gray-700 leading-relaxed">' + escapeHtml(seg.text) + '</span>'
-                    + '</div>';
-            }).join('');
-            html += '<div class="mt-4">'
-                + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">Timed Segments:</span>'
-                + '<div class="bg-white border border-gray-200 rounded-xl px-4">' + rows + '</div></div>';
-        }
+            + '<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">'
+            + toolbar
+            + (lineRows || '<div class="p-4 text-sm text-gray-400">No transcript text returned.</div>')
+            + '</div></div>';
 
         html += renderTrackLevels(data.levels);
 
         return html;
     }
 
-    // Shows what pydub did to each track's loudness. A large boost here on one
-    // side only is the tell that a mic or browser DSP setting is wrong.
+    /// POOL: Returns each matching segment once to avoid reusing timestamps.
+    function makeSegmentMatcher(segments) {
+        const pool = segments.map(seg => ({
+            speaker: seg.speaker,
+            text: String(seg.text == null ? '' : seg.text).trim().replace(/\s+/g, ' '),
+            start: Number(seg.start) || 0,
+            used: false
+        }));
+        return function take(speaker, text) {
+            const wanted = text.trim().replace(/\s+/g, ' ');
+            let i = pool.findIndex(s => !s.used && s.speaker === speaker && s.text === wanted);
+            if (i === -1) i = pool.findIndex(s => !s.used && s.speaker === speaker);
+            if (i === -1) return null;
+            pool[i].used = true;
+            return pool[i];
+        };
+    }
+
+    /// STAMP: secs(number) -> "mm:ss" for the row's timestamp chip.
+    function fmtClock(secs) {
+        const at = Math.max(0, Number(secs) || 0);
+        const mm = String(Math.floor(at / 60)).padStart(2, '0');
+        const ss = String(Math.floor(at % 60)).padStart(2, '0');
+        return mm + ':' + ss;
+    }
+
+    // --- Transcript checkbox selection -------------------------------------
+    /// FINDER: Gets all transcript checkboxes in order, or an empty array if none exist.
+    function transcriptBoxes() {
+        if (!page.transcriptOutput) return [];
+        return Array.from(page.transcriptOutput.querySelectorAll('.transcript-line'));
+    }
+
+    function updateTranscriptSelection() {
+        const root = page.transcriptOutput;
+        if (!root) return;
+        const boxes = transcriptBoxes();
+        if (!boxes.length) return;
+        const selected = boxes.filter(box => box.checked).length;
+
+        const counter = root.querySelector('[data-transcript-count]');
+        if (counter) {
+            counter.textContent = selected
+                ? selected + ' of ' + boxes.length + ' selected'
+                : 'None selected';
+        }
+
+        const toggle = root.querySelector('[data-transcript-action="toggle-all"]');
+        if (toggle) toggle.textContent = selected === boxes.length ? 'Clear all' : 'Select all';
+
+        const copyBtn = root.querySelector('[data-transcript-action="copy"]');
+        if (copyBtn) copyBtn.disabled = selected === 0;
+    }
+
+    /// ON-TICK: Updates the selection when a checkbox changes.
+    function onTranscriptChange(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('transcript-line')) {
+            updateTranscriptSelection();
+        }
+    }
+
+    /// COMMIT: Enter saves the edit; Escape restores the original text.
+    function onTranscriptKeydown(e) {
+        const editor = e.target.closest ? e.target.closest('[data-transcript-text]') : null;
+        if (!editor) return;
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            editor.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            editor.textContent = editor.dataset.original || '';
+            editor.blur();
+        }
+    }
+
+    /// REVERT-EMPTY: Restores the original text if the edited line is left blank.
+    function onTranscriptBlur(e) {
+        const editor = e.target.closest ? e.target.closest('[data-transcript-text]') : null;
+        if (!editor) return;
+        if (!editor.textContent.trim()) {
+            editor.textContent = editor.dataset.original || '';
+        }
+    }
+
+    function transcriptLineOf(box) {
+        const row = box.closest('.transcript-row');
+        const textEl = row ? row.querySelector('[data-transcript-text]') : null;
+        const text = (textEl ? textEl.textContent : '').replace(/\s+/g, ' ').trim();
+        return '[' + (box.dataset.speaker || '') + '] ' + text;
+    }
+
+    async function onTranscriptClick(e) {
+        if (!page.transcriptOutput) return;
+
+        const row = e.target.closest ? e.target.closest('.transcript-row') : null;
+        if (row && page.transcriptOutput.contains(row) && e.target.tagName !== 'INPUT') {
+            const inEditor = e.target.isContentEditable
+                || (e.target.closest && e.target.closest('[data-transcript-text]'));
+            if (!inEditor) {
+                const box = row.querySelector('.transcript-line');
+                if (box) {
+                    box.checked = !box.checked;
+                    updateTranscriptSelection();
+                }
+            }
+        }
+
+        const btn = e.target.closest ? e.target.closest('[data-transcript-action]') : null;
+        if (!btn || !page.transcriptOutput.contains(btn)) return;
+
+        const boxes = transcriptBoxes();
+        const action = btn.dataset.transcriptAction;
+
+        if (action === 'toggle-all') {
+            const turnOn = !/^clear/i.test(btn.textContent.trim());
+            boxes.forEach(box => { box.checked = turnOn; });
+            updateTranscriptSelection();
+            return;
+        }
+
+        if (action === 'copy') {
+            const picked = boxes.filter(box => box.checked).map(transcriptLineOf);
+            if (!picked.length) return;
+            const ok = await copyText(picked.join('\n'));
+            const original = btn.innerHTML;
+            btn.innerHTML = ok
+                ? '<i class="ph-bold ph-check"></i> Copied!'
+                : '<i class="ph-bold ph-x"></i> Copy failed';
+            setTimeout(() => { btn.innerHTML = original; }, 1600);
+        }
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text)
+                .then(() => true)
+                .catch(() => fallbackCopy(text));
+        }
+        return Promise.resolve(fallbackCopy(text));
+    }
+
+    /// CLIP-OLD: Copies text using a hidden textarea when the Clipboard API is unavailable.
+    function fallbackCopy(text) {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    // Shows how pydub changes each track's volume. A large boost on one side may indicate a mic or browser audio issue.
     function renderTrackLevels(levels) {
         if (!levels) return '';
         const db = v => (v === null || v === undefined || !isFinite(v)) ? '--' : v.toFixed(1);
@@ -620,18 +816,20 @@ function startVisualizers() {
             + '<div class="bg-white border border-gray-200 rounded-xl px-4">' + body + '</div></div>';
     }
 
+    /// TOKEN: name -> decoded csrftoken cookie value, for the transcribe POST header.
     function getCookie(name) {
         const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
         return match ? decodeURIComponent(match[2]) : '';
     }
 
-    // Pulls the codec out of a blob type such as "audio/webm;codecs=opus".
+    /// CODEC: blob -> lowercase codec name from its MIME type (e.g. "opus"). Lets pydub decode server-side without ffprobe.
     function codecOf(blob) {
         const type = (blob && blob.type) || '';
         const match = type.match(/codecs\s*=\s*"?([a-z0-9_-]+)/i);
         return match ? match[1].toLowerCase() : '';
     }
 
+    /// WIRE-ONCE: el/type/handler -> attaches a listener only the first time (marks el.dataset.bound). Void.
     function bindOnce(el, type, handler) {
         if (!el) return;
         if (el.dataset.bound) return;
@@ -639,19 +837,21 @@ function startVisualizers() {
         el.addEventListener(type, handler);
     }
 
+    /// HOOKS: attaches all listeners + CallRecorder events once per page life. Void. Re-run safely on every swap.
     function bindEvents() {
-        // Re-bind every time the page is shown because the DOM nodes are new.
         bindOnce(page.startBtn, 'click', startRecording);
         bindOnce(page.stopBtn, 'click', () => CallRecorder.stop());
         bindOnce(page.transcribeBtn, 'click', transcribe);
+        bindOnce(page.transcriptOutput, 'change', onTranscriptChange);
+        bindOnce(page.transcriptOutput, 'click', onTranscriptClick);
+        bindOnce(page.transcriptOutput, 'keydown', onTranscriptKeydown);
+        bindOnce(page.transcriptOutput, 'focusout', onTranscriptBlur);
 
         if (!window.__callSetupResizeBound) {
             window.__callSetupResizeBound = true;
             window.addEventListener('resize', resizeCanvases);
         }
 
-        // Recorder hooks are registered exactly once (the recorder survives
-        // navigation). They read the shared `page` object at call time.
         if (!window.__callSetupHooks) {
             window.__callSetupHooks = true;
             CallRecorder.on('start', () => {
@@ -670,7 +870,7 @@ function startVisualizers() {
     }
 
     function initCallSetup() {
-        if (!document.getElementById('caller-device')) return; // not the call page
+        if (!document.getElementById('caller-device')) return;
         grabRefs();
         bindEvents();
         getDevices();
