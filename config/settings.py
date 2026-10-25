@@ -90,6 +90,7 @@ TEMPLATES = [
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
                 'apps.accounts.context_processors.user_profile',
+                'apps.callers.context_processors.call_metadata',
             ],
         },
     },

@@ -127,7 +127,10 @@ Log in using the **Admin credentials** provided in the Google Drive folder.
 ### 📞 Call Documentation
 
 - Manual call logging
-- AI-assisted call summarization workflow
+- Rule-based auto-fill with optional spaCy NER
+- TextRank extractive summarization formatted into the Bisaya call-summary template
+- Multi-label intervention classification
+- Manual responder review of Risk Assessment and Reason for Calling
 - Comprehensive documentation interface
 
 ### 📊 Analytics Dashboard
@@ -147,12 +150,42 @@ Log in using the **Admin credentials** provided in the Google Drive folder.
 
 ---
 
+# 🤖 NLP Auto-Fill and Summarization
+
+The NLP layer runs locally and does not call an external AI API.
+
+- Rule-based extraction works out of the box.
+- The trained spaCy NER model is optional. If `apps/callers/nlp/models/ner` is missing, the pipeline automatically falls back to rules-only mode.
+- TextRank selects the most relevant caller sentences; `apps/callers/nlp/summary.py` formats the final Bisaya summary.
+- Risk Assessment and Reason for Calling are intentionally left for responder review.
+
+## Optional: Train the NER Model
+
+Trained models are intentionally excluded from Git. To regenerate the model:
+
+```bash
+pip install -r requirements.txt
+python -m apps.callers.nlp.train_ner
+```
+
+Training reads `apps/callers/nlp/data/annotations.json` and writes the model to `apps/callers/nlp/models/ner`.
+
+## Run NLP Tests
+
+```bash
+python manage.py test apps.callers.tests
+```
+
+---
+
 # 💻 Tech Stack
 
 ## Backend
 
 - Django 6.0
 - Python
+- spaCy (optional NER)
+- TextRank (local extractive summarization)
 
 ## Database
 

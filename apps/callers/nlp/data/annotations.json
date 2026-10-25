@@ -1,0 +1,6837 @@
+[
+  {
+    "text": "25 na ko ma'am... diri ko sa Cebu City nag-work karon. Single ko ma'am, mao nang ako ra usa diri sa akong apartment karon. Wala koy mapangayoan og tabang.",
+    "entities": [
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 38
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 55,
+        "end": 61
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant sentences containing the entities. Removed speaker tags and newlines. Zero-based character offsets recalculated."
+    ]
+  },
+  {
+    "text": "Camille. 29. Sa Lapu-Lapu City ko nagpuyo. Babaye ko. Single pa ko.",
+    "entities": [
+      {
+        "text": "Camille",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "29",
+        "label": "AGE",
+        "start": 9,
+        "end": 11
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 16,
+        "end": 30
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 54,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Retained only the specific dialogue lines with entity mentions. Offsets adjusted accordingly."
+    ]
+  },
+  {
+    "text": "Paolo. Twenty-eight. Sa Mandaue ko, ma'am. Lalaki. Oo, single pa.",
+    "entities": [
+      {
+        "text": "Paolo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-eight",
+        "label": "AGE",
+        "start": 7,
+        "end": 19
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 24,
+        "end": 31
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 55,
+        "end": 64
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant chunks containing the entities."
+    ]
+  },
+  {
+    "text": "Mae na lang, sir. Diri ko sa Consolacion nag-rent, sir.",
+    "entities": [
+      {
+        "text": "Mae",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 40
+      }
+    ],
+    "annotation_notes": [
+      "Filtered text strictly to entity-containing lines. Civil status remains unannotated as per rules."
+    ]
+  },
+  {
+    "text": "Ako diay si Mark, sir. Naa ko sa Mandaue City sir nag-rent. 22 anyos nako sir. Oo sir, lalaki ko ug single pa tawn.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 33,
+        "end": 45
+      },
+      {
+        "text": "22 anyos",
+        "label": "AGE",
+        "start": 60,
+        "end": 68
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 87,
+        "end": 93
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 100,
+        "end": 109
+      }
+    ],
+    "annotation_notes": [
+      "Normal conversation lines stripped out. New character offsets accurately map to the extracted text."
+    ]
+  },
+  {
+    "text": "Ako diay si Leah. Sa location, uhm, pwede dili lang nako i-share sir? Medyo paranoid man gud ko isulti akong exact nga lugar, maikog ko basin naay makabalo. 26 na ko sir, single pa. Oo sir, female ko.",
+    "entities": [
+      {
+        "text": "Leah",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 157,
+        "end": 159
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 171,
+        "end": 180
+      },
+      {
+        "text": "female",
+        "label": "GENDER",
+        "start": 190,
+        "end": 196
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to provide location, so none is annotated. Text stripped down to entity-bearing turns. "
+    ]
+  },
+  {
+    "text": "Gio lang akong pangalan miss. Pero... pwede dili lang nako isulti kung asa ko karon? Gusto lang ko mag-inusara ron, dili nako feel isulti akong location. 30 na ko miss. Single ra ko.",
+    "entities": [
+      {
+        "text": "Gio",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "30",
+        "label": "AGE",
+        "start": 154,
+        "end": 156
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 169,
+        "end": 175
+      }
+    ],
+    "annotation_notes": [
+      "Irrelevant conversation removed. Zero-based offsets updated exactly to match the new string."
+    ]
+  },
+  {
+    "text": "I'm Loraine. 27 na ko. Sa Mandaue City ko nagpuyo. Babaye ko. Married ko. Duha mi ka tuig nga minyo.",
+    "entities": [
+      {
+        "text": "Loraine",
+        "label": "NAME",
+        "start": 4,
+        "end": 11
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 13,
+        "end": 15
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 38
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 51,
+        "end": 57
+      },
+      {
+        "text": "Married",
+        "label": "CIVIL_STATUS",
+        "start": 62,
+        "end": 69
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 94,
+        "end": 99
+      }
+    ],
+    "annotation_notes": [
+      "Both explicit mentions of civil status preserved and mapped to the shortened text."
+    ]
+  },
+  {
+    "text": "Rina. 25. Female. Single pa ko.",
+    "entities": [
+      {
+        "text": "Rina",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 6,
+        "end": 8
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 10,
+        "end": 16
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 18,
+        "end": 27
+      }
+    ],
+    "annotation_notes": [
+      "Text pared down exclusively to the caller's entity disclosures. No location mentioned."
+    ]
+  },
+  {
+    "text": "Ako diay si Chona, miss. 28 anyos ko miss, naa ko sa Cebu City nagpuyo ron, ga-rent. Single pa ko miss. Wala koy uyab, nag-focus ra gyud kos akong career ug work.",
+    "entities": [
+      {
+        "text": "Chona",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "28 anyos",
+        "label": "AGE",
+        "start": 25,
+        "end": 33
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 62
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 85,
+        "end": 94
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the sentences with annotations. Character offsets recalibrated perfectly to match the cleaned version."
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Kim. 20 pa ko. Taga-Talisay City, miss.",
+    "entities": [
+      {
+        "text": "Kim",
+        "label": "NAME",
+        "start": 17,
+        "end": 20
+      },
+      {
+        "text": "20",
+        "label": "AGE",
+        "start": 22,
+        "end": 24
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 37,
+        "end": 49
+      }
+    ],
+    "annotation_notes": [
+      "Filtered text strictly to entity-containing lines. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Jessa. Twenty-two. Sa Lapu-Lapu ko nagpuyo. Oo, babae ko. Single pa ko.",
+    "entities": [
+      {
+        "text": "Jessa",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-two",
+        "label": "AGE",
+        "start": 7,
+        "end": 17
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 22,
+        "end": 31
+      },
+      {
+        "text": "babae",
+        "label": "GENDER",
+        "start": 48,
+        "end": 53
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 58,
+        "end": 67
+      }
+    ],
+    "annotation_notes": [
+      "Retained only the specific dialogue lines with entity mentions. Offsets adjusted accordingly."
+    ]
+  },
+  {
+    "text": "Ako diay si Kyla. 25 anyos ko, sir. Naa ko sa Cebu karon, sa may Apas ko nag-rent ug kwarto.",
+    "entities": [
+      {
+        "text": "Kyla",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "25 anyos",
+        "label": "AGE",
+        "start": 18,
+        "end": 26
+      },
+      {
+        "text": "Cebu",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant sentences containing the entities. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Alex lang. 31. Sa Cebu City ko. Married ko.",
+    "entities": [
+      {
+        "text": "Alex",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "31",
+        "label": "AGE",
+        "start": 11,
+        "end": 13
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 18,
+        "end": 27
+      },
+      {
+        "text": "Married",
+        "label": "CIVIL_STATUS",
+        "start": 32,
+        "end": 39
+      }
+    ],
+    "annotation_notes": [
+      "Text pared down exclusively to the caller's entity disclosures. Gender not mentioned."
+    ]
+  },
+  {
+    "text": "Chloe na lang kuya. 27 ko. Naa ko sa akong apartment ron sa Lahug. Nag-inusara ra ko kay nipadayon og uli akong mga kauban.",
+    "entities": [
+      {
+        "text": "Chloe",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 20,
+        "end": 22
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 60,
+        "end": 65
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant dialogue containing entities. Gender and Civil Status not explicitly stated by caller."
+    ]
+  },
+  {
+    "text": "Ako diay si Jessa, miss. Diri ko sa Mandaue nagpuyo ron sa among family house. Single pa miss. Working na ko actually, pero diri gihapon ko nag-stay sa ilaha kay mas tipid unta.",
+    "entities": [
+      {
+        "text": "Jessa",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 36,
+        "end": 43
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 79,
+        "end": 88
+      }
+    ],
+    "annotation_notes": [
+      "Filtered text strictly to entity-containing lines. Age and Gender not mentioned."
+    ]
+  },
+  {
+    "text": "Marco lang sir. 31 na ko sir. Minyo na sad.",
+    "entities": [
+      {
+        "text": "Marco",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "31",
+        "label": "AGE",
+        "start": 16,
+        "end": 18
+      },
+      {
+        "text": "Minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 30,
+        "end": 38
+      }
+    ],
+    "annotation_notes": [
+      "Extracted specific dialogue containing caller information. Location and Gender not stated. "
+    ]
+  },
+  {
+    "text": "Pwede dili lang sa ko mohatag sa akong pangalan, sir? Maulaw man gud ko sa akong sitwasyon. 29 na ko sir. Naa mi nagpuyo sa Lapu-Lapu karon sa akong kapuyo.",
+    "entities": [
+      {
+        "text": "29",
+        "label": "AGE",
+        "start": 92,
+        "end": 94
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 124,
+        "end": 133
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to provide a name. Text pared down exclusively to entity-bearing statements."
+    ]
+  },
+  {
+    "text": "Lito na lang. Singkwentay dos na ko.",
+    "entities": [
+      {
+        "text": "Lito",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Singkwentay dos",
+        "label": "AGE",
+        "start": 14,
+        "end": 29
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant sentences containing the entities. Removed speaker tags and newlines. Zero-based character offsets recalculated."
+    ]
+  },
+  {
+    "text": "Mariel. 34 na ko. Sa Consolacion ko nagpuyo.",
+    "entities": [
+      {
+        "text": "Mariel",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "34",
+        "label": "AGE",
+        "start": 8,
+        "end": 10
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 21,
+        "end": 32
+      }
+    ],
+    "annotation_notes": [
+      "Retained only the specific dialogue lines with entity mentions. Offsets adjusted accordingly."
+    ]
+  },
+  {
+    "text": "Ako diay si Chona, miss. 28 anyos ko miss, naa ko sa Cebu City nagpuyo ron, ga-rent. Single pa ko miss. Wala koy uyab, nag-focus ra gyud kos akong career ug work.",
+    "entities": [
+      {
+        "text": "Chona",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "28 anyos",
+        "label": "AGE",
+        "start": 25,
+        "end": 33
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 62
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 85,
+        "end": 94
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the sentences with annotations. Character offsets recalibrated perfectly to match the cleaned version."
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Jen, miss. Sa location, uhm, pwede dili lang nako isulti miss? Maulaw man gud ko basin naay makaila o makadungog. 23 na ko miss, ug single pa.",
+    "entities": [
+      {
+        "text": "Jen",
+        "label": "NAME",
+        "start": 17,
+        "end": 20
+      },
+      {
+        "text": "23",
+        "label": "AGE",
+        "start": 131,
+        "end": 133
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 149,
+        "end": 158
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to share their location. Zero-based offsets recalculated."
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Jason, sir. 21 pa ko sir. Ug single pa sad.",
+    "entities": [
+      {
+        "text": "Jason",
+        "label": "NAME",
+        "start": 17,
+        "end": 22
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 29,
+        "end": 31
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 46,
+        "end": 55
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification lines. Gender and location were not stated."
+    ]
+  },
+  {
+    "text": "Robert akong ngalan, sir. Naa ko sa Minglanilla... 35 anyos nako.",
+    "entities": [
+      {
+        "text": "Robert",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 36,
+        "end": 47
+      },
+      {
+        "text": "35 anyos",
+        "label": "AGE",
+        "start": 51,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text containing explicit entity mentions. "
+    ]
+  },
+  {
+    "text": "Ako si Marie, sir. Babaye ko. Naa ra ko sa sulod sa akong sakyanan sir, diri sa parking lot sa among apartment sa Mandaue. Wala pa ko ni-gawas sukad naabot ko kay nagsige ra ko'g hilak.",
+    "entities": [
+      {
+        "text": "Marie",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 19,
+        "end": 25
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 114,
+        "end": 121
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences. Age and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Jelo lang sir. Baynte sir. Naa ko sa Talamban karon nag-board.",
+    "entities": [
+      {
+        "text": "Jelo",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Baynte",
+        "label": "AGE",
+        "start": 15,
+        "end": 21
+      },
+      {
+        "text": "Talamban",
+        "label": "LOCATION",
+        "start": 37,
+        "end": 45
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts. Gender and Civil Status not explicitly stated."
+    ]
+  },
+  {
+    "text": "Carlo lang. 21 na ko. Naa ko diri sa Cebu City karon nag-board. Lalaki ko.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 12,
+        "end": 14
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 37,
+        "end": 46
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 64,
+        "end": 70
+      }
+    ],
+    "annotation_notes": [
+      "Retained sentences with explicit entity disclosures. Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Kevin lang. 19 na ko. Sa Talisay ko nagpuyo karon. O, lalaki ko.",
+    "entities": [
+      {
+        "text": "Kevin",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "19",
+        "label": "AGE",
+        "start": 12,
+        "end": 14
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 32
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 54,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics. Civil Status not stated."
+    ]
+  },
+  {
+    "text": "Ako diay si Leo, sir. Naa ko sa Mandaue karon, tua ko sa gawas sa apartment sa akong migo. Si Dave, sir. Parehas mi 24 anyos, sir. Mga lalaki mi nga dugay na gyud magkaila, sukad pa sa college.",
+    "entities": [
+      {
+        "text": "Leo",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 32,
+        "end": 39
+      },
+      {
+        "text": "24 anyos",
+        "label": "AGE",
+        "start": 116,
+        "end": 124
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 135,
+        "end": 141
+      }
+    ],
+    "annotation_notes": [
+      "The caller (Leo) provides information about himself while calling on behalf of his friend Dave. The caller's information is annotated as per rules. The friend's name (Dave) is not annotated as the target is caller information. Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Jessa. Twenty-four ko. Sa Lapu-Lapu ko nagpuyo. Naa ra ko sa among kwarto karon. Female ko. Oo, single pa.",
+    "entities": [
+      {
+        "text": "Jessa",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-four",
+        "label": "AGE",
+        "start": 7,
+        "end": 18
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 35
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 81,
+        "end": 87
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 96,
+        "end": 105
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Wag na ang pangalan ma'am, tawga lang kog 'friend'. 28 ko karon. Single ko ma'am... ayaw lang nang location ma'am kay paranoid ko ron basin nay maminaw nako diri sa gawas sa akong kwarto.",
+    "entities": [
+      {
+        "text": "friend",
+        "label": "NAME",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "28",
+        "label": "AGE",
+        "start": 52,
+        "end": 54
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 65,
+        "end": 71
+      }
+    ],
+    "annotation_notes": [
+      "Caller requested to be addressed as 'friend' and declined to share their location."
+    ]
+  },
+  {
+    "text": "Miko akong ngalan, kuya. Ayaw na lang ko pangutan-a sa akong edad kuya, palihug. Maulaw ko kay lalaki baya unta ko pero ing-ani ko ka-huyang nga mag-sige'g hilak sulod sa CR murag bata.",
+    "entities": [
+      {
+        "text": "Miko",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 95,
+        "end": 101
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to provide their age."
+    ]
+  },
+  {
+    "text": "Carlo akong ngalan. 17 pa ko. Sa Lapu-Lapu mi nagpuyo.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "17",
+        "label": "AGE",
+        "start": 20,
+        "end": 22
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 33,
+        "end": 42
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Jenny ra ko. Naa ko sa Mandaue, dinhi ko nagtrabaho ug nagpuyo. Baynte otso na ko. Ay, single pa ko. Wala pa koy plano magminyo, ang trabaho ra gyud akong priority karon. Pero mao gani na ang problema, haha.",
+    "entities": [
+      {
+        "text": "Jenny",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 23,
+        "end": 30
+      },
+      {
+        "text": "Baynte otso",
+        "label": "AGE",
+        "start": 64,
+        "end": 75
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 87,
+        "end": 96
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Ako diay si Leo, sir. Naa ko sa Mandaue karon, tua ko sa gawas sa apartment sa akong migo. Si Dave, sir. Parehas mi 24 anyos, sir. Mga lalaki mi nga dugay na gyud magkaila, sukad pa sa college.",
+    "entities": [
+      {
+        "text": "Leo",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 32,
+        "end": 39
+      },
+      {
+        "text": "24 anyos",
+        "label": "AGE",
+        "start": 116,
+        "end": 124
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 135,
+        "end": 141
+      }
+    ],
+    "annotation_notes": [
+      "The caller is Leo and is calling on behalf of his friend Dave. Dave's name is not annotated as the target is caller information. The statements 'Parehas mi 24 anyos' and 'Mga lalaki mi' include the caller, so the caller's age and gender are annotated."
+    ]
+  },
+  {
+    "text": "Di lang ko musulti sa akong name ma'am... please. Hadlok ko naay makabalo diri kinsa ko ug mo-spread na sad nila. 16 pa ko ma'am. Bayot ko ma'am. Mao nang sige silag yaga-yaga sa akoa sa skwelahan, unya karon gi-abot na sa online.",
+    "entities": [
+      {
+        "text": "16",
+        "label": "AGE",
+        "start": 114,
+        "end": 116
+      },
+      {
+        "text": "Bayot",
+        "label": "GENDER",
+        "start": 130,
+        "end": 135
+      }
+    ],
+    "annotation_notes": [
+      "The caller declined to share their name. 'Bayot' is annotated as GENDER because the caller gives it in response to the counselor's question asking whether the caller is lalaki or babaye."
+    ]
+  },
+  {
+    "text": "Mark. Twenty-seven. Sa Mandaue ko nagpuyo. Married ko. Duha mi kabuok sa akong wife. Lalaki ko.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Twenty-seven",
+        "label": "AGE",
+        "start": 6,
+        "end": 18
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 23,
+        "end": 30
+      },
+      {
+        "text": "Married",
+        "label": "CIVIL_STATUS",
+        "start": 43,
+        "end": 50
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 85,
+        "end": 91
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Di ko musulti taga-asa ko ma'am! Please. Dili pwede makabalo ang mga polis kay basig samot ko niya patyon inig gawas niya. Ug kanang... tawga lang ko'g Elena. Dili na nako tinuod ngalan ma'am, pero mao lang sa na. Usa ko ka asawa nga gusto lang mabuhi.",
+    "entities": [
+      {
+        "text": "Elena",
+        "label": "NAME",
+        "start": 152,
+        "end": 157
+      },
+      {
+        "text": "asawa",
+        "label": "CIVIL_STATUS",
+        "start": 224,
+        "end": 229
+      }
+    ],
+    "annotation_notes": [
+      "The caller uses Elena as an alias and explicitly says it is not her real name. The caller declined to share their location."
+    ]
+  },
+  {
+    "text": "Sa Consolacion ko, dinhi mi nagpuyo sa akong partner. Traynta uno na ko. Married ko, upat na katuig.",
+    "entities": [
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 3,
+        "end": 14
+      },
+      {
+        "text": "Traynta uno",
+        "label": "AGE",
+        "start": 54,
+        "end": 65
+      },
+      {
+        "text": "Married",
+        "label": "CIVIL_STATUS",
+        "start": 73,
+        "end": 80
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Tawga lang ko'g 'K' ma'am. Dili ko gusto magpaila kay maulaw ko sa akong sitwasyon karon. 30 anyos ko ma'am. Minyo ko. Pero ayaw na lang ko pangutana taga-asa ko ma'am or unsa akong gender ha? Ulaw gyud kaayo ni paminawon kay abi nako strong ko.",
+    "entities": [
+      {
+        "text": "K",
+        "label": "NAME",
+        "start": 17,
+        "end": 18
+      },
+      {
+        "text": "30 anyos",
+        "label": "AGE",
+        "start": 90,
+        "end": 98
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 109,
+        "end": 114
+      }
+    ],
+    "annotation_notes": [
+      "The caller requests to be addressed as 'K' but does not want to identify themself. The caller explicitly declined to share location and gender information."
+    ]
+  },
+  {
+    "text": "Lalaki ko sir, taga Cebu City. Ayaw na lang ko pangutana sa akong ngalan ug edad o uban pa nakong details sir... Ulaw kaayo paminawon nga ang usa ka lalaki nag-iyak-iyak diri sa kilid sa karsada sa kadlawong dako. Mura ko'g buang.",
+    "entities": [
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 20,
+        "end": 29
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 149,
+        "end": 155
+      }
+    ],
+    "annotation_notes": [
+      "The caller declined to provide their name and age. Both gender mentions refer to the caller; the stated location is Cebu City."
+    ]
+  },
+  {
+    "text": "Ako si Marie, sir. Babaye ko. Naa ra ko sa sulod sa akong sakyanan sir, diri sa parking lot sa among apartment sa Mandaue. Wala pa ko ni-gawas sukad naabot ko kay nagsige ra ko'g hilak.",
+    "entities": [
+      {
+        "text": "Marie",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 19,
+        "end": 25
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 114,
+        "end": 121
+      }
+    ],
+    "annotation_notes": []
+  },
+  {
+    "text": "Elaine. Twenty-nine. Sa Talisay ko nagpuyo. Female. Single ko.",
+    "entities": [
+      {
+        "text": "Elaine",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Twenty-nine",
+        "label": "AGE",
+        "start": 8,
+        "end": 19
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 24,
+        "end": 31
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 44,
+        "end": 50
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 52,
+        "end": 58
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only sentences containing caller identity details, stripped of newlines and speaker tags. "
+    ]
+  },
+  {
+    "text": "Tin-tin. 24. Oo, naa ra ko sa akong kwarto diri sa Consolacion. Nag-abang ra ko kay nag-work ko sa syudad.",
+    "entities": [
+      {
+        "text": "Tin-tin",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "24",
+        "label": "AGE",
+        "start": 9,
+        "end": 11
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 51,
+        "end": 62
+      }
+    ],
+    "annotation_notes": [
+      "Extracted entity-bearing sentences. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "25 na ko ma'am... diri ko sa Davao nag-work karon. Single ko ma'am, mao nang ako ra usa diri sa akong apartment karon. Wala koy mapangayoan og tabang.",
+    "entities": [
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "text": "Davao",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 34
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 51,
+        "end": 57
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant entity-bearing sentences, removing newlines and speaker tags."
+    ]
+  },
+  {
+    "text": "Ako diay si Carlo. Male ko. Naa ko sa Consolacion.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Male",
+        "label": "GENDER",
+        "start": 19,
+        "end": 23
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 38,
+        "end": 49
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller details. Age and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "32 na ko. Naa ko sa Cebu City ron. Single pa ko, maong sa akoa tanan gi-salig ang pagbuhi sa akong mga manghud ug ginikanan.",
+    "entities": [
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 20,
+        "end": 29
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 35,
+        "end": 44
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller entity disclosures. Name and Gender not stated. "
+    ]
+  },
+  {
+    "text": "Jessa. Female ko. Naa ko sa Cebu City.",
+    "entities": [
+      {
+        "text": "Jessa",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 37
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicitly requested entities. Age and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Anton diay sir. Kwarenta'y singko na ko sir.",
+    "entities": [
+      {
+        "text": "Anton",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Kwarenta'y singko",
+        "label": "AGE",
+        "start": 16,
+        "end": 33
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. Location, Gender, and Civil Status not mentioned by caller."
+    ]
+  },
+  {
+    "text": "32 na ko. Minyo ko, babaye ko. Diri mi sa Lapu-Lapu nag-abang.",
+    "entities": [
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 10,
+        "end": 15
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 20,
+        "end": 26
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 42,
+        "end": 51
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to give name. Age, Civil Status, Gender, and Location retained and annotated. "
+    ]
+  },
+  {
+    "text": "Ronald ra ko. Sa Talisay ko, near sa coastal area. Mga Traynta singko na ko this year. Married ko, naa mi'y duha ka anak.",
+    "entities": [
+      {
+        "text": "Ronald",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 17,
+        "end": 24
+      },
+      {
+        "text": "Traynta singko",
+        "label": "AGE",
+        "start": 55,
+        "end": 69
+      },
+      {
+        "text": "Married",
+        "label": "CIVIL_STATUS",
+        "start": 87,
+        "end": 94
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Tawga lang kog 'Inday', ma'am. Usa ko ka babaye pero... dili lang ko mosulti sa akong tinuod nga ngalan. Diri ra ko sa Cebu City ma'am.",
+    "entities": [
+      {
+        "text": "Inday",
+        "label": "NAME",
+        "start": 16,
+        "end": 21
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 41,
+        "end": 47
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 119,
+        "end": 128
+      }
+    ],
+    "annotation_notes": [
+      "Caller uses an alias, which is annotated as NAME. Caller explicitly refused to give age. Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Sa Lapu-Lapu ko, dinhi mi tanan nagdako sa among pamilya. Karsa'y kwarenta y dos na ko this year. Single living-in ko sa akong partner. Lalaki ko, para klaro.",
+    "entities": [
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 3,
+        "end": 12
+      },
+      {
+        "text": "Karsa'y kwarenta y dos",
+        "label": "AGE",
+        "start": 58,
+        "end": 80
+      },
+      {
+        "text": "Single living-in",
+        "label": "CIVIL_STATUS",
+        "start": 98,
+        "end": 114
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 136,
+        "end": 142
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue with explicitly stated entities. The caller declined to provide a name. "
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Lito. Kwarenta'y singko na. Diri ra sa Talisay.",
+    "entities": [
+      {
+        "text": "Lito",
+        "label": "NAME",
+        "start": 17,
+        "end": 21
+      },
+      {
+        "text": "Kwarenta'y singko",
+        "label": "AGE",
+        "start": 23,
+        "end": 40
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 56,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "I'm Rica. Twenty-two. Sa Cebu City ko. Female. Oo, single pa.",
+    "entities": [
+      {
+        "text": "Rica",
+        "label": "NAME",
+        "start": 4,
+        "end": 8
+      },
+      {
+        "text": "Twenty-two",
+        "label": "AGE",
+        "start": 10,
+        "end": 20
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 34
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 39,
+        "end": 45
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 51,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. "
+    ]
+  },
+  {
+    "text": "Ana akong ngalan. 23 ko. Sa Mandaue mi nagpuyo. Single pa.",
+    "entities": [
+      {
+        "text": "Ana",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "23",
+        "label": "AGE",
+        "start": 18,
+        "end": 20
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 35
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 48,
+        "end": 57
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Anne. Twenty-six. Sa Cebu City ko. Female. Oo, single pa ko.",
+    "entities": [
+      {
+        "text": "Anne",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Twenty-six",
+        "label": "AGE",
+        "start": 6,
+        "end": 16
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 21,
+        "end": 30
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 35,
+        "end": 41
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 47,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant sentences containing the entities. "
+    ]
+  },
+  {
+    "text": "I'm Rica. Twenty-two. Sa Cebu City ko. Female. Oo, single pa.",
+    "entities": [
+      {
+        "text": "Rica",
+        "label": "NAME",
+        "start": 4,
+        "end": 8
+      },
+      {
+        "text": "Twenty-two",
+        "label": "AGE",
+        "start": 10,
+        "end": 20
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 34
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 39,
+        "end": 45
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 51,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. "
+    ]
+  },
+  {
+    "text": "Ramon. Thirty-nine. Sa Lapu-Lapu City ko. Male. Oo, married ko.",
+    "entities": [
+      {
+        "text": "Ramon",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Thirty-nine",
+        "label": "AGE",
+        "start": 7,
+        "end": 18
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 23,
+        "end": 37
+      },
+      {
+        "text": "Male",
+        "label": "GENDER",
+        "start": 42,
+        "end": 46
+      },
+      {
+        "text": "married",
+        "label": "CIVIL_STATUS",
+        "start": 52,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Text pared down exclusively to the caller's entity disclosures. "
+    ]
+  },
+  {
+    "text": "Mark lang, ma'am. Twenty-seven ko. Sa Lapu-Lapu ko, dapit sa Basak. Single pa ko. Nagpuyo ra ko uban sa akong mama ug manghod. Oo, male ko.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Twenty-seven",
+        "label": "AGE",
+        "start": 18,
+        "end": 30
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 38,
+        "end": 47
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 68,
+        "end": 77
+      },
+      {
+        "text": "male",
+        "label": "GENDER",
+        "start": 131,
+        "end": 135
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. "
+    ]
+  },
+  {
+    "text": "Naa ko karon sa Lapu-Lapu City. Pwede dili lang nako i-sulti akong pangalan? Gusto lang unta ko mag-anonymous.",
+    "entities": [
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 16,
+        "end": 30
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to share their name. Only Location was provided. "
+    ]
+  },
+  {
+    "text": "K-Klara ma'am... babaye ko... palihug tabangi ko... mamatay guro ko ani ma'am...",
+    "entities": [
+      {
+        "text": "Klara",
+        "label": "NAME",
+        "start": 2,
+        "end": 7
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 17,
+        "end": 23
+      }
+    ],
+    "annotation_notes": [
+      "Extracted only the relevant sentences containing the entities. Age, Location, and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Babaye ko.",
+    "entities": [
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 0,
+        "end": 6
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to provide a name and only specified gender. "
+    ]
+  },
+  {
+    "text": "Ken akong name, ma'am. Twenty-one pa ko ma'am. Lalaki ko, ma'am. Single na sad guro ko karon kay mao man gyud nay status nako ron pagkahuman sa nahitabo ganina.",
+    "entities": [
+      {
+        "text": "Ken",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Twenty-one",
+        "label": "AGE",
+        "start": 23,
+        "end": 33
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 47,
+        "end": 53
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 65,
+        "end": 71
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Location not mentioned."
+    ]
+  },
+  {
+    "text": "Mae lang akong name. 27. Single ko, pero nag live-in mi sa akong partner ron.",
+    "entities": [
+      {
+        "text": "Mae",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 21,
+        "end": 23
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 25,
+        "end": 31
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographics. Gender and Location not mentioned. "
+    ]
+  },
+  {
+    "text": "Christine. Twenty-three. Sa Minglanilla ko nagpuyo. Female. Single pa ko. Uyab ra nako siya.",
+    "entities": [
+      {
+        "text": "Christine",
+        "label": "NAME",
+        "start": 0,
+        "end": 9
+      },
+      {
+        "text": "Twenty-three",
+        "label": "AGE",
+        "start": 11,
+        "end": 23
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 39
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 52,
+        "end": 58
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 60,
+        "end": 69
+      }
+    ],
+    "annotation_notes": [
+      "Retained only sentences containing specific entity mentions, stripping newlines and speaker tags. "
+    ]
+  },
+  {
+    "text": "Female ko.",
+    "entities": [
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 0,
+        "end": 6
+      }
+    ],
+    "annotation_notes": [
+      "Extracted single statement providing the caller's gender. Other demographic details were not explored. "
+    ]
+  },
+  {
+    "text": "Ako si Jessa. 26 na ko. Naa ko sa Mandaue City nag-board karon. Oo, babaye ko.",
+    "entities": [
+      {
+        "text": "Jessa",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 14,
+        "end": 16
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 34,
+        "end": 46
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 68,
+        "end": 74
+      }
+    ],
+    "annotation_notes": [
+      "Extracted contiguous block of sentences providing explicit entity values. Civil Status not requested/mentioned. "
+    ]
+  },
+  {
+    "text": "Twenty-three ko. Female. Naa ko sa Mandaue. Single ko.",
+    "entities": [
+      {
+        "text": "Twenty-three",
+        "label": "AGE",
+        "start": 0,
+        "end": 12
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 17,
+        "end": 23
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 35,
+        "end": 42
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 44,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. Name not requested/provided. "
+    ]
+  },
+  {
+    "text": "Ako diay si Mae, ma'am. 28 anyos ko. Female ko, ma'am. Diri ko sa Lapu-Lapu nag-rent karon ma'am.",
+    "entities": [
+      {
+        "text": "Mae",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "28 anyos",
+        "label": "AGE",
+        "start": 24,
+        "end": 32
+      },
+      {
+        "text": "Female",
+        "label": "GENDER",
+        "start": 37,
+        "end": 43
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 66,
+        "end": 75
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Rey akong pangalan, miss. Naa ko sa Danao City ron, miss.",
+    "entities": [
+      {
+        "text": "Rey",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Danao City",
+        "label": "LOCATION",
+        "start": 36,
+        "end": 46
+      }
+    ],
+    "annotation_notes": [
+      "Caller provided Name and Location. Age, Gender, and Civil Status not mentioned. Zero-based character offsets recalculated. "
+    ]
+  },
+  {
+    "text": "Rommel akong pangalan, sir. 34 na ko. Taga-Naga City ko sir, naa ko sa gawas sa among balay ron nagtambay kay nagpalayo ko.",
+    "entities": [
+      {
+        "text": "Rommel",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "34",
+        "label": "AGE",
+        "start": 28,
+        "end": 30
+      },
+      {
+        "text": "Naga City",
+        "label": "LOCATION",
+        "start": 43,
+        "end": 52
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Carlo akong name, kuya. 16 pa ko kuya. Diri ko sa Carcar gapuyo.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "16",
+        "label": "AGE",
+        "start": 24,
+        "end": 26
+      },
+      {
+        "text": "Carcar",
+        "label": "LOCATION",
+        "start": 50,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Janine, sir. 19 pa ko sir. Diri ko sa Lapu-Lapu gapuyo ron sa balay sa akong parents.",
+    "entities": [
+      {
+        "text": "Janine",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "19",
+        "label": "AGE",
+        "start": 20,
+        "end": 22
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 54
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Elena, miss. Babaye ko, miss. 32 na ko. Sa Cebu City ra miss",
+    "entities": [
+      {
+        "text": "Elena",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 20,
+        "end": 26
+      },
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 37,
+        "end": 39
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 50,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Civil Status not explicitly mentioned although live-in partner is implied. "
+    ]
+  },
+  {
+    "text": "Ako diay si Liza. 45 na ko, Anton. Nagbulag mi sa akong bana ten years ago na. Mao to nga ako ray nagpadako sa akong mga anak. Pero karon... ako na lang gyud usa diri.",
+    "entities": [
+      {
+        "text": "Liza",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "45",
+        "label": "AGE",
+        "start": 18,
+        "end": 20
+      },
+      {
+        "text": "Nagbulag",
+        "label": "CIVIL_STATUS",
+        "start": 35,
+        "end": 43
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics. The caller specifies being separated/annulled ('Nagbulag'). Location and Gender not stated. "
+    ]
+  },
+  {
+    "text": "Karen akong ngalan, sir. 26 na ko sir. Oo, babaye ko ug minyo na.",
+    "entities": [
+      {
+        "text": "Karen",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 25,
+        "end": 27
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 56,
+        "end": 64
+      }
+    ],
+    "annotation_notes": [
+      "Parsed caller identification block. Location not mentioned. "
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Jake, sir. 25 anyos ko sir. Ug single ra tawn. Wala pay plano anang mga butanga.",
+    "entities": [
+      {
+        "text": "Jake",
+        "label": "NAME",
+        "start": 17,
+        "end": 21
+      },
+      {
+        "text": "25 anyos",
+        "label": "AGE",
+        "start": 28,
+        "end": 36
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 48,
+        "end": 54
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise to extract Name, Age, and Civil Status. Gender and Location not provided."
+    ]
+  },
+  {
+    "text": "Mia akong pangalan, miss. 20 anyos na ko, miss. Diri ko sa Lahug nag-rent ron kay nag-eskwela ko. Oo miss, female ko.",
+    "entities": [
+      {
+        "text": "Mia",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "20 anyos",
+        "label": "AGE",
+        "start": 26,
+        "end": 34
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 59,
+        "end": 64
+      },
+      {
+        "text": "female",
+        "label": "GENDER",
+        "start": 107,
+        "end": 113
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Dexter akong pangalan, sir. 29 na ko sir. Minyo na, naa miy usa ka anak nga gamay pa.",
+    "entities": [
+      {
+        "text": "Dexter",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "29",
+        "label": "AGE",
+        "start": 28,
+        "end": 30
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 47
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicitly requested entities. Location and Gender not stated."
+    ]
+  },
+  {
+    "text": "Michelle akong pangalan, sir. 24 ko sir. Naa ko sa Consolacion nagpuyo uban sa akong parents. O sir, single pa.",
+    "entities": [
+      {
+        "text": "Michelle",
+        "label": "NAME",
+        "start": 0,
+        "end": 8
+      },
+      {
+        "text": "24",
+        "label": "AGE",
+        "start": 30,
+        "end": 32
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 51,
+        "end": 62
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 101,
+        "end": 110
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics from the dialogue. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Mark, sir. Naa ko sa akong kwarto ron diri sa Mandaue City. 27 ko sir. Single pa. Lalaki ko.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 58,
+        "end": 70
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 72,
+        "end": 74
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 83,
+        "end": 92
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 94,
+        "end": 100
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. All target entities present and annotated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Mia, sir. Naa ko sa Talamban nag-board ron. Babaye ko. 22 ko sir. Ga-eskwela pa intawon.",
+    "entities": [
+      {
+        "text": "Mia",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Talamban",
+        "label": "LOCATION",
+        "start": 32,
+        "end": 40
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 56,
+        "end": 62
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 67,
+        "end": 69
+      }
+    ],
+    "annotation_notes": [
+      "Retained sentences with explicit entity disclosures. Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Daniel akong pangalan. 24 anyos ko. Sa Talisay City ko nagpuyo, kauban sa akong pamilya. Single pa ko.",
+    "entities": [
+      {
+        "text": "Daniel",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "24 anyos",
+        "label": "AGE",
+        "start": 23,
+        "end": 31
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 39,
+        "end": 51
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 89,
+        "end": 98
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Patricia, ma'am. Pero usually Patty akong tawag. Twenty-five na ko.",
+    "entities": [
+      {
+        "text": "Patricia",
+        "label": "NAME",
+        "start": 0,
+        "end": 8
+      },
+      {
+        "text": "Twenty-five",
+        "label": "AGE",
+        "start": 49,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicitly requested entities. Location, Gender, and Civil Status not stated."
+    ]
+  },
+  {
+    "text": "I'm Adrian. 30 na ko. Sa Liloan ko nagpuyo, Cebu. Minyo ko, ma'am. Upat na ka tuig mi sa akong asawa.",
+    "entities": [
+      {
+        "text": "Adrian",
+        "label": "NAME",
+        "start": 4,
+        "end": 10
+      },
+      {
+        "text": "30",
+        "label": "AGE",
+        "start": 12,
+        "end": 14
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 50,
+        "end": 55
+      }
+    ],
+    "annotation_notes": [
+      "Filtered text strictly to entity-containing lines. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Jay na lang ma'am. 21 ko ma'am.",
+    "entities": [
+      {
+        "text": "Jay",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 19,
+        "end": 21
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue with explicitly stated entities. Location, Gender, and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Lexi akong pangalan, kuya. 22 na ko. Naa ko sa akong boarding house ron sa Mambaling. Trans woman ko kuya, female.",
+    "entities": [
+      {
+        "text": "Lexi",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 27,
+        "end": 29
+      },
+      {
+        "text": "Mambaling",
+        "label": "LOCATION",
+        "start": 75,
+        "end": 84
+      },
+      {
+        "text": "female",
+        "label": "GENDER",
+        "start": 107,
+        "end": 113
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics from the dialogue. Civil Status not explicitly stated."
+    ]
+  },
+  {
+    "text": "Ako diay si Bea, sir... Naa ko sa akong dorm sa Lahug karon. 23 ko sir. Single pa, babaye ko.",
+    "entities": [
+      {
+        "text": "Bea",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 48,
+        "end": 53
+      },
+      {
+        "text": "23",
+        "label": "AGE",
+        "start": 61,
+        "end": 63
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 72,
+        "end": 81
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 83,
+        "end": 89
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. "
+    ]
+  },
+  {
+    "text": "Ako si Lani, ma'am. Naa ko diri sa Mactan nag-abang ron. 29 na ko ma'am. Single mom ko, ako ra usa nagpadako sa akong singko anyos nga anak.",
+    "entities": [
+      {
+        "text": "Lani",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "Mactan",
+        "label": "LOCATION",
+        "start": 35,
+        "end": 41
+      },
+      {
+        "text": "29",
+        "label": "AGE",
+        "start": 57,
+        "end": 59
+      },
+      {
+        "text": "Single mom",
+        "label": "CIVIL_STATUS",
+        "start": 73,
+        "end": 83
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics. Gender (female) is implied by 'Single mom' and could be annotated contextually if rules permit, but strictly extracting explicitly stated words yields NAME, LOCATION, AGE, and CIVIL_STATUS."
+    ]
+  },
+  {
+    "text": "Ako diay si Bea. 19 pa ko miss. Diri mi sa Carcar nagpuyo. Single pa ko, ga-eskwela pa intawon",
+    "entities": [
+      {
+        "text": "Bea",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "19",
+        "label": "AGE",
+        "start": 17,
+        "end": 19
+      },
+      {
+        "text": "Carcar",
+        "label": "LOCATION",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 59,
+        "end": 68
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue with explicitly stated entities. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Angela akong pangalan. Baynte syete na ko. Sa Minglanilla ko nagpuyo, kuyog akong pamilya.",
+    "entities": [
+      {
+        "text": "Angela",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Baynte syete",
+        "label": "AGE",
+        "start": 23,
+        "end": 35
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 57
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller details. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Ken. Taga-Naga ko, ma'am. Single pa ma'am. 25 anyos ko.",
+    "entities": [
+      {
+        "text": "Ken",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Naga",
+        "label": "LOCATION",
+        "start": 22,
+        "end": 26
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 38,
+        "end": 47
+      },
+      {
+        "text": "25 anyos",
+        "label": "AGE",
+        "start": 55,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not mentioned."
+    ]
+  },
+  {
+    "text": "Ako diay si Carla, miss. 28 anyos nako, miss. Diri mi nagpuyo sa Consolacion ron. Minyo na ko miss, pero diri ko nag-stay sa balay ni mama ron kay ako may nagbantay sa akong manghod nga nagmasakit. Babaye diay ko.",
+    "entities": [
+      {
+        "text": "Carla",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "28 anyos",
+        "label": "AGE",
+        "start": 25,
+        "end": 33
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 65,
+        "end": 76
+      },
+      {
+        "text": "Minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 82,
+        "end": 90
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 198,
+        "end": 204
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures mapping exactly to explicit terms in the caller's text. "
+    ]
+  },
+  {
+    "text": "Carlo akong pangalan. Baynte dos na ko.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Baynte dos",
+        "label": "AGE",
+        "start": 22,
+        "end": 32
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name and Age. No Location, Gender, or Civil Status mentioned in text. "
+    ]
+  },
+  {
+    "text": "Ako si Marvin. Thirty-two na ko.",
+    "entities": [
+      {
+        "text": "Marvin",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Thirty-two",
+        "label": "AGE",
+        "start": 15,
+        "end": 25
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name and Age. Gender, Location, and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Elena, sir. 42 anyos nako sir, naa mi sa Talisay City nagpuyo karon. Minyo ko, pero ang akong bana naa man sa gawas sa nasud nag-trabaho mao nang ako ra gyud ang nag-atubang ani diri.",
+    "entities": [
+      {
+        "text": "Elena",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "42 anyos",
+        "label": "AGE",
+        "start": 24,
+        "end": 32
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 65
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 81,
+        "end": 86
+      }
+    ],
+    "annotation_notes": [
+      "Caller stated explicitly her Name, Age, Location, and Civil Status. Gender was not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Rowena. Kwarenta anyos na ko.",
+    "entities": [
+      {
+        "text": "Rowena",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Kwarenta anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 29
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Location, Gender, and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Kenneth, sir. Naa ko diri sa Lahug nag-board ron. 22 anyos nako sir. Single pa, ga-eskwela pa intawon ko sa college.",
+    "entities": [
+      {
+        "text": "Kenneth",
+        "label": "NAME",
+        "start": 12,
+        "end": 19
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 41,
+        "end": 46
+      },
+      {
+        "text": "22 anyos",
+        "label": "AGE",
+        "start": 62,
+        "end": 70
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 81,
+        "end": 90
+      }
+    ],
+    "annotation_notes": [
+      "Parsed caller identification explicitly stated. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Trisha, sir. Naa ko sa Mandaue nag-rent ron. 26 ko sir, ug single pa. Babaye ko.",
+    "entities": [
+      {
+        "text": "Trisha",
+        "label": "NAME",
+        "start": 12,
+        "end": 18
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 35,
+        "end": 42
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 57,
+        "end": 59
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 71,
+        "end": 80
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 82,
+        "end": 88
+      }
+    ],
+    "annotation_notes": [
+      "Extracted all 5 entity types as explicitly provided by the caller. Re-indexed character offsets accurately. "
+    ]
+  },
+  {
+    "text": "Ako diay si Marites, sir. Diri ko sa Liloan nagpuyo karon. 45 na ko sir. Minyo na sad, babaye ko.",
+    "entities": [
+      {
+        "text": "Marites",
+        "label": "NAME",
+        "start": 12,
+        "end": 19
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 37,
+        "end": 43
+      },
+      {
+        "text": "45",
+        "label": "AGE",
+        "start": 59,
+        "end": 61
+      },
+      {
+        "text": "Minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 73,
+        "end": 81
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 87,
+        "end": 93
+      }
+    ],
+    "annotation_notes": [
+      "Extracted all 5 entity types perfectly mapped to their new string offsets. "
+    ]
+  },
+  {
+    "text": "Gio lang akong pangalan miss. Pero... pwede dili lang nako isulti kung asa ko karon? Gusto lang ko mag-inusara ron, dili nako feel isulti akong location. 30 na ko miss. Single ra ko.",
+    "entities": [
+      {
+        "text": "Gio",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "30",
+        "label": "AGE",
+        "start": 154,
+        "end": 156
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 169,
+        "end": 175
+      }
+    ],
+    "annotation_notes": [
+      "Caller declined to share their location. Gender not explicitly provided."
+    ]
+  },
+  {
+    "text": "Michelle akong pangalan, ma'am. Baynte dos na ko.",
+    "entities": [
+      {
+        "text": "Michelle",
+        "label": "NAME",
+        "start": 0,
+        "end": 8
+      },
+      {
+        "text": "Baynte dos",
+        "label": "AGE",
+        "start": 32,
+        "end": 42
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name and age. Location, Gender, and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Vince akong pangalan, miss. 32 anyos nako miss. Diri ko sa City of Naga nag-stay karon. Single ko miss. Ug gay ko, male.",
+    "entities": [
+      {
+        "text": "Vince",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "32 anyos",
+        "label": "AGE",
+        "start": 28,
+        "end": 36
+      },
+      {
+        "text": "City of Naga",
+        "label": "LOCATION",
+        "start": 59,
+        "end": 71
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 88,
+        "end": 94
+      },
+      {
+        "text": "male",
+        "label": "GENDER",
+        "start": 115,
+        "end": 119
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures matching the requested entity types. "
+    ]
+  },
+  {
+    "text": "Teresa akong ngalan sir. Taga-Danao City ko. Oo sir, minyo na ko. 38 anyos na.",
+    "entities": [
+      {
+        "text": "Teresa",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Danao City",
+        "label": "LOCATION",
+        "start": 30,
+        "end": 40
+      },
+      {
+        "text": "minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 53,
+        "end": 61
+      },
+      {
+        "text": "38 anyos",
+        "label": "AGE",
+        "start": 66,
+        "end": 74
+      }
+    ],
+    "annotation_notes": [
+      "Caller stated explicitly her Name, Age, Location, and Civil Status. Gender was not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "I'm Denise. Thirty-three na ko. Sa Danao City ko nagpuyo, kuyog sa akong bana ug anak. Pito na ka tuig mi minyo.",
+    "entities": [
+      {
+        "text": "Denise",
+        "label": "NAME",
+        "start": 4,
+        "end": 10
+      },
+      {
+        "text": "Thirty-three",
+        "label": "AGE",
+        "start": 12,
+        "end": 24
+      },
+      {
+        "text": "Danao City",
+        "label": "LOCATION",
+        "start": 35,
+        "end": 45
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 106,
+        "end": 111
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Rina, sir. 28 na ko. Taga-Lapu-Lapu ko sir, pero naa nako tig-ulian sa balay sa akong partner ron. O sir, mga two years na mi nag-ipon. Babaye diay ko sir",
+    "entities": [
+      {
+        "text": "Rina",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "28",
+        "label": "AGE",
+        "start": 23,
+        "end": 25
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 38,
+        "end": 47
+      },
+      {
+        "text": "nag-ipon",
+        "label": "CIVIL_STATUS",
+        "start": 138,
+        "end": 146
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 148,
+        "end": 154
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographics. 'nag-ipon' captures civil status (living together). "
+    ]
+  },
+  {
+    "text": "Mika akong pangalan. 23 anyos ko.",
+    "entities": [
+      {
+        "text": "Mika",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "23 anyos",
+        "label": "AGE",
+        "start": 21,
+        "end": 29
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name and Age. Gender, Location, and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Jasmine, ma'am. Jas ang tawag sa akong friends. Baynte otso na ko. Sa Lapu-Lapu City ko nagpuyo.",
+    "entities": [
+      {
+        "text": "Jasmine",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Baynte otso",
+        "label": "AGE",
+        "start": 48,
+        "end": 59
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 70,
+        "end": 84
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Neil akong pangalan. Traynta na ko, ma'am. Lalaki ko. Sa Cordova ko nagpuyo. Oo, single pa ko.",
+    "entities": [
+      {
+        "text": "Neil",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Traynta",
+        "label": "AGE",
+        "start": 21,
+        "end": 28
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 43,
+        "end": 49
+      },
+      {
+        "text": "Cordova",
+        "label": "LOCATION",
+        "start": 57,
+        "end": 64
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 81,
+        "end": 90
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts mapping exactly to all target entities. "
+    ]
+  },
+  {
+    "text": "Jenny lang sir. Naa ko sa Toledo City karon sir. Thirty-three na ko.",
+    "entities": [
+      {
+        "text": "Jenny",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Toledo City",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 37
+      },
+      {
+        "text": "Thirty-three",
+        "label": "AGE",
+        "start": 49,
+        "end": 61
+      }
+    ],
+    "annotation_notes": [
+      "Caller stated Name, Location, and Age. Gender and Civil Status were not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Tawga lang ko og Grace, sir. 26 na ko sir. Naa mi sa Mandaue nag-rent karon.",
+    "entities": [
+      {
+        "text": "Grace",
+        "label": "NAME",
+        "start": 17,
+        "end": 22
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 29,
+        "end": 31
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Ako si Francis. Baynte syete na ko.",
+    "entities": [
+      {
+        "text": "Francis",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "Baynte syete",
+        "label": "AGE",
+        "start": 16,
+        "end": 28
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name and Age. Gender, Location, and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Ako diay si Sarah, sir. Naa ko sa akong kwarto ron sa balay sa akong ginikanan diri sa Consolacion. 24 ko sir. Wala pa mi nag-ipon",
+    "entities": [
+      {
+        "text": "Sarah",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 87,
+        "end": 98
+      },
+      {
+        "text": "24",
+        "label": "AGE",
+        "start": 100,
+        "end": 102
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics. Gender and Civil Status not explicitly stated in caller's text. "
+    ]
+  },
+  {
+    "text": "Clara akong pangalan... Naa ko sa akong kwarto sa Lapu-Lapu. 25 ko sir. Single.",
+    "entities": [
+      {
+        "text": "Clara",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Lapu-Lapu",
+        "label": "LOCATION",
+        "start": 50,
+        "end": 59
+      },
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 61,
+        "end": 63
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 72,
+        "end": 78
+      }
+    ],
+    "annotation_notes": [
+      "Caller provided Name, Location, Age, and Civil Status. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Aris, sir... Naa ko sa akong kwarto ron sa Talisay. 19 ko sir... single, ga-eskwela pa unta. Lalaki ko sir.",
+    "entities": [
+      {
+        "text": "Aris",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 50,
+        "end": 57
+      },
+      {
+        "text": "19",
+        "label": "AGE",
+        "start": 59,
+        "end": 61
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 72,
+        "end": 78
+      },
+      {
+        "text": "Lalaki",
+        "label": "GENDER",
+        "start": 100,
+        "end": 106
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit entity disclosures covering all categories. "
+    ]
+  },
+  {
+    "text": "Ako si Maria, sir... Naa ko sa among bodega karon diri sa Carcar City. 38 na ko sir... Minyo. Naa koy tulo ka anak, babaye ko.",
+    "entities": [
+      {
+        "text": "Maria",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 58,
+        "end": 69
+      },
+      {
+        "text": "38",
+        "label": "AGE",
+        "start": 71,
+        "end": 73
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 87,
+        "end": 92
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 116,
+        "end": 122
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. Re-indexed correctly. "
+    ]
+  },
+  {
+    "text": "Miko na lang, ma'am. 29 anyos na ko, ma'am. Naa ko sa Mabolo nag-stay ron.",
+    "entities": [
+      {
+        "text": "Miko",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "29 anyos",
+        "label": "AGE",
+        "start": 21,
+        "end": 29
+      },
+      {
+        "text": "Mabolo",
+        "label": "LOCATION",
+        "start": 54,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, and Location. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Camille akong pangalan, ma'am. Baynte kwatro na ko. Sa Minglanilla ko nagpuyo, kuyog sa akong mama ug manghod.",
+    "entities": [
+      {
+        "text": "Camille",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Baynte kwatro",
+        "label": "AGE",
+        "start": 31,
+        "end": 44
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 55,
+        "end": 66
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Jonas akong pangalan, sir. Naa ko diri dapit sa IT Park sa Cebu City nag-lingkod sa daplin. 25 na ko sir. Single pa, pero ako ang nagbuhi sa akong mga manghod sa probinsya.",
+    "entities": [
+      {
+        "text": "Jonas",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 59,
+        "end": 68
+      },
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 92,
+        "end": 94
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 106,
+        "end": 115
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying Name, Location, Age, and Civil Status. Gender not explicitly mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Carlo, miss. Naa ko diri sa City of Naga nagpuyo ron. 34 na ko miss. Minyo na sad, naa koy duha ka anak.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "City of Naga",
+        "label": "LOCATION",
+        "start": 40,
+        "end": 52
+      },
+      {
+        "text": "34",
+        "label": "AGE",
+        "start": 66,
+        "end": 68
+      },
+      {
+        "text": "Minyo na",
+        "label": "CIVIL_STATUS",
+        "start": 81,
+        "end": 89
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, Age, and Civil Status. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Angela akong pangalan, ma'am. Baynte otso na ko. Sa Carcar City ko nagpuyo. Single pa ko.",
+    "entities": [
+      {
+        "text": "Angela",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Baynte otso",
+        "label": "AGE",
+        "start": 30,
+        "end": 41
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 52,
+        "end": 63
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 76,
+        "end": 85
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Roberto. Traynta kwatro na ko. Sa Liloan ko nagpuyo, kuyog akong pamilya. Minyo ko, ma'am.",
+    "entities": [
+      {
+        "text": "Roberto",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "Traynta kwatro",
+        "label": "AGE",
+        "start": 16,
+        "end": 30
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 41,
+        "end": 47
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 81,
+        "end": 86
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated explicitly in the dialogue lines kept. "
+    ]
+  },
+  {
+    "text": "Rico lang. Thirty-three na ko. Sa Minglanilla, Cebu. Oo, married na mi for six years.",
+    "entities": [
+      {
+        "text": "Rico",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Thirty-three",
+        "label": "AGE",
+        "start": 11,
+        "end": 23
+      },
+      {
+        "text": "Minglanilla, Cebu",
+        "label": "LOCATION",
+        "start": 34,
+        "end": 51
+      },
+      {
+        "text": "married",
+        "label": "CIVIL_STATUS",
+        "start": 57,
+        "end": 64
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. Name, Age, Location, and Civil Status matched successfully. Gender not explicitly stated in text kept."
+    ]
+  },
+  {
+    "text": "Ako si Camille, ma'am. Baynte dos na ko. Sa Lapu-Lapu City ko nagpuyo, kuyog sa akong pamilya. Single pa ko.",
+    "entities": [
+      {
+        "text": "Camille",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "Baynte dos",
+        "label": "AGE",
+        "start": 23,
+        "end": 33
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 58
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 95,
+        "end": 104
+      }
+    ],
+    "annotation_notes": [
+      "Retained sentences with explicit entity disclosures. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako si Alyssa, ma'am. Seventeen na ko. Sa Lapu-Lapu City ko nagpuyo, kuyog akong mama ug akong manghod.",
+    "entities": [
+      {
+        "text": "Alyssa",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Seventeen",
+        "label": "AGE",
+        "start": 22,
+        "end": 31
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 42,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Kim, ma'am. Naa ko sa akong dorm sa Urgello karon. 20 anyos ma'am, 2nd year college ko.",
+    "entities": [
+      {
+        "text": "Kim",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 48,
+        "end": 55
+      },
+      {
+        "text": "20 anyos",
+        "label": "AGE",
+        "start": 63,
+        "end": 71
+      }
+    ],
+    "annotation_notes": [
+      "Caller stated explicitly her Name, Location, and Age. Gender and Civil Status were not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Nicole akong pangalan. Nineteen na ko. Babaye ko, ma'am. Sa Mandaue City ko nagpuyo, kuyog sa akong mama ug manghod.",
+    "entities": [
+      {
+        "text": "Nicole",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Nineteen",
+        "label": "AGE",
+        "start": 23,
+        "end": 31
+      },
+      {
+        "text": "Babaye",
+        "label": "GENDER",
+        "start": 39,
+        "end": 45
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 60,
+        "end": 72
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures matching the requested entity types. Civil Status not mentioned. ."
+    ]
+  },
+  {
+    "text": "Evelyn akong pangalan. Traynta dos na ko. Sa Carcar City ko nagpuyo, ma'am.",
+    "entities": [
+      {
+        "text": "Evelyn",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Traynta dos",
+        "label": "AGE",
+        "start": 23,
+        "end": 34
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. All target entities present and annotated. Civil Status is mentioned as 'Separated mi sa iyang papa sulod na sa tulo ka tuig' but not strictly captured by exact string. "
+    ]
+  },
+  {
+    "text": "Ako si Michelle, ma'am. Naa mi sa among balay sa Liloan... nag-lock ko sa CR. 30 anyos ko ma'am.",
+    "entities": [
+      {
+        "text": "Michelle",
+        "label": "NAME",
+        "start": 7,
+        "end": 15
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 49,
+        "end": 55
+      },
+      {
+        "text": "30 anyos",
+        "label": "AGE",
+        "start": 78,
+        "end": 86
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller demographics from the dialogue. Gender and Civil Status not explicitly stated in text but can be inferred. "
+    ]
+  },
+  {
+    "text": "Marissa akong pangalan, ma'am. Traynta uno na ko. Sa Danao City ko nagpuyo, kuyog akong bana ug among anak.",
+    "entities": [
+      {
+        "text": "Marissa",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Traynta uno",
+        "label": "AGE",
+        "start": 31,
+        "end": 42
+      },
+      {
+        "text": "Danao City",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, age, and location. Gender not explicitly mentioned. Civil Status implied but no single word extracted. "
+    ]
+  },
+  {
+    "text": "Ako diay si Joy, sir. Naa ko sa akong boarding house karon diri sa Mabolo. 27 na ko sir.",
+    "entities": [
+      {
+        "text": "Joy",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Mabolo",
+        "label": "LOCATION",
+        "start": 67,
+        "end": 73
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 75,
+        "end": 77
+      }
+    ],
+    "annotation_notes": [
+      "Retained sentences with explicit entity disclosures. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Ako si Ana, sir. Naa ko sa among balay karon sa Carcar. 32 ko sir.",
+    "entities": [
+      {
+        "text": "Ana",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "Carcar",
+        "label": "LOCATION",
+        "start": 48,
+        "end": 54
+      },
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 56,
+        "end": 58
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Jun, sir. Naa ko diri sa akong gitrabahoan sa Carreta. 35 anyos sir. Minyo, naa koy tulo ka anak, kargador ra intawon ko diri sa pier.",
+    "entities": [
+      {
+        "text": "Jun",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "Carreta",
+        "label": "LOCATION",
+        "start": 53,
+        "end": 60
+      },
+      {
+        "text": "35 anyos",
+        "label": "AGE",
+        "start": 62,
+        "end": 70
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 76,
+        "end": 81
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, Age, and Civil Status. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Katrina akong pangalan, ma'am. Twenty-seven na ko. Sa Talisay City ko nagpuyo, kauban sa akong mama. Single pa ko, ma'am.",
+    "entities": [
+      {
+        "text": "Katrina",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Twenty-seven",
+        "label": "AGE",
+        "start": 31,
+        "end": 43
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 54,
+        "end": 66
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 101,
+        "end": 110
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise to extract explicitly provided caller demographics. "
+    ]
+  },
+  {
+    "text": "Ako si Jerome, ma'am. Baynte otso na ko. Sa Consolacion ko nagpuyo, kuyog akong asawa.",
+    "entities": [
+      {
+        "text": "Jerome",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Baynte otso",
+        "label": "AGE",
+        "start": 22,
+        "end": 33
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 55
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not explicitly stated, although having a wife implies being married and male. "
+    ]
+  },
+  {
+    "text": "Ako si Lisa, miss. Naa ko sa among balay sa Minglanilla ron. 22 ko miss.",
+    "entities": [
+      {
+        "text": "Lisa",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 55
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 61,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not mentioned."
+    ]
+  },
+  {
+    "text": "Ako si Denise, ma'am. Baynte uno na ko. Sa Talisay City ko nagpuyo, kuyog sa akong mama ug duha nako ka manghod. Oo, single pa ko.",
+    "entities": [
+      {
+        "text": "Denise",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "Baynte uno",
+        "label": "AGE",
+        "start": 22,
+        "end": 32
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 43,
+        "end": 55
+      },
+      {
+        "text": "single pa",
+        "label": "CIVIL_STATUS",
+        "start": 117,
+        "end": 126
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Nina, 26 anyos, babaye, single. Taga-Mandaue City ko.",
+    "entities": [
+      {
+        "text": "Nina",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "26 anyos",
+        "label": "AGE",
+        "start": 13,
+        "end": 21
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 23,
+        "end": 29
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 31,
+        "end": 37
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Ako diay si Rina, sir. Naa ko nag-lock sulod sa CR diri sa library namo sa Talamban. 22 ko sir",
+    "entities": [
+      {
+        "text": "Rina",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Talamban",
+        "label": "LOCATION",
+        "start": 75,
+        "end": 83
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 85,
+        "end": 87
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako si Ben, sir. Naa ko nagtindog karon sa fire exit sa among building diri sa IT Park. 21 ko sir",
+    "entities": [
+      {
+        "text": "Ben",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "IT Park",
+        "label": "LOCATION",
+        "start": 79,
+        "end": 86
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 88,
+        "end": 90
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, age, and location. Gender and Civil Status not explicitly stated in the conversation. "
+    ]
+  },
+  {
+    "text": "Ako diay si Sam, miss. Naa ko sa akong boarding house karon sa Urgello. 20 anyos ko miss.",
+    "entities": [
+      {
+        "text": "Sam",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 63,
+        "end": 70
+      },
+      {
+        "text": "20 anyos",
+        "label": "AGE",
+        "start": 72,
+        "end": 80
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Mark, miss. 22 ko miss.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 19,
+        "end": 21
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Joshua lang. Twenty-one. Sa Talisay City, Cebu. Single ko ug nagpuyo uban sa akong ginikanan.",
+    "entities": [
+      {
+        "text": "Joshua",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Twenty-one",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 40
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 48,
+        "end": 54
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako si Rhea, 22 anyos, babaye, single. Taga-Balamban ko, pero usahay magpuyo ko sa akong auntie duol sa school.",
+    "entities": [
+      {
+        "text": "Rhea",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "22 anyos",
+        "label": "AGE",
+        "start": 13,
+        "end": 21
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 23,
+        "end": 29
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 31,
+        "end": 37
+      },
+      {
+        "text": "Balamban",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 52
+      }
+    ],
+    "annotation_notes": [
+      "Extracted all caller demographics seamlessly from caller utterance. "
+    ]
+  },
+  {
+    "text": "Ako si Harold, 34 anyos, lalaki, minyo. Taga-Carcar City ko.",
+    "entities": [
+      {
+        "text": "Harold",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "34 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 38
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted the single sentence providing all requested demographic details. "
+    ]
+  },
+  {
+    "text": "Kevin lang. Twenty-four. Sa Mandaue City. Single ko ug nagpuyo uban sa akong ginikanan.",
+    "entities": [
+      {
+        "text": "Kevin",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-four",
+        "label": "AGE",
+        "start": 12,
+        "end": 23
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 40
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 48
+      }
+    ],
+    "annotation_notes": [
+      "Parsed caller identification explicitly stated. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Victor lang. Thirty-eight. Sa Mandaue City. Minyo ko ug naa koy usa ka anak.",
+    "entities": [
+      {
+        "text": "Victor",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-eight",
+        "label": "AGE",
+        "start": 13,
+        "end": 25
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 30,
+        "end": 42
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 44,
+        "end": 49
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako si Joel, 40 anyos, lalaki, minyo. Taga-Naga City ko.",
+    "entities": [
+      {
+        "text": "Joel",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "40 anyos",
+        "label": "AGE",
+        "start": 13,
+        "end": 21
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 23,
+        "end": 29
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 31,
+        "end": 36
+      },
+      {
+        "text": "Naga City",
+        "label": "LOCATION",
+        "start": 43,
+        "end": 52
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing all requested entity types. "
+    ]
+  },
+  {
+    "text": "Ako si Rex, sir. Naa ko nag-park ron sa daplin sa karsada sa AS Fortuna. 34 ko sir.",
+    "entities": [
+      {
+        "text": "Rex",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "AS Fortuna",
+        "label": "LOCATION",
+        "start": 61,
+        "end": 71
+      },
+      {
+        "text": "34",
+        "label": "AGE",
+        "start": 73,
+        "end": 75
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences containing Name, Location, and Age. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Carlo lang. Thirty ko. Sa Lapu-Lapu City. Minyo ko, ug naa koy anak nga tulo anyos.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Thirty",
+        "label": "AGE",
+        "start": 12,
+        "end": 18
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 40
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 47
+      }
+    ],
+    "annotation_notes": [
+      "Parsed caller identification explicitly stated. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Marlon lang. Thirty-four. Sa Mandaue City. Minyo ko, pero wala pa mi anak sa akong asawa.",
+    "entities": [
+      {
+        "text": "Marlon",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-four",
+        "label": "AGE",
+        "start": 13,
+        "end": 24
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 41
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 43,
+        "end": 48
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako si Dennis, 31 anyos, lalaki, minyo. Taga-Minglanilla ko.",
+    "entities": [
+      {
+        "text": "Dennis",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "31 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 38
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted the single sentence providing all requested demographic details. "
+    ]
+  },
+  {
+    "text": "Jay lang. Twenty-six. Sa Cebu City. Single pa ko.",
+    "entities": [
+      {
+        "text": "Jay",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Twenty-six",
+        "label": "AGE",
+        "start": 10,
+        "end": 20
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 34
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 36,
+        "end": 45
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Vince lang. Twenty-two. Sa Cordova, Cebu. Single ko",
+    "entities": [
+      {
+        "text": "Vince",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-two",
+        "label": "AGE",
+        "start": 12,
+        "end": 22
+      },
+      {
+        "text": "Cordova, Cebu",
+        "label": "LOCATION",
+        "start": 27,
+        "end": 40
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 48
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Lea, sir. Naa ko sa akong boarding house karon diri sa Lahug. 22 ko sir.",
+    "entities": [
+      {
+        "text": "Lea",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 67,
+        "end": 72
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 74,
+        "end": 76
+      }
+    ],
+    "annotation_notes": [
+      "Caller provided Name, Location, and Age. Gender and Civil Status were not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Carlo, sir. Naa ko sa akong kwarto karon sa Mambaling. 25 ko sir.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Mambaling",
+        "label": "LOCATION",
+        "start": 56,
+        "end": 65
+      },
+      {
+        "text": "25",
+        "label": "AGE",
+        "start": 67,
+        "end": 69
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicitly requested entities. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Ella, sir. Naa ko sa akong kwarto karon diri sa boarding house sa Pardo. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Ella",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Pardo",
+        "label": "LOCATION",
+        "start": 78,
+        "end": 83
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 85,
+        "end": 87
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying Name, Location, and Age. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Justine, sir. Naa ko sa sulod sa cubicle sa CR diri sa among eskwelahan. Naka-lock ko, sir. 19 ko sir.",
+    "entities": [
+      {
+        "text": "Justine",
+        "label": "NAME",
+        "start": 12,
+        "end": 19
+      },
+      {
+        "text": "19",
+        "label": "AGE",
+        "start": 104,
+        "end": 106
+      }
+    ],
+    "annotation_notes": [
+      "Caller stated explicitly Name and Age. Gender, Location (general), and Civil Status were not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Trisha, 24 anyos, babaye, single. Taga-Liloan ko.",
+    "entities": [
+      {
+        "text": "Trisha",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "24 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 39
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 52
+      }
+    ],
+    "annotation_notes": [
+      "Extracted relevant demographic disclosures matching the requested entity types. "
+    ]
+  },
+  {
+    "text": "Ako si Ken, sir. Naa ko nag-lock sulod sa cubicle sa CR sa among eskwelahan diri sa siyudad. 16 anyos ko sir",
+    "entities": [
+      {
+        "text": "Ken",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "siyudad",
+        "label": "LOCATION",
+        "start": 84,
+        "end": 91
+      },
+      {
+        "text": "16 anyos",
+        "label": "AGE",
+        "start": 93,
+        "end": 101
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location (general), and Age. Gender and Civil Status were not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Carlo, 25 anyos, lalaki, single. Taga-Lapu-Lapu City ko.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "25 anyos",
+        "label": "AGE",
+        "start": 14,
+        "end": 22
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 24,
+        "end": 30
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 32,
+        "end": 38
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Kaye lang. Nineteen. Sa Talisay City, Cebu. College student ko ug single.",
+    "entities": [
+      {
+        "text": "Kaye",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Nineteen",
+        "label": "AGE",
+        "start": 11,
+        "end": 19
+      },
+      {
+        "text": "Talisay City, Cebu",
+        "label": "LOCATION",
+        "start": 24,
+        "end": 42
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 66,
+        "end": 72
+      }
+    ],
+    "annotation_notes": [
+      "Filtered out conversation noise. Name, Age, Location, and Civil Status matched successfully. Gender not explicitly stated in text kept. "
+    ]
+  },
+  {
+    "conversation_id": "CONV_152",
+    "text": "Ako si Kyla, 19 anyos, babaye, single. Taga-Lapu-Lapu City ko.",
+    "entities": [
+      {
+        "text": "Kyla",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "19 anyos",
+        "label": "AGE",
+        "start": 13,
+        "end": 21
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 23,
+        "end": 29
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 31,
+        "end": 37
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 58
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographic data covering all requested entity types. Referenced file: a_cyberbully2.txt[cite: 6]."
+    ]
+  },
+  {
+    "conversation_id": "CONV_153",
+    "text": "Ruben lang. Thirty-seven. Sa Minglanilla, Cebu. Minyo ko, naa koy asawa ug usa ka anak.",
+    "entities": [
+      {
+        "text": "Ruben",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Thirty-seven",
+        "label": "AGE",
+        "start": 12,
+        "end": 24
+      },
+      {
+        "text": "Minglanilla, Cebu",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 46
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 48,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Gender not explicitly stated. Referenced file: a_depression.txt[cite: 7]."
+    ]
+  },
+  {
+    "conversation_id": "CONV_154",
+    "text": "Nicole lang. Twenty-six. Sa Bogo City, Cebu. Single ko, babaye, ug nagpuyo ko uban sa akong tiya.",
+    "entities": [
+      {
+        "text": "Nicole",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Twenty-six",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Bogo City, Cebu",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 43
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 45,
+        "end": 51
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 56,
+        "end": 62
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. All entity types are provided. Referenced file: a_depression2.txt[cite: 8]."
+    ]
+  },
+  {
+    "conversation_id": "CONV_155",
+    "text": "Kevin lang. Twenty-nine. Sa Mandaue City ko nagpuyo. Single ko ug kauban nako akong ginikanan.",
+    "entities": [
+      {
+        "text": "Kevin",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-nine",
+        "label": "AGE",
+        "start": 12,
+        "end": 23
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 40
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 53,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender not mentioned. Referenced file: a_drug.txt[cite: 9]."
+    ]
+  },
+  {
+    "conversation_id": "CONV_156",
+    "text": "Ako si Marvin, 29 anyos, lalaki, single. Taga-Cordova ko.",
+    "entities": [
+      {
+        "text": "Marvin",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "29 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 39
+      },
+      {
+        "text": "Cordova",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Janelle lang. Twenty-four. Sa Carcar City. Naa ra ko sa among balay karon.",
+    "entities": [
+      {
+        "text": "Janelle",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Twenty-four",
+        "label": "AGE",
+        "start": 14,
+        "end": 25
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 30,
+        "end": 41
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, and Location. Gender and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Ako si Kian, sir. Naa ko sa akong boarding house karon diri duol sa MJ Cuenco. 22 ko sir.",
+    "entities": [
+      {
+        "text": "Kian",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "MJ Cuenco",
+        "label": "LOCATION",
+        "start": 68,
+        "end": 77
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 79,
+        "end": 81
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako si Maya, sir. Naa ko sa akong kwarto karon sa Mandaue. 25 anyos ko sir.",
+    "entities": [
+      {
+        "text": "Maya",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 50,
+        "end": 57
+      },
+      {
+        "text": "25 anyos",
+        "label": "AGE",
+        "start": 59,
+        "end": 67
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing Name, Location, and Age. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Paolo lang. Twenty-eight. Sa Talisay City, Cebu. Single ko, ug nagpuyo ko uban sa akong kuya.",
+    "entities": [
+      {
+        "text": "Paolo",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-eight",
+        "label": "AGE",
+        "start": 12,
+        "end": 24
+      },
+      {
+        "text": "Talisay City, Cebu",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 47
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 49,
+        "end": 55
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender was not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Nico, sir. Naa ko sa akong kwarto karon sa among balay sa Minglanilla. 24 ko sir.",
+    "entities": [
+      {
+        "text": "Nico",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 70,
+        "end": 81
+      },
+      {
+        "text": "24",
+        "label": "AGE",
+        "start": 83,
+        "end": 85
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Mikael lang. Twenty-one. Sa Minglanilla, Cebu. Single ko ug nagpuyo ko uban sa akong mama ug manghod.",
+    "entities": [
+      {
+        "text": "Mikael",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Twenty-one",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Minglanilla, Cebu",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 45
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 47,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts mapping exactly to target entities. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Elena, sir. Naa ko nag-lock sa banyo karon sa among balay sa Talisay. 32 ko sir.",
+    "entities": [
+      {
+        "text": "Elena",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 73,
+        "end": 80
+      },
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 82,
+        "end": 84
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Anton, miss. Naa ko sa usa ka pension house karon diri sa Sanciangko. 28 ko miss.",
+    "entities": [
+      {
+        "text": "Anton",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Sanciangko",
+        "label": "LOCATION",
+        "start": 70,
+        "end": 80
+      },
+      {
+        "text": "28",
+        "label": "AGE",
+        "start": 82,
+        "end": 84
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Mark, sir. Naa ko sa among giabangan nga apartment karon sa Lahug. 28 ko sir.",
+    "entities": [
+      {
+        "text": "Mark",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Lahug",
+        "label": "LOCATION",
+        "start": 72,
+        "end": 77
+      },
+      {
+        "text": "28",
+        "label": "AGE",
+        "start": 79,
+        "end": 81
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not stated. ."
+    ]
+  },
+  {
+    "text": "Ako diay si Mia, sir. Naa ko sa akong boarding house karon, nag-lock sa kwarto. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Mia",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 80,
+        "end": 82
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences. Gender, Location, and Civil Status not explicitly mentioned in the text. "
+    ]
+  },
+  {
+    "text": "Ako si Rowena, 39 anyos, babaye, minyo. Taga-Minglanilla ko.",
+    "entities": [
+      {
+        "text": "Rowena",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "39 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 38
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 45,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Ako si Carlo, sir. Naa mi sa Labangon nagpuyo. 23 ko sir.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Labangon",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 37
+      },
+      {
+        "text": "23",
+        "label": "AGE",
+        "start": 47,
+        "end": 49
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Roberto lang. Bob man ang tawag sa akong pamilya. Thirty-five. Sa Toledo City, Cebu.",
+    "entities": [
+      {
+        "text": "Roberto",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Thirty-five",
+        "label": "AGE",
+        "start": 50,
+        "end": 61
+      },
+      {
+        "text": "Toledo City, Cebu",
+        "label": "LOCATION",
+        "start": 66,
+        "end": 83
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Nanay Carmen, sir. Naa ko nag-inusara diri sa akong karaan nga balay sa Carcar. 68 anyos na ko sir. Singko anyos na nga biyuda.",
+    "entities": [
+      {
+        "text": "Carmen",
+        "label": "NAME",
+        "start": 18,
+        "end": 24
+      },
+      {
+        "text": "Carcar",
+        "label": "LOCATION",
+        "start": 84,
+        "end": 90
+      },
+      {
+        "text": "68 anyos",
+        "label": "AGE",
+        "start": 92,
+        "end": 100
+      },
+      {
+        "text": "biyuda",
+        "label": "CIVIL_STATUS",
+        "start": 132,
+        "end": 138
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. Gender not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako si Clarice, sir. Naa ko sa akong boarding house karon diri sa Pardo. 19 anyos pa ko sir",
+    "entities": [
+      {
+        "text": "Clarice",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "Pardo",
+        "label": "LOCATION",
+        "start": 66,
+        "end": 71
+      },
+      {
+        "text": "19 anyos",
+        "label": "AGE",
+        "start": 73,
+        "end": 81
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Trisha lang. Twenty-three. Sa Carcar City. Uban ko sa akong papa, mama, ug duha nako ka manghod. Single pa ko.",
+    "entities": [
+      {
+        "text": "Trisha",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Twenty-three",
+        "label": "AGE",
+        "start": 13,
+        "end": 25
+      },
+      {
+        "text": "Carcar City",
+        "label": "LOCATION",
+        "start": 30,
+        "end": 41
+      },
+      {
+        "text": "Single pa",
+        "label": "CIVIL_STATUS",
+        "start": 97,
+        "end": 106
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Maya, miss. Naa ko sa akong boarding house karon diri sa Apas. 26 ko miss.",
+    "entities": [
+      {
+        "text": "Maya",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Apas",
+        "label": "LOCATION",
+        "start": 69,
+        "end": 73
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 75,
+        "end": 77
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Ana, sir. Naa mi sa Minglanilla nagpuyo. 22 ko sir.",
+    "entities": [
+      {
+        "text": "Ana",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Minglanilla",
+        "label": "LOCATION",
+        "start": 32,
+        "end": 43
+      },
+      {
+        "text": "22",
+        "label": "AGE",
+        "start": 53,
+        "end": 55
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences containing Name, Location, and Age. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Joy, sir. Naa ko sa akong kwarto karon diri sa Tisa. 20 ko sir.",
+    "entities": [
+      {
+        "text": "Joy",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Tisa",
+        "label": "LOCATION",
+        "start": 59,
+        "end": 63
+      },
+      {
+        "text": "20",
+        "label": "AGE",
+        "start": 65,
+        "end": 67
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Elena, sir. Naa ko sa sulod sa among banyo karon diri sa Talisay. 42 ko sir.",
+    "entities": [
+      {
+        "text": "Elena",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 69,
+        "end": 76
+      },
+      {
+        "text": "42",
+        "label": "AGE",
+        "start": 78,
+        "end": 80
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not explicitly stated but implied contextually (mother/wife). "
+    ]
+  },
+  {
+    "text": "Ako diay si Samantha, sir. Naa ko sa luyo sa among balay karon diri sa Talamban... sa garden sa akong Lola. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Samantha",
+        "label": "NAME",
+        "start": 12,
+        "end": 20
+      },
+      {
+        "text": "Talamban",
+        "label": "LOCATION",
+        "start": 71,
+        "end": 79
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 108,
+        "end": 110
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographics. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Liza, sir. Naa ko sa akong giabangan nga kwarto karon diri sa Urgello. 23 ko sir.",
+    "entities": [
+      {
+        "text": "Liza",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 74,
+        "end": 81
+      },
+      {
+        "text": "23",
+        "label": "AGE",
+        "start": 83,
+        "end": 85
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts mapping exactly to target entities. Gender and Civil Status not stated. "
+    ]
+  },
+  {
+    "text": "Maricel lang. Twenty-eight. Sa Talisay City, Cebu. Separated mi sa iyang papa.",
+    "entities": [
+      {
+        "text": "Maricel",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Twenty-eight",
+        "label": "AGE",
+        "start": 14,
+        "end": 26
+      },
+      {
+        "text": "Talisay City, Cebu",
+        "label": "LOCATION",
+        "start": 31,
+        "end": 49
+      },
+      {
+        "text": "Separated",
+        "label": "CIVIL_STATUS",
+        "start": 51,
+        "end": 60
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender was not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Junjun lang. Thirty-two. Sa Talisay City, Cebu. Minyo ko ug naa koy anak nga upat anyos.",
+    "entities": [
+      {
+        "text": "Junjun",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-two",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Talisay City, Cebu",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 46
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 48,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender not explicitly mentioned. "
+    ]
+  },
+  {
+    "text": "Arnel lang. Forty ko. Sa Naga City, Cebu. Separated ko ug nagpuyo ko uban sa akong anak nga dose anyos.",
+    "entities": [
+      {
+        "text": "Arnel",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Forty",
+        "label": "AGE",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Naga City, Cebu",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 40
+      },
+      {
+        "text": "Separated",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 51
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Maribel, 33 anyos, babaye, minyo. Taga-Liloan ko.",
+    "entities": [
+      {
+        "text": "Maribel",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "33 anyos",
+        "label": "AGE",
+        "start": 9,
+        "end": 17
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 19,
+        "end": 25
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 27,
+        "end": 32
+      },
+      {
+        "text": "Liloan",
+        "label": "LOCATION",
+        "start": 39,
+        "end": 45
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing all requested entity types. "
+    ]
+  },
+  {
+    "text": "Ako diay si Dennis, sir. Naa ko sa SRP karon, naglingkod diri sa seawall dapit sa ngitngit. 32 ko sir.",
+    "entities": [
+      {
+        "text": "Dennis",
+        "label": "NAME",
+        "start": 12,
+        "end": 18
+      },
+      {
+        "text": "SRP",
+        "label": "LOCATION",
+        "start": 35,
+        "end": 38
+      },
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 92,
+        "end": 94
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences containing Name, Location, and Age. Gender and Civil Status not stated explicitly but implied. "
+    ]
+  },
+  {
+    "text": "Ako diay si Kevin, miss. Naa ko sa rooftop sa among boarding house karon diri sa Urgello. 20 ko miss, college student.",
+    "entities": [
+      {
+        "text": "Kevin",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 81,
+        "end": 88
+      },
+      {
+        "text": "20",
+        "label": "AGE",
+        "start": 90,
+        "end": 92
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not explicitly mentioned in text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Leo, sir. Naa ko sa akong boarding house karon diri sa Pardo. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Leo",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "Pardo",
+        "label": "LOCATION",
+        "start": 67,
+        "end": 72
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 74,
+        "end": 76
+      }
+    ],
+    "annotation_notes": [
+      "Parsed caller identification explicitly stated. Gender and Civil Status not mentioned. "
+    ]
+  },
+  {
+    "text": "Dennis lang. Thirty-two. Sa Talisay City ko nagpuyo. Minyo ko ug naa koy usa ka anak.",
+    "entities": [
+      {
+        "text": "Dennis",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-two",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Talisay City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 40
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 53,
+        "end": 58
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Jason, sir. Naa ko sa 12th floor sa usa ka condo diri sa Mandaue. 27 ko sir.",
+    "entities": [
+      {
+        "text": "Jason",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 69,
+        "end": 76
+      },
+      {
+        "text": "27",
+        "label": "AGE",
+        "start": 78,
+        "end": 80
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status not explicitly mentioned in the text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Berting, sir. Naa ko nagbarug karon sa daplin sa karsada diri sa Fuente, atbang sa ospital. 35 ko sir.",
+    "entities": [
+      {
+        "text": "Berting",
+        "label": "NAME",
+        "start": 12,
+        "end": 19
+      },
+      {
+        "text": "Fuente",
+        "label": "LOCATION",
+        "start": 77,
+        "end": 83
+      },
+      {
+        "text": "35",
+        "label": "AGE",
+        "start": 104,
+        "end": 106
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographics. Gender and Civil Status not explicitly stated, although implied (father/husband). "
+    ]
+  },
+  {
+    "text": "Marites lang. Thirty-one. Sa Liloan, Cebu. Minyo ko ug duha akong anak.",
+    "entities": [
+      {
+        "text": "Marites",
+        "label": "NAME",
+        "start": 0,
+        "end": 7
+      },
+      {
+        "text": "Thirty-one",
+        "label": "AGE",
+        "start": 14,
+        "end": 24
+      },
+      {
+        "text": "Liloan, Cebu",
+        "label": "LOCATION",
+        "start": 29,
+        "end": 41
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 43,
+        "end": 48
+      }
+    ],
+    "annotation_notes": [
+      "Caller provided Name, Age, Location, and Civil Status. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Rowena lang. Forty-two. Sa Danao City, Cebu. Minyo ko ug naa koy usa ka anak.",
+    "entities": [
+      {
+        "text": "Rowena",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Forty-two",
+        "label": "AGE",
+        "start": 13,
+        "end": 22
+      },
+      {
+        "text": "Danao City, Cebu",
+        "label": "LOCATION",
+        "start": 27,
+        "end": 43
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 45,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Alex, 20 anyos, single, nagpuyo sa Cebu City.",
+    "entities": [
+      {
+        "text": "Alex",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "20 anyos",
+        "label": "AGE",
+        "start": 13,
+        "end": 21
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 23,
+        "end": 29
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 42,
+        "end": 51
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing the available entities. Gender not stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Kian, miss. Naa mi nag-board karon duol sa USC Talamban.",
+    "entities": [
+      {
+        "text": "Kian",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "USC Talamban",
+        "label": "LOCATION",
+        "start": 55,
+        "end": 67
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name and Location. Age, Gender, and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Rina, sir. Naa mi sa Talisay nagpuyo.",
+    "entities": [
+      {
+        "text": "Rina",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Talisay",
+        "label": "LOCATION",
+        "start": 33,
+        "end": 40
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing Name and Location. Age, Gender, and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Bea, 21 anyos, babaye, single. Taga-Mandaue ko.",
+    "entities": [
+      {
+        "text": "Bea",
+        "label": "NAME",
+        "start": 7,
+        "end": 10
+      },
+      {
+        "text": "21 anyos",
+        "label": "AGE",
+        "start": 12,
+        "end": 20
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 22,
+        "end": 28
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 30,
+        "end": 36
+      },
+      {
+        "text": "Mandaue",
+        "label": "LOCATION",
+        "start": 43,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Nica lang. Thirty-two. Sa Liloan, Cebu. Naa ra ko sa balay uban sa akong bana ug duha namong anak.",
+    "entities": [
+      {
+        "text": "Nica",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Thirty-two",
+        "label": "AGE",
+        "start": 11,
+        "end": 21
+      },
+      {
+        "text": "Liloan, Cebu",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 38
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, and Location. Gender and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Ako si Patrick, 35 anyos, lalaki, minyo. Taga-Cordova ko.",
+    "entities": [
+      {
+        "text": "Patrick",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "35 anyos",
+        "label": "AGE",
+        "start": 16,
+        "end": 24
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 26,
+        "end": 32
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 34,
+        "end": 39
+      },
+      {
+        "text": "Cordova",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities. "
+    ]
+  },
+  {
+    "text": "Ian lang. Twenty-five. Sa Danao City, Cebu. Single ko ug naa ra ko nagpuyo uban sa akong pamilya.",
+    "entities": [
+      {
+        "text": "Ian",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Twenty-five",
+        "label": "AGE",
+        "start": 10,
+        "end": 21
+      },
+      {
+        "text": "Danao City, Cebu",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 42
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 44,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Danilo, sir. Naa ko nag-standby ron sa gawas sa among opisina diri sa IT Park. 32 ko sir.",
+    "entities": [
+      {
+        "text": "Danilo",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "IT Park",
+        "label": "LOCATION",
+        "start": 77,
+        "end": 84
+      },
+      {
+        "text": "32",
+        "label": "AGE",
+        "start": 86,
+        "end": 88
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Kevin, sir. Naa ko sa akong giabangan nga kwarto karon diri sa Urgello. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Kevin",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 75,
+        "end": 82
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 84,
+        "end": 86
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing Name, Location, and Age. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Clara, sir. Naa ko sa akong boarding house karon diri sa Urgello. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Clara",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Urgello",
+        "label": "LOCATION",
+        "start": 69,
+        "end": 76
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 78,
+        "end": 80
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Ako diay si Carlo, sir. Naa ko sa akong kwarto karon diri sa boarding house sa Talamban. 20 ko sir.",
+    "entities": [
+      {
+        "text": "Carlo",
+        "label": "NAME",
+        "start": 12,
+        "end": 17
+      },
+      {
+        "text": "Talamban",
+        "label": "LOCATION",
+        "start": 79,
+        "end": 87
+      },
+      {
+        "text": "20",
+        "label": "AGE",
+        "start": 89,
+        "end": 91
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics. Gender and Civil Status not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako diay si Sam, sir. Naa ko sa fire exit sa usa ka office building karon diri sa IT Park. 21 ko sir.",
+    "entities": [
+      {
+        "text": "Sam",
+        "label": "NAME",
+        "start": 12,
+        "end": 15
+      },
+      {
+        "text": "IT Park",
+        "label": "LOCATION",
+        "start": 82,
+        "end": 89
+      },
+      {
+        "text": "21",
+        "label": "AGE",
+        "start": 91,
+        "end": 93
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender and Civil Status not stated."
+    ]
+  },
+  {
+    "text": "Ako si Francis, 26 anyos, lalaki, single. Taga-Cebu City ko.",
+    "entities": [
+      {
+        "text": "Francis",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "26 anyos",
+        "label": "AGE",
+        "start": 16,
+        "end": 24
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 26,
+        "end": 32
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 34,
+        "end": 40
+      },
+      {
+        "text": "Cebu City",
+        "label": "LOCATION",
+        "start": 47,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographic data covering all requested entity types. "
+    ]
+  },
+  {
+    "text": "Sheryl lang. Thirty-three. Sa Consolacion, Cebu. Minyo ko ug naa mi duha ka anak.",
+    "entities": [
+      {
+        "text": "Sheryl",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-three",
+        "label": "AGE",
+        "start": 13,
+        "end": 25
+      },
+      {
+        "text": "Consolacion, Cebu",
+        "label": "LOCATION",
+        "start": 30,
+        "end": 47
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 49,
+        "end": 54
+      }
+    ],
+    "annotation_notes": [
+      "Extracted consecutive entity responses into a single string. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Marissa, 34 anyos, babaye, minyo. Taga-Danao City ko.",
+    "entities": [
+      {
+        "text": "Marissa",
+        "label": "NAME",
+        "start": 7,
+        "end": 14
+      },
+      {
+        "text": "34 anyos",
+        "label": "AGE",
+        "start": 16,
+        "end": 24
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 26,
+        "end": 32
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 34,
+        "end": 39
+      },
+      {
+        "text": "Danao City",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 56
+      }
+    ],
+    "annotation_notes": [
+      "Extracted text matching explicit caller demographics. All entity types are provided. "
+    ]
+  },
+  {
+    "text": "Lani lang. Thirty ko. Sa Lapulapu City. Single mother ko",
+    "entities": [
+      {
+        "text": "Lani",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Thirty",
+        "label": "AGE",
+        "start": 11,
+        "end": 17
+      },
+      {
+        "text": "Lapulapu City",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 38
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 40,
+        "end": 46
+      },
+      {
+        "text": "mother",
+        "label": "GENDER",
+        "start": 47,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographics. Mother implies female gender. "
+    ]
+  },
+  {
+    "text": "Ako si Adrian, 29 anyos, lalaki, single. Taga-Mandaue City ko.",
+    "entities": [
+      {
+        "text": "Adrian",
+        "label": "NAME",
+        "start": 7,
+        "end": 13
+      },
+      {
+        "text": "29 anyos",
+        "label": "AGE",
+        "start": 15,
+        "end": 23
+      },
+      {
+        "text": "lalaki",
+        "label": "GENDER",
+        "start": 25,
+        "end": 31
+      },
+      {
+        "text": "single",
+        "label": "CIVIL_STATUS",
+        "start": 33,
+        "end": 39
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 46,
+        "end": 58
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics encompassing all requested entities."
+    ]
+  },
+  {
+    "text": "Evelyn lang. Thirty-six. Sa Liloan, Cebu. Minyo ko ug naa koy duha ka anak.",
+    "entities": [
+      {
+        "text": "Evelyn",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Thirty-six",
+        "label": "AGE",
+        "start": 13,
+        "end": 23
+      },
+      {
+        "text": "Liloan, Cebu",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 40
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 47
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender was not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Grace, 38 anyos, babaye, minyo, taga-Naga City.",
+    "entities": [
+      {
+        "text": "Grace",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "38 anyos",
+        "label": "AGE",
+        "start": 14,
+        "end": 22
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 24,
+        "end": 30
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 32,
+        "end": 37
+      },
+      {
+        "text": "Naga City",
+        "label": "LOCATION",
+        "start": 44,
+        "end": 53
+      }
+    ],
+    "annotation_notes": [
+      "Parsed out explicit caller facts mapping exactly to all target entities. "
+    ]
+  },
+  {
+    "text": "Teresa lang. Fifty-two. Sa Consolacion, Cebu. Minyo ko ug nagpuyo uban sa akong bana.",
+    "entities": [
+      {
+        "text": "Teresa",
+        "label": "NAME",
+        "start": 0,
+        "end": 6
+      },
+      {
+        "text": "Fifty-two",
+        "label": "AGE",
+        "start": 13,
+        "end": 22
+      },
+      {
+        "text": "Consolacion, Cebu",
+        "label": "LOCATION",
+        "start": 27,
+        "end": 44
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 46,
+        "end": 51
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated explicitly but implied."
+    ]
+  },
+  {
+    "text": "Ako si Patricia, 32 anyos, babaye, minyo. Taga-Mandaue City ko.",
+    "entities": [
+      {
+        "text": "Patricia",
+        "label": "NAME",
+        "start": 7,
+        "end": 15
+      },
+      {
+        "text": "32 anyos",
+        "label": "AGE",
+        "start": 17,
+        "end": 25
+      },
+      {
+        "text": "babaye",
+        "label": "GENDER",
+        "start": 27,
+        "end": 33
+      },
+      {
+        "text": "minyo",
+        "label": "CIVIL_STATUS",
+        "start": 35,
+        "end": 40
+      },
+      {
+        "text": "Mandaue City",
+        "label": "LOCATION",
+        "start": 47,
+        "end": 59
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicit caller demographic data covering all requested entity types. "
+    ]
+  },
+  {
+    "text": "April lang. Twenty-nine. Sa Lapu-Lapu City ko nagpuyo. Single ko ug kauban nako akong igsoon.",
+    "entities": [
+      {
+        "text": "April",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Twenty-nine",
+        "label": "AGE",
+        "start": 12,
+        "end": 23
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 28,
+        "end": 42
+      },
+      {
+        "text": "Single",
+        "label": "CIVIL_STATUS",
+        "start": 55,
+        "end": 61
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender was not explicitly stated in the text. "
+    ]
+  },
+  {
+    "text": "Ako si Jomar, ma'am. Naa ko sa akong kwarto sa among balay sa Guadalupe. 26 ko ma'am.",
+    "entities": [
+      {
+        "text": "Jomar",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Guadalupe",
+        "label": "LOCATION",
+        "start": 62,
+        "end": 71
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 73,
+        "end": 75
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not explicitly mentioned in caller text. "
+    ]
+  },
+  {
+    "text": "Mae lang. Thirty-one. Sa Naga City, Cebu. Minyo ko ug naa koy usa ka anak.",
+    "entities": [
+      {
+        "text": "Mae",
+        "label": "NAME",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "text": "Thirty-one",
+        "label": "AGE",
+        "start": 10,
+        "end": 20
+      },
+      {
+        "text": "Naga City, Cebu",
+        "label": "LOCATION",
+        "start": 25,
+        "end": 40
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 47
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing Name, Location, Age, and Civil Status. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Lito, sir. Naa ko diri sa downtown Colon karon, nagbaklay-baklay. 30 anyos ko sir",
+    "entities": [
+      {
+        "text": "Lito",
+        "label": "NAME",
+        "start": 7,
+        "end": 11
+      },
+      {
+        "text": "Colon",
+        "label": "LOCATION",
+        "start": 42,
+        "end": 47
+      },
+      {
+        "text": "30 anyos",
+        "label": "AGE",
+        "start": 73,
+        "end": 81
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Location, and Age. Gender and Civil Status were not explicitly provided in the text. "
+    ]
+  },
+  {
+    "text": "Allan lang. Forty-one. Sa Lapu-Lapu City. Separated ko, ug nagpuyo ko uban sa akong anak nga dose anyos.",
+    "entities": [
+      {
+        "text": "Allan",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Forty-one",
+        "label": "AGE",
+        "start": 12,
+        "end": 21
+      },
+      {
+        "text": "Lapu-Lapu City",
+        "label": "LOCATION",
+        "start": 26,
+        "end": 40
+      },
+      {
+        "text": "Separated",
+        "label": "CIVIL_STATUS",
+        "start": 42,
+        "end": 51
+      }
+    ],
+    "annotation_notes": [
+      "Extracted statements with explicit entity mentions. Gender not stated."
+    ]
+  },
+  {
+    "text": "Edgar lang. Forty-five. Sa Danao City, Cebu. Minyo ko ug naa koy duha ka anak.",
+    "entities": [
+      {
+        "text": "Edgar",
+        "label": "NAME",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "text": "Forty-five",
+        "label": "AGE",
+        "start": 12,
+        "end": 22
+      },
+      {
+        "text": "Danao City, Cebu",
+        "label": "LOCATION",
+        "start": 27,
+        "end": 43
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 45,
+        "end": 50
+      }
+    ],
+    "annotation_notes": [
+      "Caller identified Name, Age, Location, and Civil Status. Gender not mentioned. "
+    ]
+  },
+  {
+    "text": "Ako diay si Lani, sir. Naa ko sa among balay sa Consolacion. 26 ko sir.",
+    "entities": [
+      {
+        "text": "Lani",
+        "label": "NAME",
+        "start": 12,
+        "end": 16
+      },
+      {
+        "text": "Consolacion",
+        "label": "LOCATION",
+        "start": 48,
+        "end": 59
+      },
+      {
+        "text": "26",
+        "label": "AGE",
+        "start": 61,
+        "end": 63
+      }
+    ],
+    "annotation_notes": [
+      "Extracted dialogue specifying name, location, and age. Gender and Civil Status not explicitly stated"
+    ]
+  },
+  {
+    "text": "Noel lang. Thirty-nine. Sa Liloan, Cebu. Minyo ko ug naa koy duha ka anak.",
+    "entities": [
+      {
+        "text": "Noel",
+        "label": "NAME",
+        "start": 0,
+        "end": 4
+      },
+      {
+        "text": "Thirty-nine",
+        "label": "AGE",
+        "start": 11,
+        "end": 22
+      },
+      {
+        "text": "Liloan, Cebu",
+        "label": "LOCATION",
+        "start": 27,
+        "end": 39
+      },
+      {
+        "text": "Minyo",
+        "label": "CIVIL_STATUS",
+        "start": 41,
+        "end": 46
+      }
+    ],
+    "annotation_notes": [
+      "Extracted explicitly provided caller demographics capturing Name, Location, Age, and Civil Status. Gender not explicitly stated. "
+    ]
+  },
+  {
+    "text": "Ako si Tomas, sir. Naa ko sa akong kwarto sa among balay diri sa Inayawan. 24 ko sir.",
+    "entities": [
+      {
+        "text": "Tomas",
+        "label": "NAME",
+        "start": 7,
+        "end": 12
+      },
+      {
+        "text": "Inayawan",
+        "label": "LOCATION",
+        "start": 65,
+        "end": 73
+      },
+      {
+        "text": "24",
+        "label": "AGE",
+        "start": 75,
+        "end": 77
+      }
+    ],
+    "annotation_notes": [
+      "Extracted caller identification sentences containing Name, Location, and Age. Gender and Civil Status not stated. "
+    ]
+  }
+]

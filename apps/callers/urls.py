@@ -9,5 +9,6 @@ urlpatterns = [
     path('database/', views.database_view, name='database'),
     path('call-setup/', views.call_setup_view, name='call_setup'),
     path('api/transcribe/', views.transcribe_audio, name='transcribe'),
+    path('api/analyze/', views.analyze_call_text, name='analyze'),
     path('api/save-session/', views.save_call_documentation, name='save_session'),
 ]

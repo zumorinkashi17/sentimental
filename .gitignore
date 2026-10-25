@@ -11,6 +11,9 @@ env/
 db.sqlite3
 media/
 
+# Trained NLP models (regenerate with apps.callers.nlp.train_ner)
+apps/callers/nlp/models/
+
 # Environment Variables
 .env
 

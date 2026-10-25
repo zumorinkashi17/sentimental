@@ -17,6 +17,7 @@ from .models import Caller, CallSession, CallTranscript
 from apps.schedules.models import ShiftCatalog
 from apps.dashboard.views import _get_session_user
 from .audio import AudioProcessingError
+from .nlp import analyze
 from .transcription import (
     CALLER,
     RESPONDER,
@@ -32,18 +33,11 @@ logger = logging.getLogger(__name__)
 @ensure_csrf_cookie
 def call_setup_view(request):
     """Displays the call setup page and ensures the CSRF cookie is set."""
-    user, redirect_response = _get_session_user(request)
+    _, redirect_response = _get_session_user(request)
     if redirect_response:
         return redirect_response
 
-    shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
-
-    next_session_id = CallSession.next_session_preview()
-
-    return render(request, 'components/call_setup.html', {
-        'shifts': shifts,
-        'next_session_id': next_session_id,
-    })
+    return render(request, 'components/call_setup.html')
 
 # Gets a field from the caller's latest session.
 def _latest_session_subquery():
@@ -241,6 +235,43 @@ def transcribe_audio(request):
 
 
 @require_POST
+def analyze_call_text(request):
+    """Run the hybrid NLP pipeline over a transcript / manual notes."""
+    user, redirect_response = _get_session_user(request)
+    if redirect_response:
+        return redirect_response
+
+    try:
+        data = json.loads(request.body or b"{}")
+    except (TypeError, ValueError):
+        return JsonResponse({"status": "error", "message": "Invalid JSON payload."}, status=400)
+
+    text = str(data.get("text") or "").strip()
+    if not text:
+        return JsonResponse(
+            {"status": "error", "message": "No transcript or manual notes to analyze."},
+            status=400,
+        )
+    if len(text) > 50000:
+        return JsonResponse(
+            {"status": "error", "message": "Text is too long to analyze."},
+            status=400,
+        )
+
+    try:
+        result = analyze(
+            text,
+            reason_for_calling=data.get("reason", ""),
+            risk_assessment=data.get("risk", ""),
+        )
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.exception("NLP analysis failed")
+        return JsonResponse({"status": "error", "message": str(exc)}, status=500)
+
+    return JsonResponse(result)
+
+
+@require_POST
 def save_call_documentation(request):
     try:
         data = json.loads(request.body)
@@ -301,7 +332,14 @@ def save_call_documentation(request):
             session_additional_comments=data.get('additionalComments')
         )
 
-        # Create the manual transcript if notes exist
+        # Persist the source text used for auto-fill, then any manual notes.
+        raw_transcript = data.get('rawTranscript')
+        if raw_transcript and raw_transcript.strip():
+            CallTranscript.objects.create(
+                session=session,
+                transcript_text=raw_transcript
+            )
+
         manual_notes = data.get('manualScriptNotes')
         if manual_notes and manual_notes.strip():
             CallTranscript.objects.create(
