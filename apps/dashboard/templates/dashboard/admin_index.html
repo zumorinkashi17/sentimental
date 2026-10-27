@@ -87,9 +87,21 @@
             </div>
             <div class="bg-gradient-to-br from-brand to-brand-dark p-5 rounded-2xl border border-brand-dark shadow-md text-white relative overflow-hidden">
                 <i class="ph-fill ph-sparkle text-white/10 text-6xl absolute -right-2 -bottom-2"></i>
-                <p class="text-xs text-brand-light font-bold uppercase mb-1">AI Volume Prediction</p>
+                <p class="text-xs text-brand-light font-bold uppercase mb-1">Expected Call Volume</p>
                 <h3 class="text-2xl font-bold mb-2">{{ ai.status }}</h3>
                 <p class="text-xs font-medium text-brand-light">{{ ai.message }}</p>
+                {% if ai.generated_label %}<p class="text-[10px] text-brand-light/80 mt-1">{{ ai.generated_label }}</p>{% endif %}
+                {% if ai.leading_shift %}
+                <p class="text-[10px] text-brand-light/90 mt-2">
+                    Expected busiest shift: {{ ai.leading_shift }}
+                    {% if ai.uncertain %}<span class="block mt-0.5 text-amber-200">Uncertain — the model cannot confidently identify one shift as busiest for this month.</span>{% endif %}
+                </p>
+                {% endif %}
+                {% if ai.freshness_notes %}
+                <p class="text-[10px] text-amber-200 mt-2">
+                    {% for note in ai.freshness_notes %}{{ note }}{% if not forloop.last %} {% endif %}{% endfor %}
+                </p>
+                {% endif %}
             </div>
         </div>
 

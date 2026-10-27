@@ -391,13 +391,109 @@ def _resolve_responder(request):
     return (request.GET.get("responder") or "").strip()
 
 
+def _month_label(value):
+    from apps.forecast.services.display import month_name
+
+    try:
+        return month_name(date.fromisoformat(value))
+    except (TypeError, ValueError):
+        return value
+
+
+def _generated_label(value):
+    """Readable "Forecast generated" label in the application's timezone."""
+    from apps.forecast.services.display import format_timestamp
+
+    label = format_timestamp(value)
+    return f"Forecast generated: {label}" if label else None
+
+
+def _ai_forecast():
+    """Build the AI Volume Prediction card from the shared persisted run.
+
+    Reads only :mod:`apps.forecast.services.storage` (via the public package
+    exports), so the card always shows the same run - and therefore the same
+    numbers - as the Call Volume Forecast and Shift Schedules pages. It never
+    trains a model, regenerates a forecast, or fabricates values, and it
+    degrades to a clear fallback when no run has been persisted.
+    """
+    from apps.forecast.services import current_forecast_run, forecast_run_payload
+
+    payload = forecast_run_payload(current_forecast_run())
+    if not payload.get("available"):
+        return {
+            "available": False,
+            "run_id": None,
+            "status": "Forecast Unavailable",
+            "message": (
+                "No forecast run has been generated yet. Predictions appear "
+                "here once one is persisted."
+            ),
+            "period": None,
+            "predicted": None,
+            "generated_label": None,
+            "leading_shift": None,
+            "uncertain": False,
+            "uncertainty_note": None,
+            "stale": False,
+            "freshness_notes": [],
+        }
+
+    months = payload.get("months") or []
+    busiest = {item["month"]: item for item in payload.get("busiest_shifts") or []}
+    first = months[0] if months else None
+    leading = busiest.get(first["month"]) if first else None
+
+    if first is None:
+        return {
+            "available": True,
+            "run_id": payload.get("run_id"),
+            "status": "No Monthly Data",
+            "message": "The current forecast run contains no monthly figures.",
+            "period": None,
+            "predicted": None,
+            "generated_label": _generated_label(payload.get("generated_at")),
+            "leading_shift": None,
+            "uncertain": False,
+            "uncertainty_note": None,
+            "stale": False,
+            "freshness_notes": [],
+        }
+
+    period = _month_label(first["month"])
+    predicted = int(round(first["yhat"]))
+    uncertain = bool(leading.get("uncertain")) if leading else False
+    freshness = payload.get("freshness") or {}
+    freshness_notes = freshness.get("notes") or []
+    return {
+        "available": True,
+        "run_id": payload.get("run_id"),
+        "status": f"{predicted:,} calls",
+        "message": (
+            f"Expected calls in {period}. This is a forecast based on past "
+            "records, not a count of calls already received."
+        ),
+        "period": period,
+        "predicted": predicted,
+        "generated_label": _generated_label(payload.get("generated_at")),
+        "leading_shift": (leading.get("display_label") or leading.get("label")) if leading else None,
+        "uncertain": uncertain,
+        "uncertainty_note": (
+            (leading.get("reason") if leading else None) or "intervals overlap"
+        ) if uncertain else None,
+        # A run whose window has already elapsed must not read as a current
+        # future forecast, so the card says so explicitly.
+        "stale": bool(freshness.get("is_stale")),
+        "freshness_notes": freshness_notes,
+    }
+
+
 def admin_context(request, user=None):
     """Everything the admin dashboard needs, ready for the template."""
     period = request.GET.get("period", DEFAULT_ADMIN_PERIOD)
     if period not in ADMIN_PERIODS:
         period = DEFAULT_ADMIN_PERIOD
 
-    today = _today()
     range_start = _parse_date(request.GET.get("start"))
     range_end = _parse_date(request.GET.get("end"))
     start, end = admin_period_bounds(period, range_start, range_end)
@@ -447,23 +543,6 @@ def admin_context(request, user=None):
     active_responders = responder_stats["active"] or 0
     total_responders = responder_stats["total"] or 0
 
-    month_start = today.replace(day=1)
-    last_month_end = month_start - timedelta(days=1)
-    last_month_start = last_month_end.replace(day=1)
-    month_stats = scoped(CallSession.objects.filter(
-        session_call_date__gte=last_month_start, session_call_date__lte=today
-    )).aggregate(
-        current=Count("session_id", filter=Q(session_call_date__gte=month_start)),
-        previous=Count("session_id", filter=Q(session_call_date__lte=last_month_end)),
-    )
-    month_count = month_stats["current"] or 0
-    last_count = month_stats["previous"] or 0
-    if last_count and month_count >= last_count * 1.15:
-        bump = round((month_count - last_count) * 100 / last_count)
-        ai = {"status": "Surge Alert", "message": f"Expected +{bump}% increase this month. Review staffing levels."}
-    else:
-        ai = {"status": "Stable", "message": f"{month_count} call{'s' if month_count != 1 else ''} so far this month. Maintain current staffing."}
-
     reasons = _breakdown(in_period, "session_reason_for_calling", REASON_CATEGORIES, reason_category)
     callers = _breakdown(in_period, "caller__caller_gender", GENDER_CATEGORIES, gender_bucket)
     gauge_pct = round(high * 100 / total) if total else 0
@@ -488,7 +567,7 @@ def admin_context(request, user=None):
         "referrals": referrals,
         "referral_rate": referral_rate,
         "alerts": _alerts(in_period),
-        "ai": ai,
+        "ai": _ai_forecast(),
         "reasons": reasons,
         "reasons_total": sum(item["count"] for item in reasons),
         "reasons_chart": json.dumps([item["count"] for item in reasons]),

@@ -3,52 +3,257 @@
 
 {% block content %}
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
-    <div class="max-w-6xl mx-auto w-full space-y-6">
+    <div class="max-w-6xl mx-auto w-full space-y-5 sm:space-y-6">
         <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Call Volume Forecast</h1>
-                <p class="text-gray-500">Data-driven AI predictive insights for call surging.</p>
+                <h1 class="text-2xl font-bold text-gray-800">Expected Call Volume</h1>
+                <p class="text-sm text-gray-500 mt-1">How many calls to expect each month, based on past call records. These are estimates, not guaranteed results.</p>
             </div>
+            {% if forecast_available %}
             <div class="flex flex-col sm:flex-row gap-2">
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
-                    <option>Next 7 Days</option>
-                    <option>Next 14 Days</option>
-                    <option>Next Month</option>
-                </select>
-                <select class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 font-medium shadow-sm">
-                    <option>All Regions</option>
-                    <option>Cebu Province</option>
-                </select>
+                <a href="{% url 'forecast:export' %}" class="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 inline-flex items-center gap-1.5" download>
+                    <i class="ph-bold ph-export"></i> Export Data (CSV)
+                </a>
+                <a href="{% url 'forecast:export' %}?format=json" class="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 inline-flex items-center gap-1.5" download>
+                    <i class="ph-bold ph-file-text"></i> Export Data (JSON)
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Generate Forecast control -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
+            {% if generation_notice %}
+            <div class="mb-4 rounded-xl border px-4 py-3 {% if generation_notice.level == 'error' %}bg-red-50 border-red-200{% else %}bg-emerald-50 border-emerald-200{% endif %}">
+                <p class="text-xs font-bold uppercase {% if generation_notice.level == 'error' %}text-red-700{% else %}text-emerald-700{% endif %}">{{ generation_notice.title }}</p>
+                <p class="text-xs {% if generation_notice.level == 'error' %}text-red-600{% else %}text-emerald-600{% endif %} mt-1">{{ generation_notice.text }}</p>
+            </div>
+            {% endif %}
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase">Generate Forecast</h2>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Choose a forecast period and press <span class="font-bold text-gray-600">Generate Forecast</span>. Changing the selection on its own never generates anything.
+                        A new forecast replaces the current one only after it is produced and checked successfully; the previous forecast is kept, and if anything goes wrong the current forecast stays as it is.
+                    </p>
+                </div>
+                <form id="forecast-generate-form" method="post" action="{% url 'forecast:generate' %}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                    {% csrf_token %}
+                    <label for="forecast-horizon" class="text-[10px] font-bold text-gray-500 uppercase">Forecast Period</label>
+                    <select id="forecast-horizon" name="horizon" class="px-3 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-700 bg-white focus:outline-none focus:border-brand">
+                        {% for option in horizon_options %}
+                        <option value="{{ option }}" {% if option == default_horizon %}selected{% endif %}>{{ option }} months</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" name="action" value="generate" id="forecast-generate-button" class="px-4 py-2 bg-brand text-white rounded-lg text-xs font-bold inline-flex items-center justify-center gap-2 hover:opacity-90">
+                        <i class="ph-bold ph-magic-wand"></i>
+                        <span id="forecast-generate-label">Generate Forecast</span>
+                    </button>
+                </form>
             </div>
         </div>
-        
+
+        {% if not forecast_available %}
+        <!-- No persisted run: never crash, explain clearly. -->
+        <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl">
+            <div class="flex items-start gap-3">
+                <i class="ph-fill ph-warning-circle text-amber-500 text-2xl flex-shrink-0"></i>
+                <div>
+                    <h2 class="text-sm font-bold text-amber-800 uppercase">No forecast available yet</h2>
+                    <p class="text-sm text-amber-700 mt-1">
+                        {{ forecast.reason|default:"No forecast has been produced yet. An administrator can create one with the Generate Forecast button above." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+
+        {% if forecast.freshness.notes %}
+        <div class="bg-amber-50 border border-amber-200 p-4 sm:p-5 rounded-2xl">
+            <div class="flex items-start gap-3">
+                <i class="ph-fill ph-warning-circle text-amber-500 text-xl flex-shrink-0 mt-0.5"></i>
+                <div class="min-w-0">
+                    <h2 class="text-xs font-bold text-amber-800 uppercase">Forecast Status</h2>
+                    {% for note in forecast.freshness.notes %}
+                    <p class="text-sm text-amber-800 mt-1.5">{{ note }}</p>
+                    {% endfor %}
+                    {% if missing_data_action %}
+                    <p class="text-sm font-bold text-amber-900 mt-2.5">{{ missing_data_action }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- What the numbers are based on -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Forecast generated</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast.generated_display|default:"-" }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Historical Data Available Through</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_available_through|default:"-" }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Historical Data Used</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_data_used|default:"-" }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Forecast Period</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast_period|default:"-" }}</p>
+                </div>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-4 pt-3 border-t border-gray-100">
+                Forecast method: {{ forecast_method }}.
+                The forecast period covers the months that are being predicted; the historical data is the past records the estimate was built from.
+            </p>
+        </div>
+
+        <!-- Which months are actual, missing and predicted -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Past records used</p>
+                <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_data_used }}</p>
+                <p class="text-xs text-gray-500 mt-1">Recorded call history the estimate is based on.</p>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Missing or unverified</p>
+                <p class="text-sm font-bold text-gray-800 mt-1">{% if missing_range_label %}{{ missing_range_label }}{% else %}None{% endif %}</p>
+                <p class="text-xs text-gray-500 mt-1">{% if missing_range_label %}Months without usable records. They are left blank, never counted as zero calls.{% else %}Every month in the history has usable records.{% endif %}</p>
+            </div>
+            <div class="bg-brand-light/30 border border-brand/20 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-bold text-brand uppercase">Forecast (predicted)</p>
+                <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast_period }}</p>
+                <p class="text-xs text-gray-600 mt-1">Months that are being predicted, not recorded yet.</p>
+            </div>
+        </div>
+
         <!-- Line Chart Forecast -->
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm h-[420px] sm:h-[500px] flex flex-col">
-            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-6">
-                <h2 class="text-sm font-bold text-gray-700 uppercase">7-Day Volume Trend & AI Prediction</h2>
-                <button type="button" class="px-3 py-1.5 border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 self-start sm:self-auto"><i class="ph-bold ph-export"></i> Export Data</button>
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 sm:mb-6">
+                <h2 class="text-sm font-bold text-gray-700 uppercase">Expected Monthly Call Volume</h2>
+                <p class="text-xs text-gray-500 font-medium">The shaded band shows the estimated range around the predicted call volume.</p>
             </div>
-            <div class="relative flex-1 w-full min-h-0"><canvas id="chartAdminForecast"></canvas></div>
+            <div class="relative flex-1 w-full min-h-0">
+                <canvas id="chartAdminForecast"
+                        data-values='{{ chart.total }}'
+                        data-lower='{{ chart.total_lower }}'
+                        data-upper='{{ chart.total_upper }}'
+                        data-labels='{{ chart.months }}'
+                        data-morning='{{ chart.morning }}'
+                        data-afternoon='{{ chart.afternoon }}'
+                        data-night='{{ chart.night }}'></canvas>
+            </div>
         </div>
-        
+
         <!-- Forecast Insights Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-red-50 border border-red-100 p-4 rounded-xl">
-                <p class="text-[10px] font-bold text-red-600 uppercase">Predicted Peak</p>
-                <h4 class="text-lg font-bold text-red-800">Friday 10:00 PM</h4>
-                <p class="text-xs text-red-700 mt-1">Est. 245 calls/hour</p>
-            </div>
             <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
-                <p class="text-[10px] font-bold text-gray-500 uppercase">Confidence Score</p>
-                <h4 class="text-lg font-bold text-gray-800">92%</h4>
-                <p class="text-xs text-gray-500 mt-1">Based on historical patterns</p>
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Expected Busiest Shift</p>
+                {% with lead=forecast.busiest_shifts.0 %}
+                {% if lead %}
+                <h4 class="text-base font-bold text-gray-800 leading-snug">Expected busiest shift: {{ lead.display_label }}</h4>
+                <p class="text-xs text-gray-500 mt-1">
+                    For {{ lead.month }}. {% if lead.uncertain %}<span class="text-amber-600 font-bold">The model cannot confidently identify one shift as busiest, because the estimated ranges overlap.</span>{% else %}Clear gap between this shift and the next one.{% endif %}
+                </p>
+                {% else %}
+                <h4 class="text-base font-bold text-gray-800">&mdash;</h4>
+                {% endif %}
+                {% endwith %}
+            </div>
+            <div class="{% if uncertain_months %}bg-amber-50 border-amber-200{% else %}bg-green-50 border-green-200{% endif %} border p-4 rounded-xl">
+                <p class="text-[10px] font-bold {% if uncertain_months %}text-amber-600{% else %}text-green-600{% endif %} uppercase">Busiest Shift Confidence</p>
+                <h4 class="text-base font-bold text-gray-800">{{ uncertain_months }} of {{ total_months }} months are uncertain</h4>
+                <p class="text-xs text-gray-600 mt-1">A month is marked uncertain when the top shifts' estimated ranges overlap or the difference between them is very small. Treat those months as a guide, not a confirmed ranking.</p>
             </div>
             <div class="bg-brand-light/30 border border-brand/20 p-4 rounded-xl">
-                <p class="text-[10px] font-bold text-brand uppercase">Suggested Action</p>
-                <h4 class="text-sm font-bold text-gray-800 mt-1">Assign shorter 4-hour consecutive shifts on Friday.</h4>
-                <a href="{% url 'schedules:admin_calendar' %}" class="text-xs text-brand font-bold hover:underline mt-1 block">Go to Schedules &rarr;</a>
+                <p class="text-[10px] font-bold text-brand uppercase">Staffing Review</p>
+                <h4 class="text-sm font-bold text-gray-800 mt-1">Staffing review recommended. Use these forecasts as a starting point for planning. Predicted call volume alone does not determine the exact number of staff required.</h4>
+                <a href="{% url 'schedules:admin_calendar' %}" class="text-xs text-brand font-bold hover:underline mt-2 block">Go to Schedules &rarr;</a>
             </div>
         </div>
+
+        <!-- Monthly totals table -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <h2 class="text-sm font-bold text-gray-700 uppercase">Expected Calls by Month and Shift</h2>
+                <p class="text-xs text-gray-500 mt-1">
+                    Expected number of calls for every month in the forecast period, for all calls together and for each shift.
+                    The estimated range shows the uncertainty around the estimate; actual call volume may fall outside this range.
+                </p>
+            </div>
+            <div class="table-scroll">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase">
+                        <tr>
+                            <th class="px-4 py-3">Call type</th>
+                            {% for label in month_labels %}
+                            <th class="px-4 py-3 whitespace-nowrap">{{ label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm divide-y divide-gray-50">
+                        {% for series in display_rows %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{{ series.label }}</td>
+                            {% for cell in series.cells %}
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
+                                {% if cell %}
+                                <span class="font-bold text-gray-800">{{ cell.yhat|floatformat:0 }} calls</span>
+                                {% if cell.yhat_lower is not None and cell.yhat_upper is not None %}
+                                <span class="block text-[10px] text-gray-400">Estimated range: {{ cell.yhat_lower|floatformat:0 }}&ndash;{{ cell.yhat_upper|floatformat:0 }} calls</span>
+                                {% endif %}
+                                {% else %}&mdash;{% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        <tr class="bg-gray-50/70">
+                            <td class="px-4 py-3 font-bold text-gray-600 whitespace-nowrap text-xs uppercase">Expected busiest shift</td>
+                            {% for item in busiest_row %}
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                {% if item %}
+                                <span class="text-xs font-bold text-gray-700">{{ item.display_label }}</span>
+                                {% if item.uncertain %}
+                                <span class="block text-[10px] text-amber-600 font-bold" title="{{ item.reason }}"><i class="ph-fill ph-warning-circle"></i> uncertain</span>
+                                {% else %}
+                                <span class="block text-[10px] text-green-600 font-bold">clear margin</span>
+                                {% endif %}
+                                {% else %}&mdash;{% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-5 py-4 border-t border-gray-100 bg-gray-50/60 space-y-2">
+                <p class="text-xs text-gray-600">
+                    <span class="font-bold text-gray-700">How to read this table:</span>
+                    the total and the three shifts are calculated separately, so they may not add up exactly. A small difference between them is expected and is not missing calls.
+                </p>
+                <p class="text-xs text-gray-600">
+                    <span class="font-bold text-gray-700">About the shifts:</span>
+                    shift estimates depend on the shift recorded on each call, which does not always match the clock time the call came in.
+                </p>
+                <p class="text-xs text-gray-600">
+                    <span class="font-bold text-gray-700">About the estimated range:</span>
+                    the estimated range shows the uncertainty around the predicted call volume. Actual call volume may fall outside this range, so it is not a guarantee.
+                </p>
+            </div>
+        </div>
+
+        {% if notes %}
+        <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+            <p class="text-[10px] font-bold text-gray-500 uppercase mb-2">Things to keep in mind</p>
+            <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-600">
+                {% for note in notes %}<li>{{ note }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% endif %}
     </div>
 </div>
 {% endblock %}

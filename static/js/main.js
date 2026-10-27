@@ -595,45 +595,161 @@ function initCharts() {
     // ADMIN CHARTS
     const ctxAdminForecast = document.getElementById('chartAdminForecast');
     if (ctxAdminForecast && ctxAdminForecast.offsetParent !== null) {
+        const attrArray = (name, fallback) => {
+            const raw = ctxAdminForecast.getAttribute(name);
+            if (!raw) return fallback;
+            try {
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) && parsed.length ? parsed : fallback;
+            } catch (err) {
+                return fallback;
+            }
+        };
+        const labels = attrArray('data-labels', ['Month 1', 'Month 2', 'Month 3']);
+        const total = attrArray('data-values', [0, 0, 0]);
+        const lower = attrArray('data-lower', total);
+        const upper = attrArray('data-upper', total);
+
         chartsInstance.push(new Chart(ctxAdminForecast.getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri (Forecast)', 'Sat (Forecast)', 'Sun (Forecast)'],
+                labels: labels,
                 datasets: [
                     {
-                        label: 'Historical Actuals',
-                        data: [112, 125, 118, 140, null, null, null],
-                        borderColor: '#94a3b8',
-                        backgroundColor: '#94a3b8',
-                        tension: 0.4,
-                        borderWidth: 2
+                        label: 'Expected total calls',
+                        data: total,
+                        borderColor: '#00a67e',
+                        backgroundColor: '#00a67e',
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#00a67e'
                     },
                     {
-                        label: 'AI Prediction Surge',
-                        data: [null, null, null, 140, 245, 190, 160],
-                        borderColor: '#ef4444',
-                        backgroundColor: '#ef4444',
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#ef4444'
+                        label: 'Estimated range (lower)',
+                        data: lower,
+                        borderColor: 'transparent',
+                        pointRadius: 0,
+                        fill: false
+                    },
+                    {
+                        label: 'Estimated range',
+                        data: upper,
+                        borderColor: 'transparent',
+                        backgroundColor: 'rgba(0, 166, 126, 0.15)',
+                        pointRadius: 0,
+                        fill: '-1'
                     }
                 ]
             },
-            options: { 
-                responsive: true, 
+            options: {
+                responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6 } }
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 6,
+                            filter: (item) => item.text !== 'Estimated range (lower)'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => items.length ? items[0].label : '',
+                            label: (item) => {
+                                const value = item.parsed.y;
+                                if (value === null || value === undefined) return '';
+                                const lowerValue = lower[item.dataIndex];
+                                const upperValue = upper[item.dataIndex];
+                                if (item.dataset.label === 'Estimated range (lower)') return '';
+                                if (item.dataset.label === 'Estimated range') {
+                                    if (lowerValue === null || lowerValue === undefined) return '';
+                                    return `Estimated range: ${Math.round(lowerValue).toLocaleString()}–${Math.round(upperValue).toLocaleString()} calls`;
+                                }
+                                return `${Math.round(value).toLocaleString()} calls`;
+                            },
+                            afterBody: (items) => {
+                                const first = items[0];
+                                if (!first) return '';
+                                const lowerValue = lower[first.dataIndex];
+                                const upperValue = upper[first.dataIndex];
+                                if (lowerValue === null || lowerValue === undefined) return '';
+                                return 'Actual call volume may fall outside this estimated range.';
+                            }
+                        }
+                    }
                 },
                 scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [4, 4] },
+                        title: { display: true, text: 'Expected calls' }
+                    },
                     x: { grid: { display: false } }
                 }
             }
         }));
     }
+}
+
+
+// =====================================================================
+// --- Forecast Generation (Call Volume Forecast page) ---
+//
+// The page posts the form normally: the server generates the run, publishes
+// it and redirects back to the Call Volume Forecast page with the result.
+// This handler only adds the loading state.
+//
+// The listeners are delegated on `document` on purpose: the app's sidebar
+// navigation swaps the page body with innerHTML, so a listener bound to the
+// form element itself would be lost the moment the user navigates to the
+// page through the sidebar.
+// =====================================================================
+
+let forecastGenerationBound = false;
+
+function initForecastGeneration() {
+    if (forecastGenerationBound) return;
+    forecastGenerationBound = true;
+
+    document.addEventListener('submit', function(event) {
+        const form = event.target;
+        if (!form || form.id !== 'forecast-generate-form') return;
+
+        // Ignore repeat submissions while one is already on its way.
+        if (window.__forecastGenerationSubmitting) {
+            event.preventDefault();
+            return;
+        }
+        window.__forecastGenerationSubmitting = true;
+
+        const button = form.querySelector('#forecast-generate-button');
+        const label = form.querySelector('#forecast-generate-label');
+        // The button is only styled, never disabled: a disabled control is
+        // left out of the posted form data, and the server needs the
+        // button's action marker to tell an explicit click apart from an
+        // implicit submission.
+        if (button) {
+            button.classList.add('opacity-60', 'cursor-not-allowed');
+            button.setAttribute('aria-busy', 'true');
+        }
+        if (label) label.textContent = 'Generating…';
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key !== 'Enter') return;
+        const target = event.target;
+        // Enter in the horizon selector must never submit the form.
+        if (target && target.id === 'forecast-horizon') {
+            event.preventDefault();
+        }
+    });
+
+    // A page restored from the back/forward cache must be able to submit again.
+    window.addEventListener('pageshow', function() {
+        window.__forecastGenerationSubmitting = false;
+    });
 }
 
 
@@ -824,6 +940,12 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error('initCharts failed:', err);
     }
 
+    try {
+        initForecastGeneration();
+    } catch (err) {
+        console.error('initForecastGeneration failed:', err);
+    }
+
     document.addEventListener('mouseover', function(e) {
         const sidebar = e.target.closest('#main-sidebar');
         if (sidebar && window.innerWidth >= 768 && !sidebar.classList.contains('expanded')) {
@@ -1004,6 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         try { window.afterContentSwap(); } catch (err) { console.error(err); }
                     }
                     if (typeof initCharts === 'function') initCharts();
+                    if (typeof initForecastGeneration === 'function') initForecastGeneration();
                 } else {
                     // Fallback if the layout is different
                     window.location.href = url; 
