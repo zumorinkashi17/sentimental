@@ -157,7 +157,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# The application is used by a Philippine helpline: timestamps are stored in
+# UTC (USE_TZ = True) and displayed in Philippine Time. Django performs the
+# conversion, so no code adds eight hours by hand.
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 

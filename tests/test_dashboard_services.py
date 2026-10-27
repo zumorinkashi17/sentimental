@@ -3,10 +3,11 @@
 from datetime import date
 
 from django.test import RequestFactory, TestCase
+from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.dashboard import services
-from tests.helpers import make_caller, make_session, make_shift, make_user
+from tests.helpers import login, make_caller, make_session, make_shift, make_user
 
 
 class HelperFunctionTests(TestCase):
@@ -117,6 +118,135 @@ class AdminContextFilterTests(TestCase):
             self.assertIn(key, ctx)
         self.assertEqual(ctx["gauge"]["total"], 3)
         self.assertEqual(ctx["gauge"]["high"], 2)
+
+
+class AdminAiCardTests(TestCase):
+    """The AI Volume Prediction card reads the shared persisted forecast run."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def _admin_context(self):
+        request = self.factory.get(
+            "/dashboard/admin/index/",
+            {"period": "range", "start": "2026-01-01", "end": "2026-01-31"},
+        )
+        return services.admin_context(request)
+
+    def _persist(self, **kwargs):
+        from tests.test_forecast_persistence import make_result, persist
+
+        return persist(make_result(**kwargs))
+
+    def test_card_uses_current_persisted_run(self):
+        self._persist()
+        ai = self._admin_context()["ai"]
+        self.assertTrue(ai["available"])
+        self.assertEqual(ai["period"], "May 2026")
+        self.assertEqual(ai["predicted"], 200)
+        self.assertEqual(ai["status"], "200 calls")
+        self.assertTrue(ai["generated_label"].startswith("Forecast generated"))
+
+    def test_card_distinguishes_forecast_from_recorded_calls(self):
+        self._persist()
+        message = self._admin_context()["ai"]["message"]
+        self.assertIn("forecast", message)
+        self.assertIn("not a count of calls already received", message)
+
+    def test_card_matches_shared_run_payload(self):
+        self._persist()
+        from apps.forecast.services import current_forecast_run, forecast_run_payload
+
+        payload = forecast_run_payload(current_forecast_run())
+        first = payload["months"][0]
+        ai = self._admin_context()["ai"]
+        self.assertEqual(ai["predicted"], int(round(first["yhat"])))
+        # The label shows the same moment as the stored UTC value, in the
+        # application's timezone.
+        self.assertIn(payload["generated_at"][:4], ai["generated_label"])
+        self.assertTrue(ai["generated_label"].endswith("PHT"))
+
+    def test_card_flags_leading_shift_uncertainty(self):
+        # Morning and Afternoon 80% intervals overlap -> provisional.
+        self._persist(values={
+            "total": [200.0, 220.0],
+            "morning": [100.0, 105.0],
+            "afternoon": [98.0, 102.0],
+            "night": [25.0, 30.0],
+        })
+        ai = self._admin_context()["ai"]
+        self.assertTrue(ai["leading_shift"].startswith("Morning Shift"))
+        self.assertTrue(ai["uncertain"])
+        self.assertTrue(ai["uncertainty_note"])
+
+    def test_card_leading_shift_confident_when_gap_is_clear(self):
+        self._persist(values={
+            "total": [300.0, 320.0],
+            "morning": [200.0, 210.0],
+            "afternoon": [50.0, 52.0],
+            "night": [20.0, 21.0],
+        })
+        ai = self._admin_context()["ai"]
+        self.assertTrue(ai["leading_shift"].startswith("Morning Shift"))
+        self.assertFalse(ai["uncertain"])
+        self.assertIsNone(ai["uncertainty_note"])
+
+    def test_card_fallback_without_current_run(self):
+        ai = self._admin_context()["ai"]
+        self.assertFalse(ai["available"])
+        self.assertEqual(ai["status"], "Forecast Unavailable")
+        self.assertIn("No forecast run", ai["message"])
+        self.assertIsNone(ai["leading_shift"])
+
+    def test_card_ignores_non_current_run(self):
+        from tests.test_forecast_persistence import persist
+
+        persist(is_current=False)
+        ai = self._admin_context()["ai"]
+        self.assertFalse(ai["available"])
+
+
+class AdminAiCardRenderTests(TestCase):
+    """The forecast card renders in the real admin dashboard template."""
+
+    def setUp(self):
+        self.admin = make_user(email="admin@example.com", role="Admin", first="Admin")
+        login(self.client, self.admin)
+
+    def _persist(self, **kwargs):
+        from tests.test_forecast_persistence import make_result, persist
+
+        return persist(make_result(**kwargs))
+
+    def test_dashboard_renders_forecast_values_and_metadata(self):
+        self._persist()
+        resp = self.client.get(reverse("dashboard:admin_index"))
+        self.assertContains(resp, "Expected Call Volume")
+        self.assertContains(resp, "200 calls")
+        self.assertContains(resp, "not a count of calls already received")
+        self.assertContains(resp, "Forecast generated")
+
+    def test_dashboard_renders_uncertainty_warning(self):
+        self._persist(values={
+            "total": [200.0, 220.0],
+            "morning": [100.0, 105.0],
+            "afternoon": [98.0, 102.0],
+            "night": [25.0, 30.0],
+        })
+        resp = self.client.get(reverse("dashboard:admin_index"))
+        self.assertContains(resp, "Expected busiest shift: Morning Shift")
+        self.assertContains(resp, "Uncertain")
+
+    def test_dashboard_renders_fallback_without_run(self):
+        resp = self.client.get(reverse("dashboard:admin_index"))
+        self.assertContains(resp, "Forecast Unavailable")
+
+    def test_existing_kpi_cards_still_render(self):
+        self._persist()
+        resp = self.client.get(reverse("dashboard:admin_index"))
+        self.assertContains(resp, "Total Calls")
+        self.assertContains(resp, "High Risk Interventions")
+        self.assertContains(resp, "Active Responders")
 
 
 class ResponderOptionsTests(TestCase):

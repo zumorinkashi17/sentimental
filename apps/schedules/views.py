@@ -6,6 +6,7 @@ from itertools import groupby
 from django.http import JsonResponse, request
 from django.views.decorators.http import require_POST
 from .models import ShiftCatalog, ShiftSchedule
+from .services import staffing_review_context
 from apps.accounts.models import User, DayOffRequest
 from apps.pagination import paginate
 from django.db import transaction
@@ -139,6 +140,8 @@ def admin_calendar_view(request):
         'active_month_count': active_month_count,
         'dayoff_week_count': dayoff_week_count,
         'leave_week_count': leave_week_count,
+
+        'staffing': staffing_review_context(),
     }
     return render(request, 'schedules/admin_calendar.html', context)
 
