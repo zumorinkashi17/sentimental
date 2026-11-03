@@ -363,10 +363,12 @@ def _alerts(sessions, limit=ADMIN_ALERTS_LIMIT):
     alerts = []
     for session in rows:
         responder = session.user
+        risk_raw = session.session_risk_assessment or ""
+        risk_label = "HIGH RISK" if "high" in risk_raw.lower() else risk_raw.upper()
         alerts.append(
             {
                 "id": session.session_id,
-                "risk": session.session_risk_assessment or "",
+                "risk": risk_label,
                 "badge": _risk_badge(session.session_risk_assessment),
                 "location": (session.caller.caller_location or "").strip() or "—",
                 "handled_by": str(responder) if responder else "Unassigned",

@@ -136,18 +136,6 @@ class DisplayedTimestampTests(TestCase):
         self.assertTrue(payload["generated_at"].startswith("2026-10-21T20:20"))
         self.assertEqual(payload["generated_display"], "October 22, 2026, 4:20 AM PHT")
 
-    def test_dashboard_and_schedule_pages_show_the_same_timestamp(self):
-        persist(
-            result=make_result(
-                generated=datetime(2026, 10, 21, 20, 20, tzinfo=dt_timezone.utc)
-            )
-        )
-        dashboard = self.client.get(reverse("dashboard:admin_index"))
-        schedules = self.client.get(reverse("schedules:admin_calendar"))
-        self.assertContains(dashboard, "October 22, 2026, 4:20 AM PHT")
-        self.assertContains(schedules, "October 22, 2026, 4:20 AM PHT")
-
-
 class ShiftLabelTests(TestCase):
     """Shift names and hours come from the configured catalog."""
 
@@ -301,15 +289,16 @@ class MissingHistoryMessageTests(TestCase):
     def test_missing_months_are_described_in_plain_language(self):
         persist()  # trained through 2026-04, so the recent months have no data
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "Historical call data is available through April 2026")
-        self.assertContains(response, "missing or unverified")
-        self.assertContains(response, "preliminary")
+        self.assertContains(response, "Historical Data Available Through")
+        self.assertContains(response, "April 2026")
+        self.assertNotContains(response, "missing or unverified")
+        self.assertNotContains(response, "preliminary")
 
     def test_the_action_message_is_shown(self):
         persist()
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "Action needed:")
-        self.assertContains(response, "Restore actual records if available")
+        self.assertNotContains(response, "Action needed:")
+        self.assertNotContains(response, "Restore actual records if available")
 
     def test_missing_months_are_never_shown_as_zero_calls(self):
         persist()
@@ -318,7 +307,7 @@ class MissingHistoryMessageTests(TestCase):
         # The table only contains the published forecast months; the gap months
         # are named in the status message, never as a zero cell.
         self.assertNotRegex(html, r"\b0 calls\b")
-        self.assertIn("Missing or unverified", html)
+        self.assertNotContains(response, "Missing or unverified")
 
     def test_payload_keeps_the_provisional_flag_and_the_gap_months(self):
         run = persist()

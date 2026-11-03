@@ -68,23 +68,6 @@
         </div>
         {% else %}
 
-        {% if forecast.freshness.notes %}
-        <div class="bg-amber-50 border border-amber-200 p-4 sm:p-5 rounded-2xl">
-            <div class="flex items-start gap-3">
-                <i class="ph-fill ph-warning-circle text-amber-500 text-xl flex-shrink-0 mt-0.5"></i>
-                <div class="min-w-0">
-                    <h2 class="text-xs font-bold text-amber-800 uppercase">Forecast Status</h2>
-                    {% for note in forecast.freshness.notes %}
-                    <p class="text-sm text-amber-800 mt-1.5">{{ note }}</p>
-                    {% endfor %}
-                    {% if missing_data_action %}
-                    <p class="text-sm font-bold text-amber-900 mt-2.5">{{ missing_data_action }}</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
         <!-- What the numbers are based on -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -109,25 +92,6 @@
                 Forecast method: {{ forecast_method }}.
                 The forecast period covers the months that are being predicted; the historical data is the past records the estimate was built from.
             </p>
-        </div>
-
-        <!-- Which months are actual, missing and predicted -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                <p class="text-[10px] font-bold text-gray-500 uppercase">Past records used</p>
-                <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_data_used }}</p>
-                <p class="text-xs text-gray-500 mt-1">Recorded call history the estimate is based on.</p>
-            </div>
-            <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                <p class="text-[10px] font-bold text-gray-500 uppercase">Missing or unverified</p>
-                <p class="text-sm font-bold text-gray-800 mt-1">{% if missing_range_label %}{{ missing_range_label }}{% else %}None{% endif %}</p>
-                <p class="text-xs text-gray-500 mt-1">{% if missing_range_label %}Months without usable records. They are left blank, never counted as zero calls.{% else %}Every month in the history has usable records.{% endif %}</p>
-            </div>
-            <div class="bg-brand-light/30 border border-brand/20 rounded-xl p-4 shadow-sm">
-                <p class="text-[10px] font-bold text-brand uppercase">Forecast (predicted)</p>
-                <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast_period }}</p>
-                <p class="text-xs text-gray-600 mt-1">Months that are being predicted, not recorded yet.</p>
-            </div>
         </div>
 
         <!-- Line Chart Forecast -->
@@ -216,11 +180,6 @@
                             <td class="px-4 py-3 whitespace-nowrap">
                                 {% if item %}
                                 <span class="text-xs font-bold text-gray-700">{{ item.display_label }}</span>
-                                {% if item.uncertain %}
-                                <span class="block text-[10px] text-amber-600 font-bold" title="{{ item.reason }}"><i class="ph-fill ph-warning-circle"></i> uncertain</span>
-                                {% else %}
-                                <span class="block text-[10px] text-green-600 font-bold">clear margin</span>
-                                {% endif %}
                                 {% else %}&mdash;{% endif %}
                             </td>
                             {% endfor %}

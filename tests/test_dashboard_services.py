@@ -224,9 +224,8 @@ class AdminAiCardRenderTests(TestCase):
         self.assertContains(resp, "Expected Call Volume")
         self.assertContains(resp, "200 calls")
         self.assertContains(resp, "not a count of calls already received")
-        self.assertContains(resp, "Forecast generated")
 
-    def test_dashboard_renders_uncertainty_warning(self):
+    def test_dashboard_renders_forecast_call_volume_card(self):
         self._persist(values={
             "total": [200.0, 220.0],
             "morning": [100.0, 105.0],
@@ -234,8 +233,11 @@ class AdminAiCardRenderTests(TestCase):
             "night": [25.0, 30.0],
         })
         resp = self.client.get(reverse("dashboard:admin_index"))
-        self.assertContains(resp, "Expected busiest shift: Morning Shift")
-        self.assertContains(resp, "Uncertain")
+        self.assertContains(resp, "Expected Call Volume")
+        self.assertContains(resp, "200 calls")
+        self.assertContains(resp, "not a count of calls already received")
+        self.assertNotContains(resp, "Expected busiest shift")
+        self.assertNotContains(resp, "Uncertain")
 
     def test_dashboard_renders_fallback_without_run(self):
         resp = self.client.get(reverse("dashboard:admin_index"))
@@ -245,7 +247,7 @@ class AdminAiCardRenderTests(TestCase):
         self._persist()
         resp = self.client.get(reverse("dashboard:admin_index"))
         self.assertContains(resp, "Total Calls")
-        self.assertContains(resp, "High Risk Interventions")
+        self.assertContains(resp, "High Risk Calls")
         self.assertContains(resp, "Active Responders")
 
 

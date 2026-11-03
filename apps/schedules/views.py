@@ -10,6 +10,8 @@ from .services import staffing_review_context
 from apps.accounts.models import User, DayOffRequest
 from apps.pagination import paginate
 from django.db import transaction
+from django.db.models import Count
+from collections import defaultdict
 
 ROSTER_PAGE_SIZE = 10
 
@@ -141,9 +143,50 @@ def admin_calendar_view(request):
         'dayoff_week_count': dayoff_week_count,
         'leave_week_count': leave_week_count,
 
+        # Staffing recommendation context (nested for existing tests, flattened for template).
         'staffing': staffing_review_context(),
+        **staffing_review_context(),
+
+        # Schedule comparison: currently scheduled staff per shift per month.
+        'scheduled_staff_by_shift_month': _scheduled_staff_by_shift_month(),
     }
     return render(request, 'schedules/admin_calendar.html', context)
+
+
+def _scheduled_staff_by_shift_month() -> dict:
+    """Return currently scheduled staff counts grouped by shift series and month.
+
+    Keys are ``(series, "YYYY-MM")`` tuples mapping to distinct scheduled user
+    counts for ``schedule_status='Scheduled'``. Shift series is inferred from
+    the ShiftCatalog working hours (Morning 6-14, Afternoon 14-22, Night 22-6).
+    """
+    from apps.forecast.services.display import shift_catalog_hours
+
+    catalog = shift_catalog_hours()
+    # Map shift_id -> series name based on working hours.
+    shift_id_to_series = {}
+    for shift_id, entry in catalog.items():
+        start = entry["start"]
+        end = entry["end"]
+        # Morning: 06:00-14:00, Afternoon: 14:00-22:00, Night: 22:00-06:00.
+        if start.hour == 6 and end.hour == 14:
+            shift_id_to_series[shift_id] = "morning"
+        elif start.hour == 14 and end.hour == 22:
+            shift_id_to_series[shift_id] = "afternoon"
+        elif start.hour == 22 and end.hour == 6:
+            shift_id_to_series[shift_id] = "night"
+
+    result = defaultdict(int)
+    schedules = ShiftSchedule.objects.filter(
+        schedule_status='Scheduled'
+    ).select_related('shift')
+    for sched in schedules:
+        series = shift_id_to_series.get(sched.shift_id)
+        if series is None or sched.shift_date is None:
+            continue
+        key = (series, sched.shift_date.strftime("%Y-%m"))
+        result[key] += 1
+    return dict(result)
 
 def api_user_schedule(request, user_id):
     schedules = ShiftSchedule.objects.filter(user_id=user_id).select_related('shift')
