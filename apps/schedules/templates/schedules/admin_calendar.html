@@ -19,18 +19,55 @@
             </div>
         </div>
 
-        <!-- AI Recommendation Banner -->
-        <div class="bg-red-50 border border-red-200 p-5 rounded-2xl flex items-start gap-4 shadow-sm">
-            <div class="bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center shrink-0">
-                <i class="ph-fill ph-sparkle text-xl"></i>
-            </div>
-            <div>
-                <h3 class="font-bold text-red-800">AI Staffing Prediction: Shortage Detected</h3>
-                <p class="text-sm text-red-700 mt-1">A 40% surge in high-risk calls is predicted for <b>Friday (Oct 25)</b>. Recommendation: Deny non-urgent leave requests and assign multiple responders in shorter <b>4-hour consecutive shifts</b> to maintain continuous active coverage and prevent fatigue.</p>
+        <!-- AI Staffing Review (planning aid) -->
+        <div class="bg-brand/5 border border-brand/20 p-5 rounded-2xl shadow-sm">
+            <div class="flex items-start gap-4">
+                <div class="bg-brand text-white w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+                    <i class="ph-fill ph-sparkle text-xl"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    {% if staffing.available %}
+                    <h3 class="font-bold text-brand-dark">Staffing Review <span class="font-medium text-gray-500 text-xs uppercase tracking-wider">planning aid</span></h3>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Staffing review recommended. Use these forecasts as a starting point for planning. This review is a planning aid, not a guarantee of future call volume.
+                    </p>
+                    <p class="text-[11px] text-gray-400 mt-1">
+                        {% if staffing.generated_label %}Forecast generated: {{ staffing.generated_label }} &middot; {% endif %}
+                        Historical data available through {{ staffing.historical_available_through|default:"-" }} &middot;
+                        Forecast period: {{ staffing.forecast_period|default:"-" }}
+                    </p>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {% for m in staffing.months %}
+                        <div class="border border-gray-100 rounded-lg p-3 bg-white">
+                            <span class="text-xs font-bold text-gray-700">{{ m.label }}</span>
+                            <p class="text-sm font-bold text-gray-800 mt-1">{{ m.total|floatformat:0 }} calls</p>
+                            {% if m.total_lower != None %}<p class="text-[10px] text-gray-400">Estimated range: {{ m.total_lower|floatformat:0 }}&ndash;{{ m.total_upper|floatformat:0 }} calls</p>{% endif %}
+                            {% if m.leading_shift %}<p class="text-[10px] text-gray-500 mt-1">Busiest shift: {{ m.leading_shift }}</p>{% endif %}
+                            {% if m.shift_staff %}
+                            <div class="mt-1.5 flex flex-wrap gap-3 items-center">
+                                {% for s in m.shift_staff %}
+                                <span class="text-[10px] flex items-center gap-1">
+                                    <span class="text-gray-400 capitalize">{{ s.shift_name }}</span><span class="text-indigo-600 font-bold ml-0.5">{{ s.recommended_staff }}</span>
+                                </span>
+                                {% endfor %}
+                                <span class="text-[10px] text-gray-500 border-l pl-2 ml-1 hidden sm:block">Total {{ m.total_recommended_staff|default:0 }}</span>
+                            </div>
+                            {% elif m.total_recommended_staff != None %}
+                            <p class="text-[10px] text-indigo-600 mt-1 font-bold">Recommended staff: {{ m.total_recommended_staff }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <h3 class="font-bold text-gray-700">Staffing Review unavailable</h3>
+                    <p class="text-sm text-gray-600 mt-1">{{ staffing.reason }}</p>
+                    <p class="text-[11px] text-gray-400 mt-1">No staffing guidance is shown until a forecast has been generated.</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <!-- QUICK STATS METRICS -->
+<!-- QUICK STATS METRICS -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
             
             <!-- Active Today -->
@@ -1064,7 +1101,7 @@
             }
         }
     }
-
-    
 </script>
+
+    <!-- Staffing Charts removed: simplified UI no longer uses charts -->
 {% endblock %}
