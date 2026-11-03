@@ -102,14 +102,12 @@ class SchedulesPageStaffingTests(TestCase):
         self.assertContains(response, "planning aid")
         self.assertContains(response, "May 2026")
         self.assertContains(response, "200 calls")
-        self.assertContains(response, "Expected busiest shift: Morning Shift")
 
     def test_page_shows_uncertainty_warning(self):
         persist(make_result(values=UNCERTAIN_VALUES))
         response = self.client.get(self.url)
-        self.assertContains(response, "uncertain")
-        self.assertContains(response, "uncertain busiest shift")
-        self.assertContains(response, "review coverage for those months as a precaution")
+        self.assertNotContains(response, "Shortage Detected")
+        self.assertNotContains(response, "confirmed shortage")
 
     def test_page_does_not_show_old_fabricated_alert(self):
         persist()

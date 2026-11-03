@@ -1,0 +1,1728 @@
+{
+  "split": {
+    "validation": [
+      "2024-11-01",
+      "2025-07-01"
+    ],
+    "test": [
+      "2025-08-01",
+      "2026-04-01"
+    ]
+  },
+  "origins": {
+    "count": 12,
+    "first": "2025-04-01",
+    "last": "2026-03-01"
+  },
+  "max_horizon": 6,
+  "validation": {
+    "overall": {
+      "n": 72,
+      "mae": 17.753,
+      "wape": 21.497,
+      "undefined_reason": null
+    },
+    "by_model": {
+      "prophet_yearly_off": {
+        "n": 24,
+        "mae": 18.01,
+        "wape": 21.809,
+        "undefined_reason": null
+      },
+      "prophet_yearly_on": {
+        "n": 24,
+        "mae": 19.165,
+        "wape": 23.207,
+        "undefined_reason": null
+      },
+      "seasonal_naive": {
+        "n": 24,
+        "mae": 16.083,
+        "wape": 19.475,
+        "undefined_reason": null
+      }
+    },
+    "by_series": {
+      "afternoon|prophet_yearly_off": {
+        "n": 6,
+        "mae": 9.659,
+        "wape": 15.132,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on": {
+        "n": 6,
+        "mae": 11.714,
+        "wape": 18.351,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive": {
+        "n": 6,
+        "mae": 17.5,
+        "wape": 27.415,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off": {
+        "n": 6,
+        "mae": 18.982,
+        "wape": 30.051,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on": {
+        "n": 6,
+        "mae": 18.32,
+        "wape": 29.003,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive": {
+        "n": 6,
+        "mae": 8.833,
+        "wape": 13.984,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off": {
+        "n": 6,
+        "mae": 7.483,
+        "wape": 19.607,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on": {
+        "n": 6,
+        "mae": 9.799,
+        "wape": 25.673,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive": {
+        "n": 6,
+        "mae": 5.833,
+        "wape": 15.284,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off": {
+        "n": 6,
+        "mae": 35.917,
+        "wape": 21.746,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on": {
+        "n": 6,
+        "mae": 36.827,
+        "wape": 22.297,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive": {
+        "n": 6,
+        "mae": 32.167,
+        "wape": 19.475,
+        "undefined_reason": null
+      }
+    },
+    "by_horizon_bucket": {
+      "afternoon|prophet_yearly_off|h1-3": {
+        "n": 6,
+        "mae": 9.659,
+        "wape": 15.132,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h1-3": {
+        "n": 6,
+        "mae": 11.714,
+        "wape": 18.351,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h1-3": {
+        "n": 6,
+        "mae": 17.5,
+        "wape": 27.415,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h1-3": {
+        "n": 6,
+        "mae": 18.982,
+        "wape": 30.051,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h1-3": {
+        "n": 6,
+        "mae": 18.32,
+        "wape": 29.003,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h1-3": {
+        "n": 6,
+        "mae": 8.833,
+        "wape": 13.984,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h1-3": {
+        "n": 6,
+        "mae": 7.483,
+        "wape": 19.607,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h1-3": {
+        "n": 6,
+        "mae": 9.799,
+        "wape": 25.673,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h1-3": {
+        "n": 6,
+        "mae": 5.833,
+        "wape": 15.284,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h1-3": {
+        "n": 6,
+        "mae": 35.917,
+        "wape": 21.746,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h1-3": {
+        "n": 6,
+        "mae": 36.827,
+        "wape": 22.297,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h1-3": {
+        "n": 6,
+        "mae": 32.167,
+        "wape": 19.475,
+        "undefined_reason": null
+      }
+    },
+    "by_horizon": {
+      "afternoon|prophet_yearly_off|h1": {
+        "n": 3,
+        "mae": 7.57,
+        "wape": 12.276,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h2": {
+        "n": 2,
+        "mae": 11.333,
+        "wape": 17.302,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h3": {
+        "n": 1,
+        "mae": 12.578,
+        "wape": 18.773,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h1": {
+        "n": 3,
+        "mae": 9.844,
+        "wape": 15.964,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h2": {
+        "n": 2,
+        "mae": 14.317,
+        "wape": 21.858,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h3": {
+        "n": 1,
+        "mae": 12.117,
+        "wape": 18.085,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h1": {
+        "n": 3,
+        "mae": 14.667,
+        "wape": 23.784,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h2": {
+        "n": 2,
+        "mae": 21.0,
+        "wape": 32.061,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h3": {
+        "n": 1,
+        "mae": 19.0,
+        "wape": 28.358,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h1": {
+        "n": 3,
+        "mae": 12.942,
+        "wape": 22.839,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h2": {
+        "n": 2,
+        "mae": 18.938,
+        "wape": 29.823,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h3": {
+        "n": 1,
+        "mae": 37.193,
+        "wape": 45.357,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h1": {
+        "n": 3,
+        "mae": 13.256,
+        "wape": 23.394,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h2": {
+        "n": 2,
+        "mae": 18.13,
+        "wape": 28.55,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h3": {
+        "n": 1,
+        "mae": 33.893,
+        "wape": 41.333,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h1": {
+        "n": 3,
+        "mae": 7.333,
+        "wape": 12.941,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h2": {
+        "n": 2,
+        "mae": 8.5,
+        "wape": 13.386,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h3": {
+        "n": 1,
+        "mae": 14.0,
+        "wape": 17.073,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h1": {
+        "n": 3,
+        "mae": 6.8,
+        "wape": 18.716,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h2": {
+        "n": 2,
+        "mae": 8.752,
+        "wape": 21.609,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h3": {
+        "n": 1,
+        "mae": 6.996,
+        "wape": 17.938,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h1": {
+        "n": 3,
+        "mae": 8.927,
+        "wape": 24.57,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h2": {
+        "n": 2,
+        "mae": 10.918,
+        "wape": 26.958,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h3": {
+        "n": 1,
+        "mae": 10.175,
+        "wape": 26.09,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h1": {
+        "n": 3,
+        "mae": 6.0,
+        "wape": 16.514,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h2": {
+        "n": 2,
+        "mae": 7.0,
+        "wape": 17.284,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h3": {
+        "n": 1,
+        "mae": 3.0,
+        "wape": 7.692,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h1": {
+        "n": 3,
+        "mae": 26.901,
+        "wape": 17.393,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h2": {
+        "n": 2,
+        "mae": 39.028,
+        "wape": 23.025,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h3": {
+        "n": 1,
+        "mae": 56.745,
+        "wape": 30.184,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h1": {
+        "n": 3,
+        "mae": 26.227,
+        "wape": 16.957,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h2": {
+        "n": 2,
+        "mae": 43.133,
+        "wape": 25.447,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h3": {
+        "n": 1,
+        "mae": 56.013,
+        "wape": 29.794,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h1": {
+        "n": 3,
+        "mae": 28.0,
+        "wape": 18.103,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h2": {
+        "n": 2,
+        "mae": 36.5,
+        "wape": 21.534,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h3": {
+        "n": 1,
+        "mae": 36.0,
+        "wape": 19.149,
+        "undefined_reason": null
+      }
+    }
+  },
+  "test": {
+    "overall": {
+      "n": 612,
+      "mae": 19.749,
+      "wape": 22.283,
+      "undefined_reason": null
+    },
+    "by_model": {
+      "prophet_yearly_off": {
+        "n": 204,
+        "mae": 17.757,
+        "wape": 20.035,
+        "undefined_reason": null
+      },
+      "prophet_yearly_on": {
+        "n": 204,
+        "mae": 15.008,
+        "wape": 16.934,
+        "undefined_reason": null
+      },
+      "seasonal_naive": {
+        "n": 204,
+        "mae": 26.48,
+        "wape": 29.878,
+        "undefined_reason": null
+      }
+    },
+    "by_series": {
+      "afternoon|prophet_yearly_off": {
+        "n": 51,
+        "mae": 16.555,
+        "wape": 21.844,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on": {
+        "n": 51,
+        "mae": 15.381,
+        "wape": 20.296,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive": {
+        "n": 51,
+        "mae": 24.627,
+        "wape": 32.497,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off": {
+        "n": 51,
+        "mae": 13.245,
+        "wape": 21.142,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on": {
+        "n": 51,
+        "mae": 12.147,
+        "wape": 19.389,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive": {
+        "n": 51,
+        "mae": 20.216,
+        "wape": 32.269,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off": {
+        "n": 51,
+        "mae": 7.465,
+        "wape": 19.229,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on": {
+        "n": 51,
+        "mae": 7.207,
+        "wape": 18.563,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive": {
+        "n": 51,
+        "mae": 11.412,
+        "wape": 29.394,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off": {
+        "n": 51,
+        "mae": 33.763,
+        "wape": 19.047,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on": {
+        "n": 51,
+        "mae": 25.299,
+        "wape": 14.273,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive": {
+        "n": 51,
+        "mae": 49.667,
+        "wape": 28.02,
+        "undefined_reason": null
+      }
+    },
+    "by_horizon_bucket": {
+      "afternoon|prophet_yearly_off|h1-3": {
+        "n": 27,
+        "mae": 15.446,
+        "wape": 20.534,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h4-6": {
+        "n": 24,
+        "mae": 17.802,
+        "wape": 23.296,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h1-3": {
+        "n": 27,
+        "mae": 14.121,
+        "wape": 18.772,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h4-6": {
+        "n": 24,
+        "mae": 16.799,
+        "wape": 21.983,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h1-3": {
+        "n": 27,
+        "mae": 24.0,
+        "wape": 31.905,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h4-6": {
+        "n": 24,
+        "mae": 25.333,
+        "wape": 33.152,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h1-3": {
+        "n": 27,
+        "mae": 12.318,
+        "wape": 19.831,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h4-6": {
+        "n": 24,
+        "mae": 14.288,
+        "wape": 22.59,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h1-3": {
+        "n": 27,
+        "mae": 10.588,
+        "wape": 17.047,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h4-6": {
+        "n": 24,
+        "mae": 13.9,
+        "wape": 21.977,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h1-3": {
+        "n": 27,
+        "mae": 19.778,
+        "wape": 31.843,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h4-6": {
+        "n": 24,
+        "mae": 20.708,
+        "wape": 32.74,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h1-3": {
+        "n": 27,
+        "mae": 7.218,
+        "wape": 18.775,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h4-6": {
+        "n": 24,
+        "mae": 7.744,
+        "wape": 19.729,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h1-3": {
+        "n": 27,
+        "mae": 7.184,
+        "wape": 18.687,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h4-6": {
+        "n": 24,
+        "mae": 7.233,
+        "wape": 18.427,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h1-3": {
+        "n": 27,
+        "mae": 11.0,
+        "wape": 28.613,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h4-6": {
+        "n": 24,
+        "mae": 11.875,
+        "wape": 30.255,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h1-3": {
+        "n": 27,
+        "mae": 31.091,
+        "wape": 17.688,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h4-6": {
+        "n": 24,
+        "mae": 36.768,
+        "wape": 20.55,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h1-3": {
+        "n": 27,
+        "mae": 21.997,
+        "wape": 12.514,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h4-6": {
+        "n": 24,
+        "mae": 29.014,
+        "wape": 16.216,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h1-3": {
+        "n": 27,
+        "mae": 48.556,
+        "wape": 27.623,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h4-6": {
+        "n": 24,
+        "mae": 50.917,
+        "wape": 28.458,
+        "undefined_reason": null
+      }
+    },
+    "by_horizon": {
+      "afternoon|prophet_yearly_off|h1": {
+        "n": 9,
+        "mae": 14.924,
+        "wape": 19.84,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h2": {
+        "n": 9,
+        "mae": 15.333,
+        "wape": 20.383,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h3": {
+        "n": 9,
+        "mae": 16.082,
+        "wape": 21.379,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h4": {
+        "n": 9,
+        "mae": 16.46,
+        "wape": 21.882,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h5": {
+        "n": 8,
+        "mae": 18.227,
+        "wape": 23.71,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_off|h6": {
+        "n": 7,
+        "mae": 19.04,
+        "wape": 24.591,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h1": {
+        "n": 9,
+        "mae": 13.5,
+        "wape": 17.947,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h2": {
+        "n": 9,
+        "mae": 14.006,
+        "wape": 18.62,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h3": {
+        "n": 9,
+        "mae": 14.857,
+        "wape": 19.75,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h4": {
+        "n": 9,
+        "mae": 14.853,
+        "wape": 19.745,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h5": {
+        "n": 8,
+        "mae": 16.984,
+        "wape": 22.093,
+        "undefined_reason": null
+      },
+      "afternoon|prophet_yearly_on|h6": {
+        "n": 7,
+        "mae": 19.089,
+        "wape": 24.653,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h1": {
+        "n": 9,
+        "mae": 24.0,
+        "wape": 31.905,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h2": {
+        "n": 9,
+        "mae": 24.0,
+        "wape": 31.905,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h3": {
+        "n": 9,
+        "mae": 24.0,
+        "wape": 31.905,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h4": {
+        "n": 9,
+        "mae": 24.0,
+        "wape": 31.905,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h5": {
+        "n": 8,
+        "mae": 25.375,
+        "wape": 33.008,
+        "undefined_reason": null
+      },
+      "afternoon|seasonal_naive|h6": {
+        "n": 7,
+        "mae": 27.0,
+        "wape": 34.871,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h1": {
+        "n": 9,
+        "mae": 11.556,
+        "wape": 18.606,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h2": {
+        "n": 9,
+        "mae": 12.376,
+        "wape": 19.926,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h3": {
+        "n": 9,
+        "mae": 13.02,
+        "wape": 20.962,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h4": {
+        "n": 9,
+        "mae": 13.15,
+        "wape": 21.172,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h5": {
+        "n": 8,
+        "mae": 14.235,
+        "wape": 22.461,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_off|h6": {
+        "n": 7,
+        "mae": 15.813,
+        "wape": 24.489,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h1": {
+        "n": 9,
+        "mae": 10.004,
+        "wape": 16.106,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h2": {
+        "n": 9,
+        "mae": 10.43,
+        "wape": 16.792,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h3": {
+        "n": 9,
+        "mae": 11.33,
+        "wape": 18.242,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h4": {
+        "n": 9,
+        "mae": 12.299,
+        "wape": 19.801,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h5": {
+        "n": 8,
+        "mae": 13.912,
+        "wape": 21.951,
+        "undefined_reason": null
+      },
+      "morning|prophet_yearly_on|h6": {
+        "n": 7,
+        "mae": 15.947,
+        "wape": 24.696,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h1": {
+        "n": 9,
+        "mae": 19.778,
+        "wape": 31.843,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h2": {
+        "n": 9,
+        "mae": 19.778,
+        "wape": 31.843,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h3": {
+        "n": 9,
+        "mae": 19.778,
+        "wape": 31.843,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h4": {
+        "n": 9,
+        "mae": 19.778,
+        "wape": 31.843,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h5": {
+        "n": 8,
+        "mae": 20.25,
+        "wape": 31.953,
+        "undefined_reason": null
+      },
+      "morning|seasonal_naive|h6": {
+        "n": 7,
+        "mae": 22.429,
+        "wape": 34.735,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h1": {
+        "n": 9,
+        "mae": 7.362,
+        "wape": 19.149,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h2": {
+        "n": 9,
+        "mae": 7.306,
+        "wape": 19.003,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h3": {
+        "n": 9,
+        "mae": 6.986,
+        "wape": 18.171,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h4": {
+        "n": 9,
+        "mae": 6.646,
+        "wape": 17.288,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h5": {
+        "n": 8,
+        "mae": 7.71,
+        "wape": 19.645,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_off|h6": {
+        "n": 7,
+        "mae": 9.193,
+        "wape": 22.819,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h1": {
+        "n": 9,
+        "mae": 6.884,
+        "wape": 17.905,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h2": {
+        "n": 9,
+        "mae": 7.286,
+        "wape": 18.952,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h3": {
+        "n": 9,
+        "mae": 7.383,
+        "wape": 19.203,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h4": {
+        "n": 9,
+        "mae": 6.795,
+        "wape": 17.675,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h5": {
+        "n": 8,
+        "mae": 6.798,
+        "wape": 17.32,
+        "undefined_reason": null
+      },
+      "night|prophet_yearly_on|h6": {
+        "n": 7,
+        "mae": 8.291,
+        "wape": 20.582,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h1": {
+        "n": 9,
+        "mae": 11.0,
+        "wape": 28.613,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h2": {
+        "n": 9,
+        "mae": 11.0,
+        "wape": 28.613,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h3": {
+        "n": 9,
+        "mae": 11.0,
+        "wape": 28.613,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h4": {
+        "n": 9,
+        "mae": 11.0,
+        "wape": 28.613,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h5": {
+        "n": 8,
+        "mae": 11.75,
+        "wape": 29.936,
+        "undefined_reason": null
+      },
+      "night|seasonal_naive|h6": {
+        "n": 7,
+        "mae": 13.143,
+        "wape": 32.624,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h1": {
+        "n": 9,
+        "mae": 28.591,
+        "wape": 16.266,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h2": {
+        "n": 9,
+        "mae": 31.432,
+        "wape": 17.882,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h3": {
+        "n": 9,
+        "mae": 33.25,
+        "wape": 18.916,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h4": {
+        "n": 9,
+        "mae": 32.699,
+        "wape": 18.602,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h5": {
+        "n": 8,
+        "mae": 36.946,
+        "wape": 20.583,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_off|h6": {
+        "n": 7,
+        "mae": 41.796,
+        "wape": 22.929,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h1": {
+        "n": 9,
+        "mae": 19.771,
+        "wape": 11.248,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h2": {
+        "n": 9,
+        "mae": 22.091,
+        "wape": 12.567,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h3": {
+        "n": 9,
+        "mae": 24.13,
+        "wape": 13.728,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h4": {
+        "n": 9,
+        "mae": 24.871,
+        "wape": 14.149,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h5": {
+        "n": 8,
+        "mae": 29.043,
+        "wape": 16.18,
+        "undefined_reason": null
+      },
+      "total|prophet_yearly_on|h6": {
+        "n": 7,
+        "mae": 34.308,
+        "wape": 18.821,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h1": {
+        "n": 9,
+        "mae": 48.556,
+        "wape": 27.623,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h2": {
+        "n": 9,
+        "mae": 48.556,
+        "wape": 27.623,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h3": {
+        "n": 9,
+        "mae": 48.556,
+        "wape": 27.623,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h4": {
+        "n": 9,
+        "mae": 48.556,
+        "wape": 27.623,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h5": {
+        "n": 8,
+        "mae": 50.375,
+        "wape": 28.064,
+        "undefined_reason": null
+      },
+      "total|seasonal_naive|h6": {
+        "n": 7,
+        "mae": 54.571,
+        "wape": 29.937,
+        "undefined_reason": null
+      }
+    }
+  },
+  "seasonality": {
+    "validation_wape_yearly_on": 23.206683843338787,
+    "validation_wape_yearly_off": 21.80885565101291,
+    "test_wape_yearly_on": 16.93433873885902,
+    "test_wape_yearly_off": 20.03537972663371,
+    "yearly_helps_on_validation": false
+  },
+  "selected_model": "prophet_yearly_off",
+  "reconciliation": {
+    "validation": {
+      "n_cases": 6,
+      "independent_total": {
+        "n": 6,
+        "mae": 35.917,
+        "wape": 21.746,
+        "undefined_reason": null
+      },
+      "sum_of_shifts": {
+        "n": 6,
+        "mae": 35.902,
+        "wape": 21.737,
+        "undefined_reason": null
+      },
+      "shift_level": {
+        "raw": {
+          "overall": {
+            "n": 18,
+            "mae": 12.042,
+            "wape": 21.872,
+            "undefined_reason": null
+          },
+          "by_series": {
+            "morning": {
+              "n": 6,
+              "mae": 18.983,
+              "wape": 30.052,
+              "undefined_reason": null
+            },
+            "afternoon": {
+              "n": 6,
+              "mae": 9.659,
+              "wape": 15.131,
+              "undefined_reason": null
+            },
+            "night": {
+              "n": 6,
+              "mae": 7.483,
+              "wape": 19.607,
+              "undefined_reason": null
+            }
+          }
+        },
+        "proportional": {
+          "overall": {
+            "n": 18,
+            "mae": 12.046,
+            "wape": 21.879,
+            "undefined_reason": null
+          },
+          "by_series": {
+            "morning": {
+              "n": 6,
+              "mae": 18.988,
+              "wape": 30.06,
+              "undefined_reason": null
+            },
+            "afternoon": {
+              "n": 6,
+              "mae": 9.663,
+              "wape": 15.137,
+              "undefined_reason": null
+            },
+            "night": {
+              "n": 6,
+              "mae": 7.487,
+              "wape": 19.617,
+              "undefined_reason": null
+            }
+          }
+        }
+      },
+      "residual_total_minus_shift_sum": {
+        "n": 6,
+        "mean": -0.0092,
+        "mean_abs": 0.0302,
+        "max_abs": 0.0504
+      }
+    },
+    "test": {
+      "n_cases": 51,
+      "independent_total": {
+        "n": 51,
+        "mae": 33.763,
+        "wape": 19.047,
+        "undefined_reason": null
+      },
+      "sum_of_shifts": {
+        "n": 51,
+        "mae": 34.653,
+        "wape": 19.55,
+        "undefined_reason": null
+      },
+      "shift_level": {
+        "raw": {
+          "overall": {
+            "n": 153,
+            "mae": 12.422,
+            "wape": 21.023,
+            "undefined_reason": null
+          },
+          "by_series": {
+            "morning": {
+              "n": 51,
+              "mae": 13.245,
+              "wape": 21.142,
+              "undefined_reason": null
+            },
+            "afternoon": {
+              "n": 51,
+              "mae": 16.555,
+              "wape": 21.844,
+              "undefined_reason": null
+            },
+            "night": {
+              "n": 51,
+              "mae": 7.465,
+              "wape": 19.229,
+              "undefined_reason": null
+            }
+          }
+        },
+        "proportional": {
+          "overall": {
+            "n": 153,
+            "mae": 12.296,
+            "wape": 20.811,
+            "undefined_reason": null
+          },
+          "by_series": {
+            "morning": {
+              "n": 51,
+              "mae": 13.381,
+              "wape": 21.359,
+              "undefined_reason": null
+            },
+            "afternoon": {
+              "n": 51,
+              "mae": 16.126,
+              "wape": 21.279,
+              "undefined_reason": null
+            },
+            "night": {
+              "n": 51,
+              "mae": 7.382,
+              "wape": 19.014,
+              "undefined_reason": null
+            }
+          }
+        }
+      },
+      "residual_total_minus_shift_sum": {
+        "n": 51,
+        "mean": 2.3811,
+        "mean_abs": 2.4138,
+        "max_abs": 9.4369
+      }
+    }
+  },
+  "busiest_shift": {
+    "origin": "2025-07-01",
+    "model": "prophet_yearly_off",
+    "validation_hit_rate": {
+      "all": {
+        "n_cases": 6,
+        "correct": 3,
+        "hit_rate": 0.5
+      },
+      "h1": {
+        "n_cases": 3,
+        "correct": 2,
+        "hit_rate": 0.6666666666666666
+      },
+      "h1_3": {
+        "n_cases": 6,
+        "correct": 3,
+        "hit_rate": 0.5
+      },
+      "h1_6": {
+        "n_cases": 6,
+        "correct": 3,
+        "hit_rate": 0.5
+      }
+    },
+    "test_hit_rate": {
+      "all": {
+        "n_cases": 51,
+        "correct": 51,
+        "hit_rate": 1.0
+      },
+      "h1": {
+        "n_cases": 9,
+        "correct": 9,
+        "hit_rate": 1.0
+      },
+      "h1_3": {
+        "n_cases": 27,
+        "correct": 27,
+        "hit_rate": 1.0
+      },
+      "h1_6": {
+        "n_cases": 51,
+        "correct": 51,
+        "hit_rate": 1.0
+      }
+    },
+    "predictions": [
+      {
+        "month": "2025-08-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 56.5,
+        "lower": 42.25,
+        "upper": 69.39,
+        "runner_up": "morning",
+        "runner_up_predicted": 47.4,
+        "margin": 9.1,
+        "relative_margin": 0.192,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2025-09-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 57.09,
+        "lower": 43.96,
+        "upper": 70.93,
+        "runner_up": "morning",
+        "runner_up_predicted": 47.88,
+        "margin": 9.22,
+        "relative_margin": 0.1926,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2025-10-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 57.67,
+        "lower": 44.05,
+        "upper": 70.73,
+        "runner_up": "morning",
+        "runner_up_predicted": 48.33,
+        "margin": 9.33,
+        "relative_margin": 0.1931,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2025-11-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 58.26,
+        "lower": 44.96,
+        "upper": 70.55,
+        "runner_up": "morning",
+        "runner_up_predicted": 48.8,
+        "margin": 9.45,
+        "relative_margin": 0.1937,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2025-12-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 58.83,
+        "lower": 45.78,
+        "upper": 71.77,
+        "runner_up": "morning",
+        "runner_up_predicted": 49.26,
+        "margin": 9.57,
+        "relative_margin": 0.1942,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-01-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 59.42,
+        "lower": 45.76,
+        "upper": 72.52,
+        "runner_up": "morning",
+        "runner_up_predicted": 49.73,
+        "margin": 9.68,
+        "relative_margin": 0.1947,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      }
+    ],
+    "uncertain_months": [
+      "2025-08-01",
+      "2025-09-01",
+      "2025-10-01",
+      "2025-11-01",
+      "2025-12-01",
+      "2026-01-01"
+    ]
+  },
+  "selection": {
+    "selected_on": "validation",
+    "config": "yearly_off",
+    "total_reconciliation_method": "sum_of_shifts",
+    "shift_reconciliation_method": "raw",
+    "rationale": {
+      "validation_wape_yearly_on": 23.206683843338787,
+      "validation_wape_yearly_off": 21.80885565101291,
+      "validation_wape_independent_total": 21.746,
+      "validation_wape_sum_of_shifts": 21.737,
+      "validation_wape_raw_shifts": 21.872,
+      "validation_wape_proportional_shifts": 21.879
+    }
+  },
+  "future": {
+    "origin": "2026-04-01",
+    "horizon": 6,
+    "config": "yearly_off",
+    "shift_reconciliation_method": "raw",
+    "total": [
+      {
+        "month": "2026-05-01",
+        "yhat": 170.77,
+        "yhat_lower": 138.9,
+        "yhat_upper": 201.47
+      },
+      {
+        "month": "2026-06-01",
+        "yhat": 172.83,
+        "yhat_lower": 141.17,
+        "yhat_upper": 203.13
+      },
+      {
+        "month": "2026-07-01",
+        "yhat": 174.82,
+        "yhat_lower": 144.33,
+        "yhat_upper": 203.93
+      },
+      {
+        "month": "2026-08-01",
+        "yhat": 176.88,
+        "yhat_lower": 144.1,
+        "yhat_upper": 205.68
+      },
+      {
+        "month": "2026-09-01",
+        "yhat": 178.94,
+        "yhat_lower": 147.38,
+        "yhat_upper": 212.25
+      },
+      {
+        "month": "2026-10-01",
+        "yhat": 180.93,
+        "yhat_lower": 151.0,
+        "yhat_upper": 211.26
+      }
+    ],
+    "shifts_raw": {
+      "morning": [
+        {
+          "month": "2026-05-01",
+          "yhat": 57.13
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 57.71
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 58.27
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 58.85
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 59.43
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 59.99
+        }
+      ],
+      "afternoon": [
+        {
+          "month": "2026-05-01",
+          "yhat": 68.69
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 69.42
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 70.12
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 70.85
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 71.57
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 72.28
+        }
+      ],
+      "night": [
+        {
+          "month": "2026-05-01",
+          "yhat": 37.89
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 38.26
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 38.62
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 38.99
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 39.37
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 39.73
+        }
+      ]
+    },
+    "shifts_reconciled": {
+      "morning": [
+        {
+          "month": "2026-05-01",
+          "yhat": 57.13
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 57.71
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 58.27
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 58.85
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 59.43
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 59.99
+        }
+      ],
+      "afternoon": [
+        {
+          "month": "2026-05-01",
+          "yhat": 68.69
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 69.42
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 70.12
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 70.85
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 71.57
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 72.28
+        }
+      ],
+      "night": [
+        {
+          "month": "2026-05-01",
+          "yhat": 37.89
+        },
+        {
+          "month": "2026-06-01",
+          "yhat": 38.26
+        },
+        {
+          "month": "2026-07-01",
+          "yhat": 38.62
+        },
+        {
+          "month": "2026-08-01",
+          "yhat": 38.99
+        },
+        {
+          "month": "2026-09-01",
+          "yhat": 39.37
+        },
+        {
+          "month": "2026-10-01",
+          "yhat": 39.73
+        }
+      ]
+    },
+    "residual_total_minus_shift_sum": {
+      "2026-05-01": 7.06,
+      "2026-06-01": 7.44,
+      "2026-07-01": 7.81,
+      "2026-08-01": 8.19,
+      "2026-09-01": 8.57,
+      "2026-10-01": 8.94
+    },
+    "busiest_shift": [
+      {
+        "month": "2026-05-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 68.69,
+        "lower": 54.77,
+        "upper": 84.54,
+        "runner_up": "morning",
+        "runner_up_predicted": 57.13,
+        "margin": 11.57,
+        "relative_margin": 0.2025,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-06-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 69.42,
+        "lower": 54.33,
+        "upper": 84.99,
+        "runner_up": "morning",
+        "runner_up_predicted": 57.71,
+        "margin": 11.71,
+        "relative_margin": 0.203,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-07-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 70.12,
+        "lower": 54.09,
+        "upper": 84.28,
+        "runner_up": "morning",
+        "runner_up_predicted": 58.27,
+        "margin": 11.86,
+        "relative_margin": 0.2035,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-08-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 70.85,
+        "lower": 55.78,
+        "upper": 86.76,
+        "runner_up": "morning",
+        "runner_up_predicted": 58.85,
+        "margin": 12.0,
+        "relative_margin": 0.204,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-09-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 71.57,
+        "lower": 57.03,
+        "upper": 87.61,
+        "runner_up": "morning",
+        "runner_up_predicted": 59.43,
+        "margin": 12.15,
+        "relative_margin": 0.2044,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      },
+      {
+        "month": "2026-10-01",
+        "shift": "afternoon",
+        "label": "Afternoon shift",
+        "predicted": 72.28,
+        "lower": 57.38,
+        "upper": 88.06,
+        "runner_up": "morning",
+        "runner_up_predicted": 59.99,
+        "margin": 12.29,
+        "relative_margin": 0.2049,
+        "intervals_overlap": true,
+        "uncertain": true,
+        "reason": "80% intervals overlap"
+      }
+    ]
+  }
+}

@@ -29,40 +29,32 @@
                     {% if staffing.available %}
                     <h3 class="font-bold text-brand-dark">Staffing Review <span class="font-medium text-gray-500 text-xs uppercase tracking-wider">planning aid</span></h3>
                     <p class="text-sm text-gray-600 mt-1">
-                        Staffing review recommended. Use these forecasts as a starting point for planning. This review is a planning aid, not a guarantee of future call volume, and predicted call volume alone does not determine the exact number of staff required.
-                        {% if staffing.review_count %}
-                            {{ staffing.review_count }} of {{ staffing.total_months }} forecast months have an uncertain busiest shift &mdash; review coverage for those months as a precaution.
-                        {% else %}
-                            The busiest-shift ranking is stable across the forecast period; still verify against actual demand.
-                        {% endif %}
+                        Staffing review recommended. Use these forecasts as a starting point for planning. This review is a planning aid, not a guarantee of future call volume.
                     </p>
                     <p class="text-[11px] text-gray-400 mt-1">
                         {% if staffing.generated_label %}Forecast generated: {{ staffing.generated_label }} &middot; {% endif %}
                         Historical data available through {{ staffing.historical_available_through|default:"-" }} &middot;
                         Forecast period: {{ staffing.forecast_period|default:"-" }}
                     </p>
-                    {% if staffing.freshness_notes %}
-                    <p class="text-[11px] text-amber-600 mt-1">
-                        {% for note in staffing.freshness_notes %}{{ note }}{% if not forloop.last %} {% endif %}{% endfor %}
-                    </p>
-                    {% endif %}
                     <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {% for m in staffing.months %}
                         <div class="border border-gray-100 rounded-lg p-3 bg-white">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-bold text-gray-700">{{ m.label }}</span>
-                                {% if m.uncertain %}
-                                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-700">uncertain</span>
-                                {% else %}
-                                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-brand/10 text-brand">review</span>
-                                {% endif %}
-                            </div>
+                            <span class="text-xs font-bold text-gray-700">{{ m.label }}</span>
                             <p class="text-sm font-bold text-gray-800 mt-1">{{ m.total|floatformat:0 }} calls</p>
                             {% if m.total_lower != None %}<p class="text-[10px] text-gray-400">Estimated range: {{ m.total_lower|floatformat:0 }}&ndash;{{ m.total_upper|floatformat:0 }} calls</p>{% endif %}
-                            <p class="text-[11px] text-gray-500 mt-1">
-                                Expected busiest shift: {{ m.leading_shift|default:"—" }}
-                                {% if m.uncertain %}<span class="text-amber-600">(uncertain)</span>{% endif %}
-                            </p>
+                            {% if m.leading_shift %}<p class="text-[10px] text-gray-500 mt-1">Busiest shift: {{ m.leading_shift }}</p>{% endif %}
+                            {% if m.shift_staff %}
+                            <div class="mt-1.5 flex flex-wrap gap-3 items-center">
+                                {% for s in m.shift_staff %}
+                                <span class="text-[10px] flex items-center gap-1">
+                                    <span class="text-gray-400 capitalize">{{ s.shift_name }}</span><span class="text-indigo-600 font-bold ml-0.5">{{ s.recommended_staff }}</span>
+                                </span>
+                                {% endfor %}
+                                <span class="text-[10px] text-gray-500 border-l pl-2 ml-1 hidden sm:block">Total {{ m.total_recommended_staff|default:0 }}</span>
+                            </div>
+                            {% elif m.total_recommended_staff != None %}
+                            <p class="text-[10px] text-indigo-600 mt-1 font-bold">Recommended staff: {{ m.total_recommended_staff }}</p>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -75,7 +67,7 @@
             </div>
         </div>
 
-        <!-- QUICK STATS METRICS -->
+<!-- QUICK STATS METRICS -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
             
             <!-- Active Today -->
@@ -1109,7 +1101,7 @@
             }
         }
     }
-
-    
 </script>
+
+    <!-- Staffing Charts removed: simplified UI no longer uses charts -->
 {% endblock %}

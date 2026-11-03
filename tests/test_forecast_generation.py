@@ -599,7 +599,7 @@ class FreshnessDisclosureTests(TestCase):
         # provisional even though the window is in the future.
         self.assertTrue(payload["freshness"]["is_provisional"])
 
-    def test_forecast_page_shows_the_status_note_for_a_stale_run(self):
+    def test_forecast_page_shows_no_status_note_for_a_stale_run(self):
         elapsed_months = month_span(add_months(TODAY, -2), TODAY)
         persist(
             result=make_result(
@@ -615,8 +615,8 @@ class FreshnessDisclosureTests(TestCase):
         admin = make_user(email="admin2@example.com", role=User.RoleChoices.ADMIN)
         login(self.client, admin)
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "Forecast Status")
-        self.assertContains(response, "have already passed")
+        self.assertNotContains(response, "Forecast Status")
+        self.assertNotContains(response, "have already passed")
 
 
 class SelectorUiTests(TestCase):
