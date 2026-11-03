@@ -7,6 +7,7 @@ app_name = 'reports'
 urlpatterns = [
     path('generate/', views.generate_view, name='generate'),
     path('export-pdf/<int:report_id>/', views.export_pdf_view, name='export_pdf'),
+    path('export-forecast-actual-pdf/<int:report_id>/', views.export_forecast_actual_pdf_view, name='export_forecast_actual_pdf'),
 
     #temporaryyy rani para makita nko dagway sa forecast html
     path('test-forecast/', TemplateView.as_view(template_name='reports/forecast_pdf_report.html')),

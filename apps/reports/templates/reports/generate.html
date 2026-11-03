@@ -25,6 +25,14 @@
             </div>
         </div>
 
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 mb-4 text-sm font-medium rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-green-50 text-green-800 border border-green-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="overflow-x-auto rounded-lg border border-gray-100">
                 <table class="w-full text-left border-collapse">
@@ -60,9 +68,16 @@
                                     <button type="button" onclick="openEditModal('{{ report.report_id }}', '{{ report.display_title|escapejs }}', '{{ report.report_type }}')" class="bg-white text-gray-700 border border-gray-200 text-xs font-bold px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                         <i class="ph-bold ph-pencil-simple text-sm"></i> Edit
                                     </button>
-                                    <a href="{% url 'reports:export_pdf' report.report_id %}" target="_blank" class="bg-brand text-white text-xs font-bold px-3.5 py-2 rounded-lg hover:bg-brand-dark transition-colors inline-flex items-center gap-1.5 shadow-sm">
-                                        <i class="ph-bold ph-file-pdf text-sm"></i> PDF
-                                    </a>
+                                    
+                                    {% if report.report_type == 'Analytics' %}
+                                        <a href="{% url 'reports:export_forecast_actual_pdf' report.report_id %}" target="_blank" class="bg-brand text-white text-xs font-bold px-3.5 py-2 rounded-lg hover:bg-brand-dark transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                                            <i class="ph-bold ph-file-pdf text-sm"></i> PDF
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'reports:export_pdf' report.report_id %}" target="_blank" class="bg-brand text-white text-xs font-bold px-3.5 py-2 rounded-lg hover:bg-brand-dark transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                                            <i class="ph-bold ph-file-pdf text-sm"></i> PDF
+                                        </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -93,7 +108,7 @@
             
             <div>
                 <label class="form-label text-xs font-bold text-gray-600 uppercase">Report Title</label>
-                <input type="text" name="report_title" placeholder="e.g. DOH Call Volume Report" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
+                <input type="text" name="report_title" placeholder="e.g. Forecast vs Actual Analysis" class="form-input mt-1 w-full border-gray-200 rounded-lg text-sm p-2.5 bg-gray-50 focus:bg-white" required>
             </div>
             
             <div class="grid grid-cols-2 gap-4">
@@ -116,9 +131,11 @@
                 </select>
             </div>
 
-            <p class="text-[11px] text-gray-400 italic mb-2"><i class="ph-fill ph-info text-brand mr-1"></i> The system will extract actual data for this range directly from your database.</p>
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs text-gray-600 mt-2">
+                <span class="font-bold text-gray-700">Note:</span> Use <span class="font-bold text-brand">Analytics</span> for "Forecast vs Actual Call Volume" reports, and <span class="font-bold text-brand">Compliance</span> for standard DOH historical reports.
+            </div>
 
-            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark shadow-sm">
+            <button type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark shadow-sm mt-2">
                 Generate Database Report
             </button>
         </form>
@@ -151,9 +168,11 @@
                 </select>
             </div>
 
-            <p class="text-[11px] text-gray-400 italic mb-2 mt-2"><i class="ph-fill ph-info text-brand mr-1"></i> Target dates are locked to preserve the report's original data scope.</p>
+            <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs text-gray-600 mt-2">
+                <span class="font-bold text-gray-700">Note:</span> Target dates are locked to preserve the original data scope. Use <span class="font-bold text-brand">Analytics</span> if renaming to a Forecast vs Actuals report.
+            </div>
 
-            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-sm">
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-sm mt-2">
                 Save Changes
             </button>
         </form>
@@ -161,7 +180,6 @@
 </div>
 
 <script>
-    // Create Modal Logic
     function openReportModal() {
         document.getElementById('modal-create-report').classList.remove('hidden');
         document.getElementById('modal-create-report').classList.add('flex');
@@ -171,7 +189,6 @@
         document.getElementById('modal-create-report').classList.add('hidden');
     }
 
-    // Edit Modal Logic
     function openEditModal(id, title, type) {
         document.getElementById('edit_report_id').value = id;
         document.getElementById('edit_report_title').value = title;

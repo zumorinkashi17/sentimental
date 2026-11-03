@@ -67,39 +67,48 @@
             </div>
         </div>
 
-<!-- QUICK STATS METRICS -->
+        <!-- QUICK STATS METRICS -->
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
             
-            <!-- Active Today -->
+            <!-- Scheduled Today -->
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
                 <div class="bg-emerald-50 text-emerald-600 w-12 h-12 rounded-full flex items-center justify-center shrink-0">
                     <i class="ph-bold ph-users text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Active Today</p>
-                    <p class="text-2xl font-black text-gray-800">{{ active_today_count }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Scheduled Today</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl font-black text-gray-800">{{ active_today_count }}</p>
+                        <p class="text-xs text-gray-400 font-medium">on shift</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Active This Week -->
+            <!-- Scheduled This Week -->
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
                 <div class="bg-brand/10 text-brand w-12 h-12 rounded-full flex items-center justify-center shrink-0">
                     <i class="ph-bold ph-calendar-blank text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Active (Week)</p>
-                    <p class="text-2xl font-black text-gray-800">{{ active_week_count }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Scheduled (Week)</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl font-black text-gray-800">{{ active_week_count }}</p>
+                        <p class="text-xs text-gray-400 font-medium">on shift</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Active This Month -->
+            <!-- Scheduled This Month -->
             <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
                 <div class="bg-indigo-50 text-indigo-500 w-12 h-12 rounded-full flex items-center justify-center shrink-0">
                     <i class="ph-bold ph-calendar-check text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Active (Month)</p>
-                    <p class="text-2xl font-black text-gray-800">{{ active_month_count }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Scheduled (Month)</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl font-black text-gray-800">{{ active_month_count }}</p>
+                        <p class="text-xs text-gray-400 font-medium">on shift</p>
+                    </div>
                 </div>
             </div>
 
@@ -109,8 +118,11 @@
                     <i class="ph-bold ph-coffee text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Off (Week)</p>
-                    <p class="text-2xl font-black text-gray-800">{{ dayoff_week_count }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Scheduled Off</p>
+                    <div class="flex items-baseline gap-2">
+                        <p class="text-2xl font-black text-gray-800">{{ dayoff_week_count }}</p>
+                        <p class="text-xs text-gray-400 font-medium">this week</p>
+                    </div>
                 </div>
             </div>
 
@@ -120,7 +132,7 @@
                     <i class="ph-bold ph-airplane-tilt text-xl"></i>
                 </div>
                 <div class="relative z-10">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Leave (Week)</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">On Leave (Week)</p>
                     <div class="flex items-baseline gap-2">
                         <p class="text-2xl font-black text-gray-800">{{ leave_week_count }}</p>
                         {% if pending_leaves %}
