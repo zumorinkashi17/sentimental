@@ -275,7 +275,7 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertEqual(lines[2], "Sa risk assessment, low risk.")
         self.assertEqual(
             lines[3],
-            "Ang counselor naghatag og referral ug psychoeducation.",
+            "Ang responder naghatag og referral ug psychoeducation.",
         )
 
     def test_infers_reason_and_uses_summary_fallbacks(self):
@@ -297,7 +297,7 @@ class SummaryTemplateTests(SimpleTestCase):
         )
         self.assertEqual(lines[2], "Sa risk assessment, wala pa ma-assess.")
         self.assertEqual(
-            lines[3], "Ang counselor naghatag og emotional support."
+            lines[3], "Ang responder naghatag og emotional support."
         )
 
     def test_prefers_textrank_extract_for_reason_and_symptoms(self):
@@ -438,6 +438,153 @@ class SummaryTemplateTests(SimpleTestCase):
         ):
             self.assertIn(phrase, lines[1])
         self.assertNotIn("adunay mga hunahuna sa pagpakamatay", result["summary"])
+
+    def test_summarizes_domestic_abuse_without_emergency_false_positive(self):
+        text = (
+            "Caller:\n"
+            "Ako si Elena, 32, babaye, taga Cebu City. Ang akong live-in "
+            "partner niabot gikan inom. Gisagpa ko niya duha ka beses unya "
+            "gitukmod ko sa bongbong. Sakit kaayo akong abaga. Nagkurog akong "
+            "tibuok lawas. Dili ko makaginhawa og tarong. Di ko gusto mamatay.\n\n"
+            "Responder:\n"
+            "Kailangan ba nato magpadala og rescue? Kung makagawas ka, adto sa "
+            "WCPD sa police station para maka-file og blotter ug protection "
+            "order. Pwede pud ka mo-adto sa Pink Room sa Vicente Sotto Memorial "
+            "Medical Center. Tawag lang balik kung naay emergency.\n"
+        )
+
+        result = analyze(
+            text,
+            reason_for_calling="Domestic Abuse",
+            risk_assessment="High Risk",
+        )
+        lines = result["summary"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Domestic Abuse."
+        )
+        self.assertIn("gisagpa ug gitukmod", lines[1])
+        self.assertIn("sakit ang abaga", lines[1])
+        self.assertIn("nagkurog ang lawas", lines[1])
+        self.assertNotIn("nagkurog ang kamot", lines[1])
+        self.assertNotIn("Referred to Emergency Room", categories)
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Others", categories)
+        self.assertIn("referral", lines[3])
+        self.assertIn("laing tabang", lines[3])
+
+    def test_does_not_match_reason_cues_inside_words_or_negated_suicide(self):
+        result = analyze(
+            "Caller:\nGamay ra nga butang. Wala sad ko naghunahuna og hikog."
+        )
+        summary = result["summary"]
+
+        self.assertNotIn("Financial Problem", summary)
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", summary)
+        self.assertIn("wala mailhi nga rason", summary)
+
+    def test_summarizes_anger_with_coping_and_referral(self):
+        text = (
+            "Caller:\n"
+            "Ako si Rommel, 34 na ko, taga-Naga City. Hello sir, nanawag ko "
+            "kay init kaayo akong ulo. Hadlok ko makapasakit kog tawo. Gamay "
+            "ra nga butang pero mobuto akong dughan sa kalagot. Lami kaayo "
+            "manumbag. Mamula akong nawong, manginit akong lawas, unya "
+            "nagkurog akong mga kamot. Maglabad akong ulo inig human. Wala "
+            "sad ko naghunahuna og hikog.\n\n"
+            "Responder:\n"
+            "Pwede ta mag-breathing exercise. Inhale... exhale. Pwede pud ka "
+            "mag-walking away o time-out. Kung open ka, mo-consult sa "
+            "psychologist sa Vicente Sotto out-patient department.\n"
+        )
+
+        result = analyze(text, risk_assessment="Medium Risk")
+        lines = result["summary"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Anger Management Issue."
+        )
+        self.assertIn("grabeng kasuko", lines[1])
+        self.assertIn("mobuto ang dughan", lines[1])
+        self.assertIn("gusto manumbag", lines[1])
+        self.assertIn("nagkurog ang kamot", lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, medium risk.")
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertIn("referral", lines[3])
+        self.assertIn("psychoeducation", lines[3])
+
+    def test_summarizes_cyberbullying_with_active_suicidal_ideation(self):
+        text = (
+            "Caller:\n"
+            "Ako si Janine, 19, babaye, taga-Lapu-Lapu City. Naa nagbuhat og "
+            "dummy account sa Facebook, nag-post og edited nga pictures nako "
+            "ug hate messages. Nagsuka ko sa sobrang kulba. Nagkurog akong "
+            "mga kamot. Dili ko makaginhawa og tarong. Lami na kaayo mamatay. "
+            "Nakahunahuna ko muinom og daghang tambal para dili na ko momata "
+            "ugma.\n\n"
+            "Responder:\n"
+            "I-deactivate ang Facebook ug i-turn off ang notifications. "
+            "Pag-log out. Ginhawa og lawom. I-report sa school guidance "
+            "counselor ug sa Anti-Cybercrime Group sa PNP.\n"
+        )
+
+        result = analyze(text, risk_assessment="High Risk")
+        lines = result["summary"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Cyberbullying."
+        )
+        self.assertIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertNotIn("naglaom nga dili na momata", lines[1])
+        self.assertIn("gikulbaan", lines[1])
+        self.assertIn("dili makaginhawa og tarong", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, high risk.")
+        self.assertIn("Referred to Guidance Counselors", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertIn("Others", categories)
+        self.assertIn("guidance counselor", lines[3])
+        self.assertIn("psychoeducation", lines[3])
+        self.assertIn("laing tabang", lines[3])
+
+    def test_summarizes_postpartum_depression_with_passive_si(self):
+        text = (
+            "Caller:\n"
+            "Ako si Karen, 26, babaye, minyo. Nanganak ko three months ago. "
+            "Wala koy ma-feel nga kalipay. Dili ko ganahan mogunit niya. "
+            "Kapoy na kaayo akong lawas ug utok. Dili ko katulog. Wala sad "
+            "koy gana mokaon. Ako ra usa sa balay, lahi ra ang kamingaw. "
+            "Usahay maka-think ko nga mas maayo pa mawala na lang ko. Gusto "
+            "lang nako matulog og dugay nga dili na momata.\n\n"
+            "Responder:\n"
+            "Pwede ta mag-grounding. Inhale... exhale. Kana nga pagbati human "
+            "manganak kay postpartum distress. Valid ug matambalan. Mo-consult "
+            "sa OB-GYN o psychologist. Tagaan tika og contact numbers sa "
+            "clinic.\n"
+        )
+
+        result = analyze(text, risk_assessment="Medium Risk")
+        lines = result["summary"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Postpartum Depression."
+        )
+        self.assertIn("naglaom nga dili na momata", lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertIn("grabeng kakapoy", lines[1])
+        self.assertIn("wala nay kalipay", lines[1])
+        self.assertIn("dili makatulog og tarong", lines[1])
+        self.assertNotIn("Work/Employment Problem", result["summary"])
+        self.assertEqual(lines[2], "Sa risk assessment, medium risk.")
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertIn("referral", lines[3])
+        self.assertIn("psychoeducation", lines[3])
 
     def test_detects_mid_twenties_crisis_psychoeducation(self):
         text = (

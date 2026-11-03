@@ -7,18 +7,27 @@ import re
 _NON_WORD = re.compile(r"[^a-z0-9]+")
 
 _PASSIVE_DEATH_WISH = "naglaom nga dili na momata"
+_ACTIVE_SI_PHRASE = "adunay mga hunahuna sa pagpakamatay"
 _SUICIDE_DENIAL = re.compile(
     r"\b(?:"
-    r"wala(?: man)?(?: ko| koy| akoy)? nagplano(?: nga)? "
-    r"(?:magpakamatay|mamatay|pasakitan ang akong kaugalingon)"
-    r"|wala(?: man)?(?: ko| koy| akoy)? "
-    r"(?:plano|intensyon|hunahuna)(?: nga)? "
-    r"(?:magpakamatay|mamatay|pasakitan ang akong kaugalingon)"
-    r"|di(?:li)?(?: man)?(?: ko)? gusto(?:ng)? mamatay"
-    r"|wala(?: ko)? naghunahuna(?: nga)? (?:magpakamatay|mamatay)"
+    r"wala(?: sad)?(?: man)?(?: ko| koy| akoy)? nagplano(?: nga)? "
+    r"(?:magpakamatay|mamatay|hikog|pasakitan ang akong kaugalingon)"
+    r"|wala(?: sad)?(?: man)?(?: ko| koy| akoy)? "
+    r"(?:plano|intensyon|hunahuna)(?: nga| og| sa)? "
+    r"(?:magpakamatay|mamatay|hikog|pasakitan ang akong kaugalingon)"
+    r"|di(?:li)?(?: man)?(?: sad)?(?: ko)? gusto(?:ng)? "
+    r"(?:mamatay|magpakamatay|hikog)"
+    r"|wala(?: sad)?(?: man)?(?: ko| koy| akoy)? naghunahuna(?: nga| og| sa)? "
+    r"(?:magpakamatay|mamatay|hikog|pasakitan ang akong kaugalingon)"
     r")\b",
     re.IGNORECASE,
 )
+
+_NEGATION_WORDS = {"wala", "wa", "dili", "di", "hindi", "not", "never", "no"}
+_NEGATION_SENSITIVE_REASONS = {
+    "Self-harming and Suicidal Attempt/Crisis",
+    "Suicidal Ideation",
+}
 
 _FALLBACK_REASON = "wala mailhi nga rason"
 _FALLBACK_SYMPTOMS = "wala siya magpaila og partikular nga sintomas"
@@ -42,7 +51,10 @@ _REASON_RULES = (
         (
             "suicidal",
             "suicide",
-            "mamatay",
+            "gusto mamatay",
+            "gusto na mamatay",
+            "gusto nako mamatay",
+            "magpakamatay",
             "tapuson ang kinabuhi",
             "tapuson na lang",
             "give up",
@@ -81,10 +93,10 @@ _REASON_RULES = (
     ("Work/Employment Problem", ("trabaho", "work", "employment", "boss", "overtime")),
     ("Marital Problem", ("asawa", "bana", "marital", "kaminyoon")),
     ("Relationship Problem", ("relasyon", "relationship", "uyab", "partner")),
-    ("Family Problem", ("pamilya", "parents", "mama", "papa", "anak", "family")),
+    ("Family Problem", ("pamilya", "mama", "papa", "anak", "family")),
     ("Anxiety", ("anxiety", "kulba", "gikulbaan", "panic")),
     ("Panic Attack", ("panic attack", "panic")),
-    ("Depression", ("depress", "depresyon", "down", "kaguol", "sad")),
+    ("Depression", ("depress", "depresyon", "down", "kaguol")),
     ("Grief", ("grief", "namatay", "patay", "kawala")),
     (
         "Symptoms of Insomnia",
@@ -117,7 +129,23 @@ _REASON_RULES = (
     ),
     ("Burnout", ("burnout", "burn out", "stress", "stressed", "work stress")),
     ("Bullying", ("bully", "bullying")),
-    ("Cyberbullying", ("cyberbully", "online")),
+    (
+        "Cyberbullying",
+        (
+            "cyberbully",
+            "cyberbullying",
+            "online",
+            "dummy account",
+            "facebook",
+            "hate messages",
+            "edited pictures",
+            "edited nga pictures",
+            "gi-tag",
+            "na-share",
+            "online harassment",
+            "identity theft",
+        ),
+    ),
     ("PTSD", ("ptsd",)),
     ("Trauma", ("trauma", "traumatic")),
     (
@@ -129,7 +157,25 @@ _REASON_RULES = (
     ("ADHD", ("adhd",)),
     ("Bipolar and OCD", ("bipolar", "ocd")),
     ("Acute Stress Disorder", ("acute stress",)),
-    ("Anger Management Issue", ("anger", "kasuko", "init sa ulo")),
+    (
+        "Anger Management Issue",
+        (
+            "anger",
+            "kasuko",
+            "init sa ulo",
+            "init kaayo akong ulo",
+            "init akong ulo",
+            "init ang ulo",
+            "kalagot",
+            "grabeng kalagot",
+            "dali masuko",
+            "dali ra ko masuko",
+            "nasuko",
+            "manumbag",
+            "makapasakit kog tawo",
+            "makapatay kog tawo",
+        ),
+    ),
     ("Career Path Crisis", ("career",)),
     ("Current Social Issue", ("social issue",)),
     ("Emotional Crisis", ("emotional crisis", "crisis")),
@@ -156,7 +202,20 @@ _REASON_RULES = (
     ("Interpersonal Conflict", ("conflict", "away")),
     ("Intimacy Problems", ("intimacy",)),
     ("Needed Referral", ("referral",)),
-    ("Postpartum Depression", ("postpartum",)),
+    (
+        "Postpartum Depression",
+        (
+            "postpartum",
+            "nanganak",
+            "bag ong nanganak",
+            "wala koy ma feel nga kalipay",
+            "wala koy kalipay",
+            "dili ko ganahan mogunit",
+            "dili ganahan mogunit",
+            "bati nga pagka inahan",
+            "pagka inahan",
+        ),
+    ),
     ("Psychiatric Emergency", ("psychiatric emergency",)),
     ("Psychosomatic Pain", ("psychosomatic",)),
     (
@@ -189,12 +248,114 @@ _REASON_RULES = (
 )
 
 _SYMPTOM_RULES = (
-    ("nagsige og hilak", ("hilak", "crying", "cry")),
+    (
+        "nagsige og hilak",
+        (
+            "hilak",
+            "makahilak",
+            "nakahilak",
+            "mihilak",
+            "maghilak sad ko",
+            "maghilak ko",
+            "crying",
+            "cry",
+        ),
+    ),
+    (
+        "gisagpa ug gitukmod",
+        ("gisagpa", "gitukmod", "gibukbok", "gibunalan", "kulatahon"),
+    ),
+    (
+        "sakit ang abaga",
+        ("sakit akong abaga", "sakit kaayo akong abaga", "sakit ang abaga"),
+    ),
+    (
+        "dili makaginhawa og tarong",
+        (
+            "dili makaginhawa",
+            "di makaginhawa",
+            "dili ko makaginhawa",
+            "di ko makaginhawa",
+            "dili ka ginhawa",
+            "di ka ginhawa",
+            "shortness of breath",
+        ),
+    ),
     ("gikulbaan", ("kulba", "gikulbaan", "anxiety", "anxious", "panic")),
     ("nagsuka", ("suka", "vomit", "nagsuka")),
-    ("nagkurog ang kamot", ("kurog", "nikig", "shaky", "trembling")),
-    ("gipaningot", ("paningot", "singot", "sweat")),
+    (
+        "nagkurog ang lawas",
+        (
+            "nagkurog akong tibuok lawas",
+            "nagkurog ang lawas",
+            "nagkurog akong lawas",
+            "nagkurog tibuok lawas",
+            "tibuok lawas nagkurog",
+            "mokurog akong tibuok lawas",
+            "mokurog ang lawas",
+            "mokurog akong lawas",
+            "mokurog tibuok lawas",
+        ),
+    ),
+    (
+        "nagkurog ang kamot",
+        (
+            "nagkurog ang kamot",
+            "nagkurog ang mga kamot",
+            "nagkurog akong kamot",
+            "nagkurog akong mga kamot",
+            "mokurog ang kamot",
+            "mokurog ang mga kamot",
+            "mokurog akong kamot",
+            "mokurog akong mga kamot",
+            "kurog ang kamot",
+            "kurog ang mga kamot",
+            "kamot nagkurog",
+            "shaky hands",
+            "trembling hands",
+        ),
+    ),
+    ("gipaningot", ("gipaningot", "paningot", "singot", "sweat")),
     ("mobuto ang dughan", ("mobuto", "mobuto ang dughan", "chest tight")),
+    (
+        "grabeng kasuko",
+        (
+            "grabeng kasuko",
+            "grabeng kalagot",
+            "init kaayo akong ulo",
+            "init akong ulo",
+            "init ang ulo",
+            "kalagot",
+            "kasuko",
+        ),
+    ),
+    (
+        "gusto manumbag",
+        (
+            "lami manumbag",
+            "lami kaayo manumbag",
+            "gusto manumbag",
+            "gusto ko manumbag",
+            "manumbag",
+        ),
+    ),
+    (
+        "manginit ang lawas",
+        (
+            "manginit akong tibuok kalawasan",
+            "manginit akong lawas",
+            "manginit ang lawas",
+            "manginit akong kalawasan",
+        ),
+    ),
+    (
+        "mamula ang nawong",
+        (
+            "mamula akong nawong",
+            "mamula ang nawong",
+            "mamula akong dunggan",
+        ),
+    ),
     (
         "bug-at ang dughan",
         ("bug-at ang dughan", "bug-at akong dughan", "bug-at kaayo akong dughan"),
@@ -207,7 +368,32 @@ _SYMPTOM_RULES = (
             "nawad-an kog gana",
             "wala koy gana",
             "wala nakoy gana",
+            "wala sad koy gana",
+            "wala koy gana mokaon",
+            "wala sad koy gana mokaon",
             "loss of appetite",
+        ),
+    ),
+    (
+        "wala nay kalipay",
+        (
+            "wala koy ma feel nga kalipay",
+            "wala koy kalipay",
+            "wala na koy kalipay",
+            "wala nay kalipay",
+            "dili ko ganahan mogunit",
+            "dili ganahan mogunit",
+        ),
+    ),
+    (
+        "grabeng kakapoy",
+        (
+            "kapoy na kaayo akong lawas",
+            "kapoy na akong lawas",
+            "kapoy na akong utok",
+            "grabeng kakapoy",
+            "wala nakoy kusog",
+            "wala koy kusog",
         ),
     ),
     (
@@ -238,14 +424,21 @@ _SYMPTOM_RULES = (
     ),
     (
         "naglaom nga dili na momata",
-        ("di na momata", "dili na momata", "di na nako ma-feel", "dili na nako ma-feel"),
+        (
+            "di na momata",
+            "dili na momata",
+            "di na ko momata",
+            "dili na ko momata",
+            "di na nako ma-feel",
+            "dili na nako ma-feel",
+        ),
     ),
     (
         "nakasinati og kamingaw",
         ("kamingaw", "mingaw", "lonely", "alone"),
     ),
     ("nag-inusara", ("inusara", "ako ra usa", "ako na lang usa", "ako ray usa")),
-    ("gilabad ang ulo", ("labad", "headache")),
+    ("gilabad ang ulo", ("labad", "maglabad", "headache")),
     ("nag-blangko ang utok", ("blangko", "blank")),
     ("nahadlok", ("hadlok", "scared", "fear")),
     (
@@ -313,7 +506,8 @@ _SYMPTOM_RULES = (
     ),
     ("gikapoy", ("kapoy", "fatigue", "tired")),
     ("nakauwaw", ("ulaw", "shame")),
-    ("nagul-an", ("guol", "sad", "sadness")),
+    ("nagul-an", ("guol", "sadness", "sad kaayo", "sad akong", "sad gyud")),
+    ("makonsensya", ("makonsensya", "konsensya")),
     (
         "empty ang pamati",
         ("empty ang pamati", "empty kaayo akong pamati", "murag empty", "walay lami ang pamati"),
@@ -346,9 +540,16 @@ _SYMPTOM_RULES = (
             "tapuson na lang",
             "ambak",
             "hikog",
+            "magpakamatay",
             "gusto ko mamatay",
             "gusto nako mamatay",
             "gusto na ko mamatay",
+            "lami mamatay",
+            "lami na kaayo mamatay",
+            "muinom og daghang tambal",
+            "muinom og tambal",
+            "daghang tambal",
+            "overdose",
         ),
     ),
 )
@@ -358,13 +559,21 @@ _SYMPTOM_PRIORITY = {
     "wala na siyay paglaom": 0,
     "naglaom nga dili na momata": 0,
     "mobuto ang dughan": 1,
+    "grabeng kasuko": 1,
+    "gusto manumbag": 1,
     "bug-at ang dughan": 1,
     "gikulbaan": 1,
+    "wala nay kalipay": 1,
+    "grabeng kakapoy": 1,
     "gikapoy mabuhi": 1,
     "dili makatulog og tarong": 1,
     "nag-ingon nga wala nay pulos mabuhi": 1,
+    "gisagpa ug gitukmod": 1,
+    "sakit ang abaga": 1,
+    "dili makaginhawa og tarong": 1,
     "nagsuka": 2,
     "empty ang pamati": 2,
+    "nagkurog ang lawas": 2,
     "nagkurog ang kamot": 2,
     "gipaningot": 2,
     "nagsige og hilak": 2,
@@ -375,10 +584,13 @@ _SYMPTOM_PRIORITY = {
     "nag-inusara": 3,
     "dili maka-focus": 3,
     "dali masuko": 3,
+    "mamula ang nawong": 3,
+    "manginit ang lawas": 3,
     "sige og overthink": 3,
     "gilabad ang ulo": 4,
     "nag-blangko ang utok": 4,
     "nahadlok": 4,
+    "makonsensya": 4,
     "gikapoy": 5,
     "nagul-an": 5,
     "nakauwaw": 6,
@@ -388,7 +600,7 @@ _INTERVENTION_PHRASES = {
     "Referred to Emergency Room": "nag-refer sa emergency room",
     "Referred to Guidance Counselors": "nag-refer sa guidance counselor",
     "Refused Referrals": "wala modawat sa referral",
-    "Others": "naghatag og laing assistance",
+    "Others": "naghatag og laing tabang",
     "Responder provided empathetic listening and support": (
         "naminaw ug naghatag og suporta"
     ),
@@ -406,7 +618,13 @@ def _position(text: str, cue: str) -> int:
         return -1
     if " " in normalized_cue:
         return f" {text} ".find(f" {normalized_cue} ")
-    return text.find(normalized_cue)
+    match = re.search(rf"\b{re.escape(normalized_cue)}\b", text)
+    return match.start() if match else -1
+
+
+def _is_negated(text: str, position: int) -> bool:
+    before = text[:position].split()[-5:]
+    return any(word in _NEGATION_WORDS for word in before)
 
 
 def _first_match(text: str, rules: tuple[tuple[str, tuple[str, ...]], ...]) -> str:
@@ -415,11 +633,16 @@ def _first_match(text: str, rules: tuple[tuple[str, tuple[str, ...]], ...]) -> s
         return ""
     best: tuple[int, int, str] | None = None
     for order, (label, cues) in enumerate(rules):
-        positions = [
-            position
-            for cue in cues
-            if (position := _position(normalized, cue)) >= 0
-        ]
+        positions = []
+        for cue in cues:
+            position = _position(normalized, cue)
+            if position < 0:
+                continue
+            if label in _NEGATION_SENSITIVE_REASONS and _is_negated(
+                normalized, position
+            ):
+                continue
+            positions.append(position)
         if not positions:
             continue
         item = (min(positions), order, label)
@@ -437,14 +660,25 @@ def _symptom_phrases(
     preferred = _normalize(preferred_text or "")
     matches: list[tuple[int, int, int, int, str]] = []
     denies_suicide = bool(_SUICIDE_DENIAL.search(normalized))
+    active_si_cues = next(
+        cues for phrase, cues in _SYMPTOM_RULES if phrase == _ACTIVE_SI_PHRASE
+    )
+    has_active_si = any(
+        (position := _position(normalized, cue)) >= 0
+        and not _is_negated(normalized, position)
+        for cue in active_si_cues
+    )
     for order, (phrase, cues) in enumerate(_SYMPTOM_RULES):
-        if phrase == _PASSIVE_DEATH_WISH and denies_suicide:
+        if phrase == _PASSIVE_DEATH_WISH and (denies_suicide or has_active_si):
             continue
-        positions = [
-            position
-            for cue in cues
-            if (position := _position(normalized, cue)) >= 0
-        ]
+        positions = []
+        for cue in cues:
+            position = _position(normalized, cue)
+            if position < 0:
+                continue
+            if phrase == _ACTIVE_SI_PHRASE and _is_negated(normalized, position):
+                continue
+            positions.append(position)
         if not positions:
             continue
         in_preferred = bool(
@@ -514,22 +748,24 @@ def _intervention_phrase(categories: list[str] | tuple[str, ...] | str | None) -
         return _FALLBACK_INTERVENTION
 
     parts: list[str] = []
-    referral_objects: list[str] = []
-    if "Given Referrals" in labels and "Referred to Guidance Counselors" not in labels:
-        referral_objects.append("referral")
-    if "Psychoeducation" in labels:
-        referral_objects.append("psychoeducation")
-    if referral_objects:
-        parts.append(f"naghatag og {_join_phrases(referral_objects)}")
-
     for label in labels:
-        if label in {"Given Referrals", "Psychoeducation"}:
+        if label in {"Given Referrals", "Psychoeducation", "Others"}:
             continue
         phrase = _INTERVENTION_PHRASES.get(label)
         if phrase:
             parts.append(phrase)
 
-    return _join_phrases(parts) if parts else _FALLBACK_INTERVENTION
+    referral_objects: list[str] = []
+    if "Given Referrals" in labels and "Referred to Guidance Counselors" not in labels:
+        referral_objects.append("referral")
+    if "Psychoeducation" in labels:
+        referral_objects.append("psychoeducation")
+    if "Others" in labels:
+        referral_objects.append("laing tabang")
+    if referral_objects:
+        parts.append(f"naghatag og {_join_phrases(referral_objects)}")
+
+    return ", ".join(parts) if parts else _FALLBACK_INTERVENTION
 
 
 def build_summary(
@@ -556,6 +792,6 @@ def build_summary(
             f"Nitawag ang caller tungod sa {reason}.",
             f"Gipadayag niya nga {symptoms}.",
             f"Sa risk assessment, {risk}.",
-            f"Ang counselor {intervention}.",
+            f"Ang responder {intervention}.",
         )
     )
