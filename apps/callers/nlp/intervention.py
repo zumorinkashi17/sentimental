@@ -17,6 +17,13 @@ _WORD_RE = re.compile(r"[^a-z0-9À-ÿ]+")
 
 _SUPPORT_CATEGORY = "Responder provided empathetic listening and support"
 
+_ER_AVOIDANCE = re.compile(
+    r"\b(?:dili|di|ayaw)\s+(?:lang\s+)?"
+    r"(?:ig-abot|abot|maabot|kinahanglan|kailangan|moadto|mo-adto)\b"
+    r"[^.!?]{0,40}\b(?:er|emergency room|emergency department)\b",
+    re.IGNORECASE,
+)
+
 _CATEGORY_ORDER = (
     "Referred to Emergency Room",
     "Referred to Guidance Counselors",
@@ -67,9 +74,18 @@ _RULES: dict[str, dict[str, float]] = {
         "doctor": 2,
         "doktor": 2,
         "psychiatrist": 3,
+        "psychiatrists": 3,
         "psychologist": 3,
+        "psychologists": 3,
         "counselor": 2,
+        "counselors": 2,
+        "counseling": 2,
+        "counselling": 2,
+        "social worker": 1,
+        "social workers": 1,
+        "psychological first aid": 3,
         "mental health professional": 3,
+        "professional": 1,
         "treatment": 2,
         "rehabilitation": 3,
         "rehab": 2,
@@ -84,7 +100,9 @@ _RULES: dict[str, dict[str, float]] = {
         "rhu": 2,
         "doh": 3,
         "contact details": 2,
+        "contact number": 2,
         "contact numbers": 2,
+        "online session": 2,
         "ob gyn": 3,
         "wellness institute": 2,
         "medical arts": 2,
@@ -108,6 +126,11 @@ _RULES: dict[str, dict[str, float]] = {
         "di pa sure": 2,
         "dili pa sure": 2,
         "ayaw sa": 2,
+        "ayaw lang sa": 3,
+        "ayaw lang sa ko": 3,
+        "ayaw lang sa ron": 3,
+        "dili ko gusto mogawas": 3,
+        "di ko gusto mogawas": 3,
     },
     "Psychoeducation": {
         "withdrawal": 3,
@@ -171,12 +194,22 @@ _RULES: dict[str, dict[str, float]] = {
         "ebidensya": 2,
         "stop checking": 2,
         "pahuway": 2,
+        "mopahuway": 2,
+        "makapahuway": 2,
+        "pagpahuway": 2,
         "ginhawa og lawom": 2,
+        "ginhawa og lalom": 2,
+        "ginhawa agi sa imong ilong": 2,
+        "pag exhale": 2,
+        "kalmahon": 2,
+        "panic": 2,
         "postpartum distress": 3,
         "postpartum": 3,
         "grounding": 3,
         "matambalan": 2,
         "valid": 2,
+        "normal ra nga": 2,
+        "walay timeframe": 3,
     },
     "Others": {
         "barangay": 2,
@@ -317,6 +350,8 @@ def extract_intervention(
         if category not in phrases:
             continue
         source = caller_text if category == "Refused Referrals" else responder_text
+        if category == "Referred to Emergency Room" and _ER_AVOIDANCE.search(source):
+            continue
         score = _score(source, _RULES[category])
         if _matches_dictionary_phrase(source, phrases[category]):
             score = max(score, 4.0)

@@ -14,10 +14,13 @@ from .rules import (
     extract_caller_text,
     extract_responder_text,
     extract_rules,
+    infer_civil_status_from_context,
     infer_gender_from_context,
     is_known_location,
     is_name_candidate,
+    is_workplace_location,
     parse_age,
+    requests_anonymity,
 )
 from .summary import build_summary
 from .textrank import summarize
@@ -65,6 +68,13 @@ _PLACE_SUFFIX = re.compile(
     re.IGNORECASE,
 )
 
+_NER_NAME_CUE = re.compile(
+    r"\b(?:ako(?:ng)?\s+si|ako\s+diay\s+si|si\s+\w+\s+ko|"
+    r"akong\s+(?:ngalan|name|pangalan)|ang\s+(?:ngalan|name|pangalan)|"
+    r"tawga|tawag|call\s+me|my\s+name|i'?m)\b",
+    re.IGNORECASE,
+)
+
 
 def _valid_ner_entity(entity: dict, text: str) -> bool:
     """Reject NER guesses that contradict the closed-vocabulary lexicons."""
@@ -78,8 +88,17 @@ def _valid_ner_entity(entity: dict, text: str) -> bool:
     if label == "AGE":
         return parse_age(value) is not None
     if label == "NAME":
-        return is_name_candidate(value)
+        if requests_anonymity(text):
+            return False
+        if not is_name_candidate(value):
+            return False
+        context = text[
+            max(0, entity["start"] - 40) : min(len(text), entity["end"] + 20)
+        ]
+        return bool(_NER_NAME_CUE.search(context))
     if label == "LOCATION":
+        if is_workplace_location(text, entity["start"], entity["end"]):
+            return False
         if is_known_location(value):
             return True
         if not _PLACE_SUFFIX.search(value):
@@ -161,6 +180,16 @@ def analyze(
         if inferred_gender:
             fields["callerGender"] = inferred_gender
             field_meta["callerGender"] = {
+                "confidence": 0.6,
+                "source": "inference",
+                "evidence": "spouse reference",
+            }
+
+    if fields.get("callerStatus") == "N/A":
+        inferred_status = infer_civil_status_from_context(caller_text)
+        if inferred_status:
+            fields["callerStatus"] = inferred_status
+            field_meta["callerStatus"] = {
                 "confidence": 0.6,
                 "source": "inference",
                 "evidence": "spouse reference",
