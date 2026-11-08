@@ -6,10 +6,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Count, Case, When, Q
 from django.utils import timezone
+
 from .models import Report
 from apps.accounts.models import User
 from apps.callers.models import CallSession, Caller
 from apps.pagination import paginate
+from apps.forecast.models import ForecastRun, ForecastRunMonth
 
 def generate_view(request):
     user_id = request.session.get('user_id')
@@ -32,6 +34,43 @@ def generate_view(request):
             start_str = request.POST.get('start_period') 
             end_str = request.POST.get('end_period')     
             
+            # --- GLOBAL TIME-TRAVEL SAFEGUARD ---
+            start_y, start_m = int(start_str.split('-')[0]), int(start_str.split('-')[1])
+            end_y, end_m = int(end_str.split('-')[0]), int(end_str.split('-')[1])
+            
+            if date(start_y, start_m, 1) > date(end_y, end_m, 1):
+                messages.error(request, "Cannot create report: The start period cannot be after the end period.")
+                return redirect('reports:generate')
+            # ------------------------------------
+
+            # --- FORECAST EXISTENCE SAFEGUARD ---
+            if r_type == 'Analytics':
+                start_date = date(start_y, start_m, 1)
+                last_day = calendar.monthrange(end_y, end_m)[1]
+                end_date = date(end_y, end_m, last_day)
+                
+                current = start_date
+                months_list = []
+                while current <= end_date:
+                    months_list.append(current)
+                    current += relativedelta(months=1)
+                    
+                current_run = ForecastRun.objects.filter(is_current=True).first()
+                if not current_run:
+                    messages.error(request, "Cannot create report: No active forecast exists. Please generate a Call Volume Forecast first.")
+                    return redirect('reports:generate')
+                    
+                forecast_months = ForecastRunMonth.objects.filter(
+                    run=current_run, 
+                    series='total',
+                    month__in=months_list
+                )
+                
+                if forecast_months.count() < len(months_list):
+                    messages.error(request, "Cannot create report: The current forecast does not cover the entire selected date range. Please generate a new forecast for these dates first.")
+                    return redirect('reports:generate')
+            # --- END SAFEGUARD ---
+
             full_title = f"{title} | {start_str} to {end_str}"
             
             Report.objects.create(
@@ -51,9 +90,43 @@ def generate_view(request):
             
             report = get_object_or_404(Report, pk=report_id)
             
-            # Preserve the hidden target dates when saving the new title
             if " | " in report.report_title:
                 _, target_str = report.report_title.split(" | ", 1)
+            else:
+                target_str = f"{report.report_generated_date.year}-01 to {report.report_generated_date.year}-12"
+
+            # --- FORECAST SAFEGUARD (Edit Check) ---
+            if r_type == 'Analytics':
+                if " to " in target_str:
+                    start_str, end_str = target_str.split(" to ")
+                else:
+                    start_str = end_str = target_str
+                    
+                start_year, start_month = int(start_str.split('-')[0]), int(start_str.split('-')[1])
+                end_year, end_month = int(end_str.split('-')[0]), int(end_str.split('-')[1])
+                
+                # Check for bad dates just in case an old corrupt report is being edited
+                if date(start_year, start_month, 1) > date(end_year, end_month, 1):
+                    messages.error(request, "Cannot edit this report: The saved date range is invalid (start date is after end date).")
+                    return redirect('reports:generate')
+
+                start_date = date(start_year, start_month, 1)
+                last_day = calendar.monthrange(end_year, end_month)[1]
+                end_date = date(end_year, end_month, last_day)
+                
+                current = start_date
+                months_list = []
+                while current <= end_date:
+                    months_list.append(current)
+                    current += relativedelta(months=1)
+                    
+                current_run = ForecastRun.objects.filter(is_current=True).first()
+                if not current_run or ForecastRunMonth.objects.filter(run=current_run, series='total', month__in=months_list).count() < len(months_list):
+                    messages.error(request, "Cannot rename to an Analytics report: The underlying forecast data for this date range is missing.")
+                    return redirect('reports:generate')
+            # --- END SAFEGUARD ---
+
+            if " | " in report.report_title:
                 report.report_title = f"{new_title} | {target_str}"
             else:
                 report.report_title = new_title
@@ -66,14 +139,13 @@ def generate_view(request):
 
     reports = list(Report.objects.all().order_by('-report_generated_date', '-report_id'))
 
-    # Clean titles and extract the Target Year for the frontend UI filter
     for r in reports:
         if " | " in r.report_title:
             parts = r.report_title.split(" | ", 1)
             r.display_title = parts[0]
             try:
                 date_str = parts[1]
-                r.target_year = date_str.split('-')[0] # Grabs the start year (e.g., '2026' from '2026-01')
+                r.target_year = date_str.split('-')[0]
                 
                 if " to " in date_str:
                     s, e = date_str.split(" to ")
@@ -117,7 +189,6 @@ def export_pdf_view(request, report_id):
 
     report = get_object_or_404(Report, pk=report_id)
     
-    # --- PARSE THE CUSTOM DATE RANGE ---
     if " | " in report.report_title:
         clean_title, date_range = report.report_title.split(" | ", 1)
         if " to " in date_range:
@@ -142,7 +213,6 @@ def export_pdf_view(request, report_id):
 
     is_monthly = (start_str == end_str)
 
-    # --- FILTER BY DATE RANGE ---
     sessions = CallSession.objects.filter(session_call_date__range=(start_date, end_date))
     total_calls = sessions.count()
 
@@ -303,3 +373,117 @@ def export_pdf_view(request, report_id):
             'interventions_values': json.dumps(interventions_values),
         }
         return render(request, 'reports/pdf_report.html', annual_data)
+
+
+# --- FORECAST VS ACTUALS EXPORT ---
+def export_forecast_actual_pdf_view(request, report_id):
+    if not request.session.get('user_id'):
+        return redirect('accounts:login')
+        
+    report = get_object_or_404(Report, pk=report_id)
+    
+    if " | " in report.report_title:
+        clean_title, date_range = report.report_title.split(" | ", 1)
+        if " to " in date_range:
+            start_str, end_str = date_range.split(" to ")
+        else:
+            start_str = end_str = date_range
+            
+        start_year, start_month = int(start_str.split('-')[0]), int(start_str.split('-')[1])
+        end_year, end_month = int(end_str.split('-')[0]), int(end_str.split('-')[1])
+    else:
+        messages.error(request, "Invalid report date range format.")
+        return redirect('reports:generate')
+        
+    start_date = date(start_year, start_month, 1)
+    last_day = calendar.monthrange(end_year, end_month)[1]
+    end_date = date(end_year, end_month, last_day)
+    
+    current = start_date
+    months_list = []
+    while current <= end_date:
+        months_list.append(current)
+        current += relativedelta(months=1)
+        
+    current_run = ForecastRun.objects.filter(is_current=True).first()
+    if not current_run:
+        messages.error(request, "Cannot generate report: No active forecast exists. Please generate a Call Volume Forecast first.")
+        return redirect('reports:generate')
+        
+    forecast_months = ForecastRunMonth.objects.filter(
+        run=current_run, 
+        series='total',
+        month__in=months_list
+    )
+    
+    if forecast_months.count() < len(months_list):
+        messages.error(request, "Cannot generate report: The underlying forecast data for this date range is missing.")
+        return redirect('reports:generate')
+        
+    actual_sessions = CallSession.objects.filter(session_call_date__range=(start_date, end_date))
+    actuals_by_month = {}
+    actual_shifts = {'morning': 0, 'afternoon': 0, 'night': 0}
+    
+    for session in actual_sessions:
+        m_key = date(session.session_call_date.year, session.session_call_date.month, 1)
+        actuals_by_month[m_key] = actuals_by_month.get(m_key, 0) + 1
+        if session.shift_id == 1: actual_shifts['morning'] += 1
+        elif session.shift_id == 3: actual_shifts['afternoon'] += 1
+        elif session.shift_id == 4: actual_shifts['night'] += 1
+
+    actual_monthly_data = [actuals_by_month.get(m, 0) for m in months_list]
+    
+    forecast_by_month = {fm.month: fm.yhat for fm in forecast_months}
+    forecast_monthly_data = [int(round(forecast_by_month.get(m, 0))) for m in months_list]
+    
+    forecast_shift_records = ForecastRunMonth.objects.filter(
+        run=current_run,
+        series__in=['morning', 'afternoon', 'night'],
+        month__in=months_list
+    )
+    forecast_shifts = {'morning': 0, 'afternoon': 0, 'night': 0}
+    for fs in forecast_shift_records:
+        forecast_shifts[fs.series] += fs.yhat
+
+    month_labels = [m.strftime('%B %Y') for m in months_list]
+    shift_labels = ["6AM - 2PM", "2PM - 10PM", "10PM - 6AM"]
+    actual_shift_data = [actual_shifts['morning'], actual_shifts['afternoon'], actual_shifts['night']]
+    forecast_shift_data = [
+        int(round(forecast_shifts['morning'])), 
+        int(round(forecast_shifts['afternoon'])), 
+        int(round(forecast_shifts['night']))
+    ]
+    
+    total_actual = sum(actual_monthly_data)
+    total_forecast = sum(forecast_monthly_data)
+    
+    if total_forecast > 0:
+        variance = ((total_actual - total_forecast) / total_forecast) * 100
+    else:
+        variance = 0.0
+        
+    accuracy = max(0, 100 - abs(variance))
+    variance_str = f"{'+' if variance > 0 else ''}{variance:.1f}%"
+    
+    if start_str == end_str:
+        formatted_period = start_date.strftime('%B %Y').upper()
+    else:
+        formatted_period = f"{start_date.strftime('%B %Y')} - {end_date.strftime('%B %Y')}".upper()
+
+    context = {
+        'report_title': clean_title,
+        'period_label': formatted_period,
+        'total_actual': total_actual,
+        'total_forecast': total_forecast,
+        'variance': variance_str,
+        'variance_color': '#eab308' if abs(variance) < 10 else ('#ef4444' if variance < 0 else '#22c55e'),
+        'accuracy': f"{accuracy:.1f}%",
+        'months_json': json.dumps(month_labels),
+        'actual_monthly_json': json.dumps(actual_monthly_data),
+        'forecast_monthly_json': json.dumps(forecast_monthly_data),
+        'shifts_json': json.dumps(shift_labels),
+        'actual_shift_json': json.dumps(actual_shift_data),
+        'forecast_shift_json': json.dumps(forecast_shift_data),
+    }
+    
+    return render(request, 'reports/forecast_pdf_report.html', context)
