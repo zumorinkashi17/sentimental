@@ -236,3 +236,79 @@ def manage_view(request):
         'contact_type_choices': ProfessionalContact.ContactTypeChoices.choices,
         'status_choices': Institution.StatusChoices.choices,
     })
+
+
+def _professional_search_payload(professional):
+    """Build the lightweight JSON row used by the panel's referral picker."""
+    institution = professional.institution
+    affiliations = [
+        affiliation.institution
+        for affiliation in professional.affiliation_set.all()
+        if affiliation.institution_id
+    ]
+    display_institution = institution or (affiliations[0] if affiliations else None)
+    institution_name = (
+        display_institution.institution_name if display_institution else ''
+    )
+    location = (
+        (display_institution.institution_location or '').strip()
+        if display_institution
+        else ''
+    )
+
+    meta_parts = [professional.professional_specialization]
+    if institution_name:
+        meta_parts.append(institution_name)
+    if location:
+        meta_parts.append(location)
+
+    label_parts = [professional.professional_name, *meta_parts]
+
+    search_parts = [
+        professional.professional_name,
+        professional.professional_specialization or '',
+    ]
+    if institution_name:
+        search_parts.append(institution_name)
+    if location:
+        search_parts.append(location)
+    for affiliation in professional.affiliation_set.all():
+        if not affiliation.institution_id:
+            continue
+        search_parts.append(affiliation.institution.institution_name or '')
+        search_parts.append(affiliation.institution.institution_location or '')
+
+    return {
+        'id': professional.professional_id,
+        'name': professional.professional_name,
+        'specialization': professional.professional_specialization,
+        'gender': professional.professional_gender or '',
+        'institution': institution_name,
+        'location': location,
+        'meta': ' · '.join(meta_parts),
+        'label': ' — '.join(label_parts),
+        'search': ' '.join(part for part in search_parts if part).lower(),
+    }
+
+
+def professionals_api(request):
+    """Return active professionals matching name, institution, or location."""
+    if not request.session.get('user_id'):
+        return JsonResponse({'results': []}, status=401)
+
+    professionals = (
+        Professional.objects.filter(
+            professional_status=Professional.StatusChoices.ACTIVE
+        )
+        .select_related('institution')
+        .prefetch_related('affiliation_set__institution')
+    )
+    professionals = _filter_professionals(
+        professionals,
+        request.GET.get('q'),
+        request.GET.get('specialization'),
+    ).order_by('professional_name')
+
+    return JsonResponse(
+        {'results': [_professional_search_payload(item) for item in professionals]}
+    )

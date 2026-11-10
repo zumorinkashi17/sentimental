@@ -1,5 +1,6 @@
 """Tests for callers app logic and transcribe behavior."""
 
+import json
 from datetime import date, timedelta
 from unittest.mock import patch
 
@@ -11,7 +12,15 @@ from apps.callers.models import CallSession, SESSION_ID_PREFIX
 from apps.callers import transcription as tr
 from apps.callers import views as cviews
 from apps.callers.audio import AudioProcessingError
-from tests.helpers import make_caller, make_session, make_shift, make_user, login
+from apps.referrals.models import SessionReferral
+from tests.helpers import (
+    login,
+    make_caller,
+    make_professional,
+    make_session,
+    make_shift,
+    make_user,
+)
 
 
 class SessionIdAllocationTests(TestCase):
@@ -205,3 +214,51 @@ class CallersListFiltersTests(TestCase):
         resp = self.client.get(reverse("callers:database"))
         self.assertEqual(resp.status_code, 200)
         self.assertIn("caller_list", resp.context)
+
+
+class SaveSessionReferralTests(TestCase):
+    def setUp(self):
+        self.client = login(self.client, make_user())
+        self.shift = make_shift()
+        self.professional = make_professional(name="Dr. Cruz")
+
+    def _payload(self, **overrides):
+        payload = {
+            "callDate": "January 01, 2026",
+            "timeCalled": "09:00 AM",
+            "callShift": self.shift.pk,
+            "callerName": "Ana",
+            "riskAssessment": "Low",
+            "aiSummary": "Summary",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_save_session_links_selected_professional(self):
+        response = self.client.post(
+            reverse("callers:save_session"),
+            data=json.dumps(
+                self._payload(
+                    referralProfessionalId=self.professional.professional_id
+                )
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        referral = SessionReferral.objects.get()
+        self.assertEqual(referral.professional, self.professional)
+        self.assertEqual(
+            referral.affiliation.institution,
+            self.professional.institution,
+        )
+
+    def test_save_session_without_referral(self):
+        response = self.client.post(
+            reverse("callers:save_session"),
+            data=json.dumps(self._payload()),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SessionReferral.objects.exists())

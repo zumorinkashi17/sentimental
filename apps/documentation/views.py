@@ -5,6 +5,13 @@ from apps.callers.models import CallSession
 from apps.pagination import DEFAULT_PAGE_SIZE, paginate
 
 from apps.dashboard.views import _get_session_user
+from apps.heatmap.views import (
+    REGIONS,
+    build_location_lookup,
+    location_metadata,
+    region_for_city,
+    resolve_location,
+)
 
 def history_list_view(request):
     user, redirect_response = _get_session_user(request)
@@ -14,10 +21,35 @@ def history_list_view(request):
 
     responder_filter = request.GET.get('responder', '')
     date_filter = request.GET.get('date_filter', '')
+    region_filter = request.GET.get('region', '')
+    location_filter = request.GET.get('location', '')
     highlight = request.GET.get('highlight', '')
 
     if responder_filter:
         sessions = sessions.filter(user_id=responder_filter)
+
+    if location_filter or region_filter:
+        # Match raw locations too, so "IT Park" counts under Cebu City.
+        lookup = build_location_lookup()
+        city_metadata = location_metadata()
+        raw_locations = (
+            CallSession.objects.values_list('caller__caller_location', flat=True).distinct()
+        )
+        if location_filter:
+            target_city = resolve_location(location_filter, lookup)
+            if target_city:
+                matching = [
+                    loc for loc in raw_locations
+                    if loc and resolve_location(loc, lookup) == target_city
+                ]
+            else:
+                matching = [location_filter]
+        else:
+            matching = [
+                loc for loc in raw_locations
+                if loc and region_for_city(resolve_location(loc, lookup), city_metadata) == region_filter
+            ]
+        sessions = sessions.filter(caller__caller_location__in=matching)
 
     if date_filter:
         now = timezone.now()
@@ -64,6 +96,9 @@ def history_list_view(request):
         'responders': responders,
         'current_responder': responder_filter,
         'current_date_filter': date_filter,
+        'current_region': region_filter,
+        'current_region_label': dict(REGIONS).get(region_filter, '') if region_filter else '',
+        'current_location': location_filter,
         'highlight': highlight,
     }
     return render(request, 'documentation/master_history.html', context)

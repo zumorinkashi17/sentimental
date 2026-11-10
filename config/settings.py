@@ -177,6 +177,10 @@ STATICFILES_DIRS = [
 
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
+# Free, key-less Philippine Standard Geographic Code API used by the
+# ``sync_ph_locations`` management command to seed LocationAlias rows.
+PSGC_API_BASE_URL = os.environ.get('PSGC_API_BASE_URL', 'https://psgc.gitlab.io/api')
+
 EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))

@@ -556,7 +556,6 @@ function startVisualizers() {
             }
 
             page.transcriptOutput.innerHTML = renderTranscript(data);
-            updateTranscriptSelection();
         } catch (error) {
             showError('API Error: ' + error.message);
             page.transcriptOutput.textContent = "Transcription failed.";
@@ -576,11 +575,10 @@ function startVisualizers() {
             .replace(/'/g, '&#39;');
     }
 
-    // Displays the transcript as one list with checkboxes, timestamps, speakers, and text.
+    // Displays the transcript as one list with timestamps, speakers, and text.
     function renderTranscript(data) {
         const segments = Array.isArray(data.segments) ? data.segments : [];
         const takeSegment = makeSegmentMatcher(segments);
-        let selectable = 0;
 
         const lineRows = String(data.transcript || '').split('\n').map(line => {
             if (!line) return '';
@@ -594,36 +592,23 @@ function startVisualizers() {
             const isCaller = speaker === 'Caller';
             const match = takeSegment(speaker, text);
             const stamp = match ? fmtClock(match.start) : null;
-            selectable++;
-            return '<div class="transcript-row flex items-start gap-3 pl-4 pr-4 py-2.5 border-b border-gray-100 last:border-0">'
-                + '<input type="checkbox" class="transcript-line peer mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-brand" data-line="' + escapeHtml(line) + '" data-speaker="' + escapeHtml(speaker) + '">'
+            return '<div class="transcript-row flex items-start gap-3 pl-4 pr-4 py-2.5 border-b border-gray-100 last:border-0" data-speaker="' + escapeHtml(speaker) + '">'
                 + '<span class="font-mono text-[11px] font-bold text-gray-400 bg-gray-50 border border-gray-200 rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5">'
                 + (stamp ? escapeHtml(stamp) : '--:--') + '</span>'
-                + '<span class="text-[11px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5 border border-gray-200 bg-gray-100 text-gray-400 '
+                + '<span class="text-[11px] font-bold uppercase tracking-wider rounded-md px-1.5 py-0.5 flex-shrink-0 mt-0.5 border '
                 + (isCaller
-                    ? 'peer-checked:border-indigo-100 peer-checked:bg-indigo-50 peer-checked:text-indigo-600'
-                    : 'peer-checked:border-emerald-100 peer-checked:bg-emerald-50 peer-checked:text-emerald-600')
+                    ? 'border-indigo-100 bg-indigo-50 text-indigo-600'
+                    : 'border-emerald-100 bg-emerald-50 text-emerald-600')
                 + '">' + escapeHtml(speaker) + '</span>'
                 + '<div contenteditable="true" spellcheck="true" role="textbox" aria-label="Transcript line text" data-transcript-text data-original="' + escapeHtml(text) + '" '
-                + 'class="transcript-text flex-1 min-w-0 text-sm leading-relaxed text-gray-400 peer-checked:text-gray-700 rounded-lg px-2 py-1 -mx-2 -my-1 outline-none transition-colors hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border focus:border-brand cursor-text">'
+                + 'class="transcript-text flex-1 min-w-0 text-sm leading-relaxed text-gray-700 rounded-lg px-2 py-1 -mx-2 -my-1 outline-none transition-colors hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border focus:border-brand cursor-text">'
                 + escapeHtml(text) + '</div>'
                 + '</div>';
         }).join('');
 
-        const toolbar = selectable
-            ? '<div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-200">'
-                + '<button type="button" data-transcript-action="toggle-all" class="text-[11px] font-bold uppercase tracking-wider text-gray-500 hover:text-brand transition-colors">Select all</button>'
-                + '<div class="flex items-center gap-3">'
-                + '<span class="font-mono text-[11px] text-gray-400" data-transcript-count></span>'
-                + '<button type="button" data-transcript-action="copy" class="text-[11px] font-bold uppercase tracking-wider bg-brand hover:bg-brand-dark disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">'
-                + '<i class="ph-bold ph-copy"></i> Copy selected</button>'
-                + '</div></div>'
-            : '';
-
         let html = '<div class="mb-4">'
             + '<span class="text-brand font-bold uppercase tracking-wider text-xs mb-2 block">Final Transcript:</span>'
             + '<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">'
-            + toolbar
             + (lineRows || '<div class="p-4 text-sm text-gray-400">No transcript text returned.</div>')
             + '</div></div>';
 
@@ -658,41 +643,6 @@ function startVisualizers() {
         return mm + ':' + ss;
     }
 
-    // --- Transcript checkbox selection -------------------------------------
-    /// FINDER: Gets all transcript checkboxes in order, or an empty array if none exist.
-    function transcriptBoxes() {
-        if (!page.transcriptOutput) return [];
-        return Array.from(page.transcriptOutput.querySelectorAll('.transcript-line'));
-    }
-
-    function updateTranscriptSelection() {
-        const root = page.transcriptOutput;
-        if (!root) return;
-        const boxes = transcriptBoxes();
-        if (!boxes.length) return;
-        const selected = boxes.filter(box => box.checked).length;
-
-        const counter = root.querySelector('[data-transcript-count]');
-        if (counter) {
-            counter.textContent = selected
-                ? selected + ' of ' + boxes.length + ' selected'
-                : 'None selected';
-        }
-
-        const toggle = root.querySelector('[data-transcript-action="toggle-all"]');
-        if (toggle) toggle.textContent = selected === boxes.length ? 'Clear all' : 'Select all';
-
-        const copyBtn = root.querySelector('[data-transcript-action="copy"]');
-        if (copyBtn) copyBtn.disabled = selected === 0;
-    }
-
-    /// ON-TICK: Updates the selection when a checkbox changes.
-    function onTranscriptChange(e) {
-        if (e.target && e.target.classList && e.target.classList.contains('transcript-line')) {
-            updateTranscriptSelection();
-        }
-    }
-
     /// COMMIT: Enter saves the edit; Escape restores the original text.
     function onTranscriptKeydown(e) {
         const editor = e.target.closest ? e.target.closest('[data-transcript-text]') : null;
@@ -713,82 +663,6 @@ function startVisualizers() {
         if (!editor) return;
         if (!editor.textContent.trim()) {
             editor.textContent = editor.dataset.original || '';
-        }
-    }
-
-    function transcriptLineOf(box) {
-        const row = box.closest('.transcript-row');
-        const textEl = row ? row.querySelector('[data-transcript-text]') : null;
-        const text = (textEl ? textEl.textContent : '').replace(/\s+/g, ' ').trim();
-        return '[' + (box.dataset.speaker || '') + '] ' + text;
-    }
-
-    async function onTranscriptClick(e) {
-        if (!page.transcriptOutput) return;
-
-        const row = e.target.closest ? e.target.closest('.transcript-row') : null;
-        if (row && page.transcriptOutput.contains(row) && e.target.tagName !== 'INPUT') {
-            const inEditor = e.target.isContentEditable
-                || (e.target.closest && e.target.closest('[data-transcript-text]'));
-            if (!inEditor) {
-                const box = row.querySelector('.transcript-line');
-                if (box) {
-                    box.checked = !box.checked;
-                    updateTranscriptSelection();
-                }
-            }
-        }
-
-        const btn = e.target.closest ? e.target.closest('[data-transcript-action]') : null;
-        if (!btn || !page.transcriptOutput.contains(btn)) return;
-
-        const boxes = transcriptBoxes();
-        const action = btn.dataset.transcriptAction;
-
-        if (action === 'toggle-all') {
-            const turnOn = !/^clear/i.test(btn.textContent.trim());
-            boxes.forEach(box => { box.checked = turnOn; });
-            updateTranscriptSelection();
-            return;
-        }
-
-        if (action === 'copy') {
-            const picked = boxes.filter(box => box.checked).map(transcriptLineOf);
-            if (!picked.length) return;
-            const ok = await copyText(picked.join('\n'));
-            const original = btn.innerHTML;
-            btn.innerHTML = ok
-                ? '<i class="ph-bold ph-check"></i> Copied!'
-                : '<i class="ph-bold ph-x"></i> Copy failed';
-            setTimeout(() => { btn.innerHTML = original; }, 1600);
-        }
-    }
-
-    function copyText(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(text)
-                .then(() => true)
-                .catch(() => fallbackCopy(text));
-        }
-        return Promise.resolve(fallbackCopy(text));
-    }
-
-    /// CLIP-OLD: Copies text using a hidden textarea when the Clipboard API is unavailable.
-    function fallbackCopy(text) {
-        try {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.setAttribute('readonly', '');
-            ta.style.position = 'fixed';
-            ta.style.top = '-1000px';
-            ta.style.opacity = '0';
-            document.body.appendChild(ta);
-            ta.select();
-            const ok = document.execCommand('copy');
-            document.body.removeChild(ta);
-            return ok;
-        } catch (err) {
-            return false;
         }
     }
 
@@ -842,8 +716,6 @@ function startVisualizers() {
         bindOnce(page.startBtn, 'click', startRecording);
         bindOnce(page.stopBtn, 'click', () => CallRecorder.stop());
         bindOnce(page.transcribeBtn, 'click', transcribe);
-        bindOnce(page.transcriptOutput, 'change', onTranscriptChange);
-        bindOnce(page.transcriptOutput, 'click', onTranscriptClick);
         bindOnce(page.transcriptOutput, 'keydown', onTranscriptKeydown);
         bindOnce(page.transcriptOutput, 'focusout', onTranscriptBlur);
 

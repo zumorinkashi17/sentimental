@@ -28,13 +28,13 @@
 
         <!-- Map -->
         <div class="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm h-[420px] sm:h-[600px] flex flex-col relative overflow-hidden">
-            <div class="absolute top-3 left-3 sm:top-4 sm:left-4 z-[999] bg-white/90 px-3 py-2 rounded-lg backdrop-blur shadow border border-gray-100">
+            <div class="absolute top-3 right-3 sm:top-4 sm:right-4 z-[999] bg-white/90 px-3 py-2 rounded-lg backdrop-blur shadow border border-gray-100">
                 <h2 class="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wide">
                     {% for code, label in regions %}{% if code == selected_region %}{{ label }}{% endif %}{% endfor %}
                 </h2>
             </div>
 
-            <div id="leaflet-map" class="flex-1 w-full rounded-xl overflow-hidden z-0" data-map-center-lat="{{ map_center_lat }}" data-map-center-lng="{{ map_center_lng }}" data-map-zoom="{{ map_zoom }}"></div>
+            <div id="leaflet-map" class="flex-1 w-full rounded-xl overflow-hidden z-0" data-map-center-lat="{{ map_center_lat }}" data-map-center-lng="{{ map_center_lng }}" data-map-zoom="{{ map_zoom }}" data-history-url="{% url 'documentation:master_history' %}"></div>
 
             <!-- Legend -->
             <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur p-2 sm:p-3 rounded-lg shadow-md border border-gray-100 text-[10px] sm:text-xs font-bold text-gray-600 flex flex-col gap-1.5 z-[999]">
@@ -46,7 +46,7 @@
         </div>
 
         <!-- Summary Table -->
-        {% if hotspots_json != '[]' %}
+        {% if summary_json != '[]' %}
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
             <h2 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Hotspot Summary</h2>
             <div class="overflow-x-auto">
@@ -75,7 +75,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script id="map-data" type="application/json">
-{"hotspots": {{ hotspots_json|safe }}, "regions_data": {{ regions_data_json|safe }}, "lat": {{ map_center_lat }}, "lng": {{ map_center_lng }}, "zoom": {{ map_zoom }}}
+{"hotspots": {{ hotspots_json|safe }}, "regions_data": {{ regions_data_json|safe }}, "summary": {{ summary_json|safe }}, "lat": {{ map_center_lat }}, "lng": {{ map_center_lng }}, "zoom": {{ map_zoom }}}
 </script>
 
 <script>
@@ -83,9 +83,11 @@
     var mapData = JSON.parse(document.getElementById('map-data').textContent);
     var hotspots = mapData.hotspots;
     var regionsData = mapData.regions_data;
+    var summary = mapData.summary;
     var centerLat = mapData.lat;
     var centerLng = mapData.lng;
     var zoom = mapData.zoom;
+    var historyUrl = document.getElementById('leaflet-map').getAttribute('data-history-url');
 
     var map = L.map('leaflet-map', { zoomControl: true }).setView([centerLat, centerLng], zoom);
 
@@ -121,14 +123,19 @@
             iconSize: [size, size],
             iconAnchor: [size / 2, size / 2]
         });
+        var filterQuery = isRegion
+            ? '?region=' + encodeURIComponent(h.region || '')
+            : '?location=' + encodeURIComponent(h.name);
+        var logsUrl = historyUrl + filterQuery;
         var popupHtml = '<div style="min-width:160px">'
-            + '<p style="font-weight:700;font-size:13px;margin-bottom:4px">' + h.name + '</p>'
+            + '<p style="font-weight:700;font-size:13px;margin-bottom:4px">' + (h.display_name || h.name) + '</p>'
             + '<p style="font-size:11px;color:#6b7280">Risk Level: <strong style="color:' + color + '">' + riskLabel(h.total) + '</strong></p>'
             + '<hr style="margin:6px 0;border-color:#f3f4f6">'
             + '<p style="font-size:11px">Total Calls: <strong>' + h.total + '</strong></p>'
             + '<p style="font-size:11px;color:#dc2626">High Risk: ' + h.high + '</p>'
             + '<p style="font-size:11px;color:#f97316">Medium Risk: ' + h.medium + '</p>'
             + '<p style="font-size:11px;color:#ca8a04">Low Risk: ' + h.low + '</p>'
+            + '<a href="' + logsUrl + '" style="display:block;margin-top:8px;text-align:center;background:#00a67e;color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;">View Call Logs &amp; History</a>'
             + '</div>';
         return L.marker([h.lat, h.lng], { icon: icon }).bindPopup(popupHtml);
     }
@@ -172,10 +179,10 @@
     // Populate summary table
     var tbody = document.getElementById('hotspot-table-body');
     if (tbody) {
-        hotspots.forEach(function(h) {
+        summary.forEach(function(h) {
             var tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-50/50 transition-colors';
-            tr.innerHTML = '<td class="p-3 font-bold text-gray-800">' + h.name + '</td>'
+            tr.innerHTML = '<td class="p-3 font-bold text-gray-800">' + (h.display_name || h.name) + '</td>'
                 + '<td class="p-3 text-center font-bold">' + h.total + '</td>'
                 + '<td class="p-3 text-center text-red-600 font-bold">' + h.high + '</td>'
                 + '<td class="p-3 text-center text-orange-500 font-bold">' + h.medium + '</td>'

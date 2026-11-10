@@ -128,7 +128,7 @@ Log in using the **Admin credentials** provided in the Google Drive folder.
 
 - Manual call logging
 - Rule-based auto-fill with optional spaCy NER
-- TextRank extractive summarization formatted into the Bisaya call-summary template
+- TextRank extractive summarization formatted into the call-summary template and translated into English
 - Multi-label intervention classification
 - Manual responder review of Risk Assessment and Reason for Calling
 - Comprehensive documentation interface
@@ -156,7 +156,7 @@ The NLP layer runs locally and does not call an external AI API.
 
 - Rule-based extraction works out of the box.
 - The trained spaCy NER model is optional. If `apps/callers/nlp/models/ner` is missing, the pipeline automatically falls back to rules-only mode.
-- TextRank selects the most relevant caller sentences; `apps/callers/nlp/summary.py` formats the final Bisaya summary.
+- TextRank selects the most relevant caller sentences; `apps/callers/nlp/summary.py` builds the Bisaya template, then translates it into the English summary returned to the UI. The original Bisaya version remains available as `summary_bisaya`.
 - Risk Assessment and Reason for Calling are intentionally left for responder review.
 
 ## Optional: Train the NER Model

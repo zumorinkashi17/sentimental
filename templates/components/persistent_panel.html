@@ -120,15 +120,43 @@
                     </div>
                     <div><label class="form-label" for="aiRisk">Risk Assessment:</label><select id="aiRisk" class="form-input bg-white font-mono"><option value="">Select</option><option>Low Risk</option><option>Medium Risk</option><option class="text-red-600 font-bold">High Risk</option></select></div>
                     <div><label class="form-label" for="aiIntervention">Intervention:</label><textarea id="aiIntervention" class="form-input h-20 resize-none font-mono"></textarea></div>
+                    <div>
+                        <label class="form-label" id="referralLabelText" for="referralTrigger">Referral:</label>
+                        <div id="referralSelect" class="relative">
+                            <input type="hidden" id="aiReferral" value="">
+                            <button type="button" id="referralTrigger" class="form-input bg-white font-mono flex items-center justify-between gap-2 text-left cursor-pointer" aria-haspopup="listbox" aria-expanded="false" aria-controls="referralOptions">
+                                <span id="referralLabel" class="truncate text-gray-400">Select professional</span>
+                                <i class="ph-bold ph-caret-down text-gray-400 text-sm"></i>
+                            </button>
+                            <div id="referralMenu" class="hidden absolute left-0 right-0 z-50 mt-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
+                                <div class="border-b border-gray-100 p-2">
+                                    <input id="referralSearch" type="text" class="form-input font-mono" placeholder="Search name, institution, or location..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="referralOptions" aria-autocomplete="list">
+                                </div>
+                                <p id="referralLoading" class="hidden px-3 py-2 text-xs text-gray-400">Loading professionals...</p>
+                                <ul id="referralOptions" role="listbox" aria-labelledby="referralLabelText" class="max-h-56 overflow-y-auto py-1 font-mono custom-scrollbar"></ul>
+                                <p id="referralEmpty" class="hidden px-3 py-2 text-xs text-gray-400">No matching professional.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div><label class="form-label" for="aiComments">Additional Comments:</label><textarea id="aiComments" class="form-input h-20 resize-none font-mono"></textarea></div>
             </div>
         </div>
         
         <!-- AI Summary Container -->
         <div id="ai-summary-container" class="hidden border-t border-brand/20 pt-6 mt-2">
-            <h3 class="text-brand font-bold text-sm text-center tracking-wider mb-3 uppercase flex items-center justify-center gap-2"><i class="ph-fill ph-sparkle"></i> AI Generated Summary</h3>
+            <div class="mb-3 flex items-center justify-between gap-2">
+                <h3 class="text-brand font-bold text-sm tracking-wider uppercase flex items-center gap-2"><i class="ph-fill ph-sparkle"></i> AI Generated Summary</h3>
+                <button type="button" id="summary-edit-btn" onclick="toggleSummaryEdit()" class="inline-flex items-center gap-1 rounded-md border border-brand/30 bg-white px-2 py-1 text-[11px] font-semibold text-brand transition-colors hover:bg-brand-light/50" aria-label="Edit AI summary" title="Edit summary">
+                    <i class="ph-bold ph-pencil-simple text-sm" id="summary-edit-icon"></i>
+                    <span id="summary-edit-label">Edit</span>
+                </button>
+            </div>
             <label for="aiGeneratedSummary" class="sr-only">AI Generated Summary</label>
             <textarea id="aiGeneratedSummary" class="form-input h-32 resize-none bg-brand-light/30 border-brand/50 text-gray-800 font-mono" readonly></textarea>
+            <button type="button" id="summary-again-btn" onclick="summarizeAgain()" class="mt-3 hidden w-full items-center justify-center gap-2 rounded-lg border border-brand/40 bg-white px-3 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand-light/40 active:scale-[0.99]">
+                <i class="ph-bold ph-arrows-clockwise text-base"></i>
+                <span id="summary-again-label">Summarize Again</span>
+            </button>
         </div>
     </div>
 
@@ -303,6 +331,205 @@
         setValue(hidden.value);
     }
 
+    function initReferralSelect() {
+        const wrapper = document.getElementById('referralSelect');
+        const hidden = document.getElementById('aiReferral');
+        const trigger = document.getElementById('referralTrigger');
+        const label = document.getElementById('referralLabel');
+        const menu = document.getElementById('referralMenu');
+        const search = document.getElementById('referralSearch');
+        const list = document.getElementById('referralOptions');
+        const empty = document.getElementById('referralEmpty');
+        const loading = document.getElementById('referralLoading');
+        if (!wrapper || !hidden || !trigger || !label || !menu || !search || !list || !empty || !loading) return;
+
+        const endpoint = '{% url "referrals:professionals_api" %}';
+        let masterResults = [];
+        let filteredResults = [];
+        let visibleOptions = [];
+        let activeIndex = -1;
+        let loaded = false;
+        let loadingRequest = false;
+
+        function setValue(id, text) {
+            hidden.value = id || '';
+            label.textContent = text || 'Select professional';
+            label.classList.toggle('text-gray-400', !id);
+            label.classList.toggle('text-gray-700', !!id);
+        }
+
+        function setActive(index) {
+            visibleOptions.forEach(option => option.classList.remove('ring-1', 'ring-inset', 'ring-brand'));
+            activeIndex = index;
+            const active = visibleOptions[activeIndex];
+            if (!active) {
+                search.removeAttribute('aria-activedescendant');
+                return;
+            }
+            active.classList.add('ring-1', 'ring-inset', 'ring-brand');
+            search.setAttribute('aria-activedescendant', active.id);
+            active.scrollIntoView({ block: 'nearest' });
+        }
+
+        function searchText(item) {
+            return [item.name, item.specialization, item.institution, item.location, item.meta, item.search]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+        }
+
+        function buildClearOption() {
+            const option = document.createElement('li');
+            option.className = 'referral-option cursor-pointer px-3 py-2 text-sm italic text-gray-400 transition-colors hover:bg-gray-50';
+            option.setAttribute('role', 'option');
+            option.setAttribute('aria-selected', 'false');
+            option.dataset.id = '';
+            option.dataset.label = '';
+            option.dataset.search = '';
+            option.textContent = 'No referral';
+            option.addEventListener('click', function () {
+                setValue('', '');
+                closeMenu();
+                trigger.focus();
+            });
+            return option;
+        }
+
+        function buildOption(item) {
+            const option = document.createElement('li');
+            option.className = 'referral-option cursor-pointer px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50';
+            option.setAttribute('role', 'option');
+            option.setAttribute('aria-selected', 'false');
+            option.dataset.id = item.id;
+            option.dataset.label = item.label || item.name;
+            option.dataset.search = searchText(item);
+            if (String(item.id) === String(hidden.value)) {
+                option.setAttribute('aria-selected', 'true');
+                option.classList.add('bg-brand-light', 'text-brand', 'font-semibold');
+            }
+
+            const name = document.createElement('div');
+            name.className = 'font-semibold text-gray-800 truncate';
+            name.textContent = item.name;
+
+            const meta = document.createElement('div');
+            meta.className = 'text-[11px] text-gray-400 truncate';
+            meta.textContent = item.meta || '';
+
+            option.appendChild(name);
+            option.appendChild(meta);
+            option.addEventListener('click', function () {
+                setValue(option.dataset.id, option.dataset.label);
+                closeMenu();
+                trigger.focus();
+            });
+            return option;
+        }
+
+        function render() {
+            list.innerHTML = '';
+            list.appendChild(buildClearOption());
+            filteredResults.forEach(item => list.appendChild(buildOption(item)));
+            visibleOptions = Array.from(list.querySelectorAll('.referral-option'));
+            visibleOptions.forEach((option, index) => {
+                option.id = 'referral-option-' + index;
+            });
+            empty.classList.toggle('hidden', !loaded || filteredResults.length > 0);
+            setActive(-1);
+        }
+
+        function filterResults(query) {
+            const needle = query.trim().toLowerCase();
+            filteredResults = needle
+                ? masterResults.filter(item => searchText(item).includes(needle))
+                : masterResults.slice();
+            render();
+        }
+
+        function loadResults() {
+            if (loaded || loadingRequest) return;
+            loadingRequest = true;
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+            fetch(endpoint, { credentials: 'same-origin' })
+                .then(response => response.ok ? response.json() : { results: [] })
+                .then(data => {
+                    masterResults = Array.isArray(data.results) ? data.results : [];
+                    loaded = true;
+                    filterResults(search.value);
+                })
+                .catch(() => {
+                    masterResults = [];
+                    loaded = true;
+                    filterResults(search.value);
+                })
+                .finally(() => {
+                    loadingRequest = false;
+                    loading.classList.add('hidden');
+                });
+        }
+
+        function openMenu() {
+            menu.classList.remove('hidden');
+            trigger.setAttribute('aria-expanded', 'true');
+            search.setAttribute('aria-expanded', 'true');
+            search.value = '';
+            filterResults('');
+            search.focus();
+            loadResults();
+        }
+
+        function closeMenu() {
+            menu.classList.add('hidden');
+            trigger.setAttribute('aria-expanded', 'false');
+            search.setAttribute('aria-expanded', 'false');
+            setActive(-1);
+        }
+
+        trigger.addEventListener('click', function () {
+            if (menu.classList.contains('hidden')) openMenu();
+            else closeMenu();
+        });
+
+        search.addEventListener('input', function () {
+            filterResults(search.value);
+        });
+
+        search.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowDown' && visibleOptions.length) {
+                event.preventDefault();
+                setActive((activeIndex + 1) % visibleOptions.length);
+            } else if (event.key === 'ArrowUp' && visibleOptions.length) {
+                event.preventDefault();
+                setActive((activeIndex - 1 + visibleOptions.length) % visibleOptions.length);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                const active = visibleOptions[activeIndex];
+                if (active) {
+                    setValue(active.dataset.id, active.dataset.label);
+                    closeMenu();
+                    trigger.focus();
+                }
+            } else if (event.key === 'Escape') {
+                closeMenu();
+                trigger.focus();
+            } else if (event.key === 'Tab') {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!wrapper.contains(event.target)) closeMenu();
+        });
+
+        window.resetReferralSelect = function () {
+            setValue('', '');
+        };
+
+        loadResults();
+        setValue('', '');
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const dateInput = document.getElementById('callDate');
         
@@ -320,6 +547,7 @@
         }
 
         initReasonSelect();
+        initReferralSelect();
 
         // Capture recording start/stop times into the editable time fields.
         if (typeof CallRecorder !== 'undefined') {
@@ -361,16 +589,11 @@
         const output = document.getElementById('transcript-output');
         if (!output) return '';
         const rows = Array.from(output.querySelectorAll('.transcript-row'));
-        const selected = rows.filter(row => {
-            const box = row.querySelector('.transcript-line');
-            return box && box.checked;
-        });
-        const lines = (selected.length ? selected : rows).map(row => {
-            const box = row.querySelector('.transcript-line');
+        const lines = rows.map(row => {
             const textEl = row.querySelector('[data-transcript-text]');
             const text = (textEl ? textEl.textContent : '').replace(/\s+/g, ' ').trim();
             if (!text) return '';
-            const speaker = box && box.dataset.speaker ? box.dataset.speaker : '';
+            const speaker = row.dataset.speaker || '';
             return speaker ? '[' + speaker + '] ' + text : text;
         }).filter(Boolean);
         return lines.join('\n');
@@ -399,6 +622,83 @@
             reason: document.getElementById('aiReason')?.value || '',
             risk: document.getElementById('aiRisk')?.value || ''
         };
+    }
+
+    function setSummaryEditMode(editing) {
+        const textarea = document.getElementById('aiGeneratedSummary');
+        const icon = document.getElementById('summary-edit-icon');
+        const label = document.getElementById('summary-edit-label');
+        const btn = document.getElementById('summary-edit-btn');
+        if (!textarea) return;
+
+        if (editing) {
+            textarea.removeAttribute('readonly');
+            textarea.classList.remove('bg-brand-light/30', 'border-brand/50');
+            textarea.classList.add('bg-white', 'border-brand', 'ring-1', 'ring-brand/30');
+            if (icon) icon.className = 'ph-bold ph-check text-sm';
+            if (label) label.textContent = 'Done';
+            if (btn) btn.setAttribute('aria-label', 'Finish editing AI summary');
+        } else {
+            textarea.setAttribute('readonly', '');
+            textarea.classList.add('bg-brand-light/30', 'border-brand/50');
+            textarea.classList.remove('bg-white', 'border-brand', 'ring-1', 'ring-brand/30');
+            if (icon) icon.className = 'ph-bold ph-pencil-simple text-sm';
+            if (label) label.textContent = 'Edit';
+            if (btn) btn.setAttribute('aria-label', 'Edit AI summary');
+        }
+    }
+
+    function toggleSummaryEdit() {
+        const textarea = document.getElementById('aiGeneratedSummary');
+        if (!textarea) return;
+        const editing = textarea.hasAttribute('readonly');
+        setSummaryEditMode(editing);
+        if (editing) {
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            aiStatus('Editing summary. Changes will be saved with the record.', 'success');
+        } else {
+            aiSummaryDraft = textarea.value;
+            aiStatus('Summary updated. Review it, then save the record.', 'success');
+        }
+    }
+
+    function setSummaryAgainVisible(visible) {
+        const btn = document.getElementById('summary-again-btn');
+        if (!btn) return;
+        btn.classList.toggle('hidden', !visible);
+        btn.classList.toggle('inline-flex', visible);
+    }
+
+    async function summarizeAgain() {
+        const textarea = document.getElementById('aiGeneratedSummary');
+        const btn = document.getElementById('summary-again-btn');
+        const label = document.getElementById('summary-again-label');
+        if (!textarea || !btn) return;
+
+        const text = collectAnalysisText();
+        if (!text) {
+            aiStatus('Transcribe the call or type manual notes before summarizing again.', 'error');
+            return;
+        }
+
+        btn.classList.add('opacity-70', 'pointer-events-none');
+        if (label) label.textContent = 'Summarizing...';
+        aiStatus('');
+
+        try {
+            const result = await postAnalyze(text, summaryContext());
+            aiSummaryDraft = result.summary || aiSummaryDraft;
+            textarea.value = aiSummaryDraft || 'No summary could be generated.';
+            setSummaryEditMode(false);
+            aiStatus('Summary regenerated. Review it, then save the record.', 'success');
+        } catch (error) {
+            console.error('Summarization failed:', error);
+            aiStatus(error.message, 'error');
+        } finally {
+            btn.classList.remove('opacity-70', 'pointer-events-none');
+            if (label) label.textContent = 'Summarize Again';
+        }
     }
 
     async function postAnalyze(text, context) {
@@ -489,6 +789,8 @@
                 const summaryText = document.getElementById('aiGeneratedSummary');
                 if (summaryContainer) summaryContainer.classList.remove('hidden');
                 if (summaryText) summaryText.value = aiSummaryDraft || 'No summary could be generated.';
+                setSummaryEditMode(false);
+                setSummaryAgainVisible(true);
 
                 setAiButton('SAVE RECORD', 'ph-floppy-disk', false);
                 aiStatus('Review the summary, then save the record.', 'success');
@@ -532,6 +834,7 @@
                 reasonForCalling: document.getElementById('aiReason').value,
                 riskAssessment: document.getElementById('aiRisk').value,
                 intervention: document.getElementById('aiIntervention').value,
+                referralProfessionalId: document.getElementById('aiReferral')?.value || '',
                 additionalComments: document.getElementById('aiComments').value,
                 aiSummary: document.getElementById('aiGeneratedSummary')?.value || aiSummaryDraft || '',
                 manualScriptNotes: document.getElementById('manual-script-textarea').value,
@@ -584,9 +887,9 @@
                     // CLEAR FIELDS ON SUCCESS
                     if (isSuccess) {
                         const fieldsToClear = [
-                            'aiName', 'aiGender', 'aiStatus', 'aiAge', 
-                            'aiLocation', 'aiReason', 'aiRisk', 
-                            'aiIntervention', 'aiComments', 
+                            'aiName', 'aiGender', 'aiStatus', 'aiAge',
+                            'aiLocation', 'aiReason', 'aiRisk',
+                            'aiIntervention', 'aiReferral', 'aiComments',
                             'aiGeneratedSummary', 'manual-script-textarea'
                         ];
                         
@@ -595,10 +898,13 @@
                             if (el) el.value = '';
                         });
                         if (typeof window.resetReasonSelect === 'function') window.resetReasonSelect();
+                        if (typeof window.resetReferralSelect === 'function') window.resetReferralSelect();
                         
                         // Hide AI Summary container again
                         const summaryContainer = document.getElementById('ai-summary-container');
                         if(summaryContainer) summaryContainer.classList.add('hidden');
+                        setSummaryAgainVisible(false);
+                        setSummaryEditMode(false);
 
                         window.location.reload();
                     }

@@ -1,7 +1,10 @@
 import json
+import re
 from django.shortcuts import render
+from django.db import OperationalError, ProgrammingError
 from django.db.models import Count
 from apps.callers.models import CallSession
+from apps.heatmap.locations import normalize_location as _normalize_location
 from datetime import date, timedelta
 
 
@@ -142,6 +145,64 @@ CITY_REGION = {
     "Barmm": "BARMM",
 }
 
+# Specific places (barangays, landmarks, malls, campuses) mapped to their city.
+# Callers often give a landmark instead of a city ("IT Park", "Brgy. Lahug"),
+# so these aliases let the heatmap group them under the correct city.
+LOCATION_ALIASES = {
+    # Cebu City
+    "Cebu": "Cebu City", "IT Park": "Cebu City", "I.T. Park": "Cebu City",
+    "Cebu IT Park": "Cebu City", "Apas": "Cebu City", "Lahug": "Cebu City",
+    "Mabolo": "Cebu City", "Banilad": "Cebu City", "Talamban": "Cebu City",
+    "Guadalupe": "Cebu City", "Colon": "Cebu City", "Fuente": "Cebu City",
+    "Fuente Osmeña": "Cebu City", "Mango": "Cebu City", "Mango Avenue": "Cebu City",
+    "Ramos": "Cebu City", "Capitol": "Cebu City", "Cebu Capitol": "Cebu City",
+    "Busay": "Cebu City", "Kamputhaw": "Cebu City", "Kasambagan": "Cebu City",
+    "Sambag": "Cebu City", "Tisa": "Cebu City", "Labangon": "Cebu City",
+    "Pardo": "Cebu City", "Basak": "Cebu City", "Bulacao": "Cebu City",
+    "Mambaling": "Cebu City", "San Nicolas": "Cebu City", "Carbon": "Cebu City",
+    "Carbon Market": "Cebu City", "Ayala": "Cebu City", "Ayala Center Cebu": "Cebu City",
+    "SM City Cebu": "Cebu City", "SM Seaside": "Cebu City", "SM Seaside City": "Cebu City",
+    "Robinsons Galleria Cebu": "Cebu City", "SRP": "Cebu City",
+    "South Road Properties": "Cebu City", "Banawa": "Cebu City",
+    "Nivel Hills": "Cebu City", "Lorega": "Cebu City", "Tejero": "Cebu City",
+    "Sawang Calero": "Cebu City", "Duljo": "Cebu City",
+    "Santo Niño": "Cebu City", "Sto. Niño": "Cebu City",
+    "Basilica del Sto. Niño": "Cebu City", "USC": "Cebu City",
+    "University of San Carlos": "Cebu City", "USJR": "Cebu City",
+    "University of San Jose-Recoletos": "Cebu City", "Chong Hua": "Cebu City",
+    "Cebu Doctors": "Cebu City", "Vicente Sotto": "Cebu City",
+    # Mandaue City
+    "Mandaue": "Mandaue City", "Parkmall": "Mandaue City", "J Centre Mall": "Mandaue City",
+    "Pacific Mall": "Mandaue City", "Ouano": "Mandaue City", "Alang-alang": "Mandaue City",
+    "Bakilid": "Mandaue City", "Cabancalan": "Mandaue City", "Cambaro": "Mandaue City",
+    "Canduman": "Mandaue City", "Casuntingan": "Mandaue City",
+    "Centro Mandaue": "Mandaue City", "Cubacub": "Mandaue City", "Guizo": "Mandaue City",
+    "Ibabao-Estancia": "Mandaue City", "Jagobiao": "Mandaue City", "Labogon": "Mandaue City",
+    "Looc": "Mandaue City", "Maguikay": "Mandaue City", "Mantuyong": "Mandaue City",
+    "Opao": "Mandaue City", "Pagsabungan": "Mandaue City", "Pakna-an": "Mandaue City",
+    "Subangdaku": "Mandaue City", "Tabok": "Mandaue City", "Tawason": "Mandaue City",
+    "Tipolo": "Mandaue City", "Umapad": "Mandaue City",
+    # Lapu-Lapu City
+    "Lapu-Lapu": "Lapu-Lapu City", "Mactan": "Lapu-Lapu City",
+    "Mactan Airport": "Lapu-Lapu City", "MCIA": "Lapu-Lapu City",
+    "Cebu Airport": "Lapu-Lapu City", "Maribago": "Lapu-Lapu City",
+    "Marigondon": "Lapu-Lapu City", "Punta Engaño": "Lapu-Lapu City",
+    "Mactan Shrine": "Lapu-Lapu City", "Gun-ob": "Lapu-Lapu City",
+    "Pajo": "Lapu-Lapu City", "Pusok": "Lapu-Lapu City", "Bankal": "Lapu-Lapu City",
+    "Buaya": "Lapu-Lapu City", "Calawisan": "Lapu-Lapu City",
+    "Canjulao": "Lapu-Lapu City", "Ibo": "Lapu-Lapu City",
+    # Talisay City
+    "Talisay": "Talisay City", "Tabunok": "Talisay City", "Cansojong": "Talisay City",
+    "Dumlog": "Talisay City", "Jaclupan": "Talisay City", "Lagtang": "Talisay City",
+    "Lawaan": "Talisay City", "Linao": "Talisay City", "Mananga": "Talisay City",
+    "Mohon": "Talisay City", "Pooc": "Talisay City", "Tangke": "Talisay City",
+    # NCR landmarks
+    "BGC": "Taguig", "Bonifacio Global City": "Taguig", "Ortigas": "Pasig",
+    "Makati CBD": "Makati", "Ayala Makati": "Makati", "Cubao": "Quezon City",
+    "QC": "Quezon City", "Intramuros": "Manila", "Malate": "Manila",
+    "Taft": "Manila", "España": "Manila", "EDSA": "Mandaluyong",
+}
+
 # Region center coordinates for map focus
 REGION_CENTERS = {
     "all": (12.0, 122.0, 6),
@@ -165,9 +226,130 @@ REGION_CENTERS = {
 }
 
 
+REGION_DISPLAY_NAMES = {
+    "Region Ii": "Region II",
+    "Region Iii": "Region III",
+    "Region Iv-A": "Region IV-A",
+    "Region Iv-B": "Region IV-B",
+    "Region Vi": "Region VI",
+    "Region Vii": "Region VII",
+    "Region Viii": "Region VIII",
+    "Region Ix": "Region IX",
+    "Region Xi": "Region XI",
+    "Region Xii": "Region XII",
+    "Region Xiii": "Region XIII",
+    "Ncr": "NCR",
+    "Car": "CAR",
+    "Barmm": "BARMM",
+}
+
+
+def display_location_name(name):
+    return REGION_DISPLAY_NAMES.get(name, name)
+
+
+_STATIC_LOCATION_LOOKUP = None
+
+
+def _static_location_lookup():
+    global _STATIC_LOCATION_LOOKUP
+    if _STATIC_LOCATION_LOOKUP is None:
+        lookup = {}
+        for city in LOCATION_COORDS:
+            lookup.setdefault(_normalize_location(city), city)
+        for alias, city in LOCATION_ALIASES.items():
+            lookup.setdefault(_normalize_location(alias), city)
+        _STATIC_LOCATION_LOOKUP = lookup
+    return _STATIC_LOCATION_LOOKUP
+
+
+def _db_location_aliases():
+    """Persisted (normalised raw location, canonical city) pairs.
+
+    The table is populated by ``sync_ph_locations`` or the Django admin. If the
+    migration has not been applied yet, fall back to the static lookup only.
+    """
+    from apps.heatmap.models import LocationAlias
+
+    try:
+        return list(LocationAlias.objects.values_list('raw_location', 'city'))
+    except (OperationalError, ProgrammingError):
+        return []
+
+
+def build_location_lookup():
+    lookup = dict(_static_location_lookup())
+    for raw_location, city in _db_location_aliases():
+        lookup.setdefault(raw_location, city)
+    return lookup
+
+
+def _city_metadata():
+    """Coordinates/region stored on aliases, for cities not in the static maps."""
+    from apps.heatmap.models import LocationAlias
+
+    metadata = {}
+    try:
+        rows = list(
+            LocationAlias.objects
+            .exclude(latitude__isnull=True)
+            .exclude(longitude__isnull=True)
+            .values('city', 'region_code', 'latitude', 'longitude')
+        )
+    except (OperationalError, ProgrammingError):
+        return metadata
+    for row in rows:
+        metadata.setdefault(row['city'], {
+            'region_code': row['region_code'],
+            'lat': row['latitude'],
+            'lng': row['longitude'],
+        })
+    return metadata
+
+
+def location_metadata():
+    return _city_metadata()
+
+
+def region_for_city(city, city_metadata=None):
+    if not city:
+        return None
+    if city in CITY_REGION:
+        return CITY_REGION[city]
+    if city_metadata is None:
+        city_metadata = _city_metadata()
+    return city_metadata.get(city, {}).get('region_code') or None
+
+
+def resolve_location(value, lookup=None):
+    """Map a free-text location ("IT Park", "Brgy. Lahug") to a known city key."""
+    text = _normalize_location(value)
+    if not text:
+        return None
+    if lookup is None:
+        lookup = build_location_lookup()
+    if text in lookup:
+        return lookup[text]
+
+    # Fall back to the longest known city/alias found inside the text, so inputs
+    # like "IT Park, Cebu City" still resolve to Cebu City. Only the static map
+    # is scanned here; persisted aliases can be numerous and are exact matches.
+    static_lookup = _static_location_lookup()
+    best_key = None
+    for key in static_lookup:
+        if len(key) < 3:
+            continue
+        if re.search(r'(?<!\w)' + re.escape(key) + r'(?!\w)', text):
+            if best_key is None or len(key) > len(best_key):
+                best_key = key
+    return static_lookup[best_key] if best_key else None
+
+
 def map_view(request):
     time_filter = request.GET.get('time', 'all')
     region_filter = request.GET.get('region', 'all')
+    lookup = build_location_lookup()
+    city_metadata = _city_metadata()
 
     qs = CallSession.objects.select_related('caller')
 
@@ -187,13 +369,20 @@ def map_view(request):
     # Build hotspot data grouped by location
     location_map = {}
     for row in aggregated:
-        loc = row['caller__caller_location'] or ''
+        raw_loc = row['caller__caller_location'] or ''
+        if not raw_loc:
+            continue
+        loc = resolve_location(raw_loc, lookup)
         if not loc:
             continue
         coords = LOCATION_COORDS.get(loc)
         if not coords:
+            meta = city_metadata.get(loc)
+            if meta:
+                coords = (meta['lat'], meta['lng'])
+        if not coords:
             continue
-        loc_region = CITY_REGION.get(loc, 'all')
+        loc_region = CITY_REGION.get(loc) or city_metadata.get(loc, {}).get('region_code') or 'all'
         if region_filter != 'all' and loc_region != region_filter:
             continue
         if loc not in location_map:
@@ -207,20 +396,28 @@ def map_view(request):
         else:
             location_map[loc]['low'] += row['count']
 
-    hotspots = [{'name': k, **v} for k, v in location_map.items()]
+    hotspots = [
+        {
+            'name': k,
+            'display_name': display_location_name(k),
+            'region': CITY_REGION.get(k) or city_metadata.get(k, {}).get('region_code', ''),
+            **v,
+        }
+        for k, v in location_map.items()
+    ]
 
     # Build region-level aggregates for zoom-out view
     region_map = {}
     for h in hotspots:
-        loc_region = CITY_REGION.get(h['name'], None)
-        if not loc_region:
+        loc_region = h.get('region') or None
+        if not loc_region or loc_region == 'all':
             continue
         region_label = dict(REGIONS).get(loc_region, loc_region)
         rc = REGION_CENTERS.get(loc_region)
         if not rc:
             continue
         if loc_region not in region_map:
-            region_map[loc_region] = {'name': region_label, 'lat': rc[0], 'lng': rc[1], 'total': 0, 'high': 0, 'medium': 0, 'low': 0}
+            region_map[loc_region] = {'name': region_label, 'display_name': region_label, 'region': loc_region, 'lat': rc[0], 'lng': rc[1], 'total': 0, 'high': 0, 'medium': 0, 'low': 0}
         region_map[loc_region]['total'] += h['total']
         region_map[loc_region]['high'] += h['high']
         region_map[loc_region]['medium'] += h['medium']
@@ -228,11 +425,16 @@ def map_view(request):
 
     regions_data = list(region_map.values())
 
+    # With no region filter the summary shows regions; otherwise it shows the cities inside that region.
+    summary = regions_data if region_filter == 'all' else hotspots
+    summary = sorted(summary, key=lambda row: row['total'], reverse=True)
+
     center = REGION_CENTERS.get(region_filter, REGION_CENTERS['all'])
 
     context = {
         'hotspots_json': json.dumps(hotspots),
         'regions_data_json': json.dumps(regions_data),
+        'summary_json': json.dumps(summary),
         'regions': REGIONS,
         'selected_region': region_filter,
         'selected_time': time_filter,

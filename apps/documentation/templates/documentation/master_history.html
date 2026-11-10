@@ -12,6 +12,8 @@
             </div>
             <form method="GET" action="" class="flex flex-col sm:flex-row gap-2">
                 <input type="hidden" name="highlight" value="{{ request.GET.highlight|default:highlight }}">
+                <input type="hidden" name="region" value="{{ current_region }}">
+                <input type="hidden" name="location" value="{{ current_location }}">
                 <!-- Responder Filter -->
                 <select name="responder" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg cursor-pointer">
                     <option value="">All Responders</option>
@@ -30,6 +32,17 @@
                 </select>
             </form>
         </div>
+
+        {% if current_location or current_region %}
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span class="font-bold uppercase tracking-wider text-gray-400">Filtered by:</span>
+            <span class="px-3 py-1 bg-brand-light text-brand rounded-full font-bold border border-brand/20">
+                <i class="ph-bold ph-map-pin"></i>
+                {% if current_location %}{{ current_location }}{% else %}{{ current_region_label }}{% endif %}
+            </span>
+            <a href="?" class="text-gray-400 hover:text-red-500 font-bold">Clear</a>
+        </div>
+        {% endif %}
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="table-scroll">

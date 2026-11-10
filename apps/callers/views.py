@@ -347,6 +347,44 @@ def save_call_documentation(request):
                 transcript_text=manual_notes
             )
 
+        # Link the professional selected in the referral picker.
+        referral_id = data.get('referralProfessionalId') or data.get('referral')
+        if referral_id:
+            from apps.referrals.models import (
+                Affiliation,
+                Professional,
+                SessionReferral,
+            )
+
+            professional = None
+            try:
+                professional = Professional.objects.filter(
+                    pk=referral_id,
+                    professional_status=Professional.StatusChoices.ACTIVE,
+                ).first()
+            except (TypeError, ValueError):
+                professional = None
+            if professional:
+                affiliation = (
+                    professional.affiliation_set
+                    .filter(institution_id=professional.institution_id)
+                    .first()
+                    or professional.affiliation_set.first()
+                )
+                if affiliation is None and professional.institution_id:
+                    affiliation = Affiliation.objects.create(
+                        professional=professional,
+                        institution=professional.institution,
+                    )
+                if affiliation is not None:
+                    SessionReferral.objects.update_or_create(
+                        session=session,
+                        defaults={
+                            'professional': professional,
+                            'affiliation': affiliation,
+                        },
+                    )
+
         return JsonResponse({
             'status': 'success', 
             'message': 'Session saved to Supabase',
