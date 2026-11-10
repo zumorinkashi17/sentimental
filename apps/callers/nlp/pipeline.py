@@ -14,12 +14,15 @@ from .rules import (
     extract_caller_text,
     extract_responder_text,
     extract_rules,
+    infer_civil_status_from_context,
     infer_gender_from_context,
     is_known_location,
     is_name_candidate,
+    is_workplace_location,
     parse_age,
+    requests_anonymity,
 )
-from .summary import build_summary
+from .summary import build_summary, translate_summary
 from .textrank import summarize
 
 FIELD_LABELS = {
@@ -65,6 +68,13 @@ _PLACE_SUFFIX = re.compile(
     re.IGNORECASE,
 )
 
+_NER_NAME_CUE = re.compile(
+    r"\b(?:ako(?:ng)?\s+si|ako\s+diay\s+si|si\s+\w+\s+ko|"
+    r"akong\s+(?:ngalan|name|pangalan)|ang\s+(?:ngalan|name|pangalan)|"
+    r"tawga|tawag|call\s+me|my\s+name|i'?m)\b",
+    re.IGNORECASE,
+)
+
 
 def _valid_ner_entity(entity: dict, text: str) -> bool:
     """Reject NER guesses that contradict the closed-vocabulary lexicons."""
@@ -78,14 +88,24 @@ def _valid_ner_entity(entity: dict, text: str) -> bool:
     if label == "AGE":
         return parse_age(value) is not None
     if label == "NAME":
-        return is_name_candidate(value)
+        if requests_anonymity(text):
+            return False
+        if not is_name_candidate(value):
+            return False
+        context = text[
+            max(0, entity["start"] - 40) : min(len(text), entity["end"] + 20)
+        ]
+        return bool(_NER_NAME_CUE.search(context))
     if label == "LOCATION":
-        if is_known_location(value):
-            return True
-        if not _PLACE_SUFFIX.search(value):
+        if is_workplace_location(text, entity["start"], entity["end"]):
             return False
         before = text[max(0, entity["start"] - 30) : entity["start"]]
-        return bool(_LOCATION_CUE.search(before))
+        has_cue = bool(_LOCATION_CUE.search(before))
+        if _PLACE_SUFFIX.search(value):
+            return has_cue or is_known_location(value)
+        if is_known_location(value):
+            return has_cue
+        return False
     return False
 
 
@@ -124,9 +144,11 @@ def analyze(
     reason_for_calling: object = "",
     risk_assessment: object = "",
 ) -> dict:
-    """Extract caller fields and generate a TextRank-driven Bisaya summary.
+    """Extract caller fields and generate a TextRank-driven English summary.
 
-    Returns a JSON-serialisable payload consumed by the persistent panel.
+    The Bisaya template is still built by ``build_summary`` and returned as
+    ``summary_bisaya`` for reference. Returns a JSON-serialisable payload
+    consumed by the persistent panel.
     """
     cleaned = clean_text(text)
     caller_text = extract_caller_text(text)
@@ -166,6 +188,16 @@ def analyze(
                 "evidence": "spouse reference",
             }
 
+    if fields.get("callerStatus") == "N/A":
+        inferred_status = infer_civil_status_from_context(caller_text)
+        if inferred_status:
+            fields["callerStatus"] = inferred_status
+            field_meta["callerStatus"] = {
+                "confidence": 0.6,
+                "source": "inference",
+                "evidence": "spouse reference",
+            }
+
     intervention, intervention_categories = extract_intervention(
         caller_text, responder_text
     )
@@ -182,7 +214,7 @@ def analyze(
         max_sentences=max_summary_sentences,
         min_words=2,
     )
-    summary = build_summary(
+    summary_bisaya = build_summary(
         caller_text,
         summary_text=textrank_summary,
         reason_for_calling=reason_for_calling,
@@ -190,6 +222,7 @@ def analyze(
         intervention_categories=intervention_categories,
         max_symptoms=max_summary_sentences,
     )
+    summary = translate_summary(summary_bisaya)
 
     return {
         "status": "success",
@@ -197,6 +230,7 @@ def analyze(
         "field_meta": field_meta,
         "entities": entities,
         "summary": summary,
+        "summary_bisaya": summary_bisaya,
         "summary_method": "textrank+template",
         "summary_extract": textrank_summary,
         "method": "hybrid" if ner.is_available() else "rules",

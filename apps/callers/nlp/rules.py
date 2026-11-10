@@ -71,6 +71,7 @@ LOCATION_ALIASES = {
     "mandaue": "Mandaue City",
     "talisay": "Talisay City",
     "naga": "Naga City",
+    "davao": "Davao City",
     "danao": "Danao City",
     "carcar": "Carcar City",
     "toledo": "Toledo City",
@@ -171,6 +172,11 @@ _NON_NAMES = {
     "siyudad",
     "nagsugod",
     "gisuwayan",
+    "matulog",
+    "natulog",
+    "tulog",
+    "guro",
+    "siguro",
     "nahadlok",
     "kapoy",
     "kamingaw",
@@ -190,6 +196,18 @@ _NON_NAMES = {
     "amping",
     "maayo",
     "hello",
+    "uhm",
+    "um",
+    "okay",
+    "sige",
+    "karon",
+    "nakaginhawa",
+    "mahadlok",
+    "dugay",
+    "kanang",
+    "medyo",
+    "mangutana",
+    "manawag",
     "grabe",
     "murag",
     "unya",
@@ -294,8 +312,8 @@ def _phrase_regex(phrase: str) -> str:
         if token == "__TITLE__":
             escaped.append(TITLES)
         else:
-            token = token.replace("'", "['’]?")
-            escaped.append(re.escape(token))
+            token = re.escape(token).replace("'", "['’]?")
+            escaped.append(token)
     body = r"[\s\-]+".join(escaped)
     return re.compile(rf"\b{body}\b", re.IGNORECASE)
 
@@ -336,6 +354,34 @@ _LOCATION_CUE = re.compile(
     r"\s*(?:(?:in|at|near|sa|among|akong)\s+)?(?:[,.!?\-]\s*)?$",
     re.IGNORECASE,
 )
+
+_WORK_LOCATION_AFTER = re.compile(
+    r"^[\s,;.!?\-]*(?:na\s+)?(?:nag-work|nag work|nagtrabaho|nag-trabaho|"
+    r"nag trabaho|work|trabaho|office|duty|shift)\b",
+    re.IGNORECASE,
+)
+
+_WORK_LOCATION_BEFORE = re.compile(
+    r"\b(?:nag-work|nag work|nagtrabaho|nag-trabaho|nag trabaho|work|trabaho|"
+    r"office|duty|shift)\b[^.!?]{0,30}$",
+    re.IGNORECASE,
+)
+
+_RESIDENCE_CUE = re.compile(
+    r"\b(?:nagpuyo|nag-abang|nag-board|nag-stay|live|living|from|taga)\b",
+    re.IGNORECASE,
+)
+
+
+def is_workplace_location(text: str, start: int, end: int) -> bool:
+    """Return True when a place is mentioned only as a work location."""
+    before = text[max(0, start - 40) : start]
+    if _RESIDENCE_CUE.search(before):
+        return False
+    after = text[end : end + 40]
+    return bool(
+        _WORK_LOCATION_AFTER.search(after) or _WORK_LOCATION_BEFORE.search(before)
+    )
 
 _PLACE_SUFFIX = re.compile(
     r"\b(?:city|municipality|province|barangay|brgy|sitio|purok|subdivision|"
@@ -559,6 +605,8 @@ def _extract_terms(text: str, rules, label: str, confidence: float) -> list[dict
                 if _NEGATED_STATUS.search(before):
                     continue
             if label == "LOCATION":
+                if is_workplace_location(text, match.start(), match.end()):
+                    continue
                 before = text[max(0, match.start() - 40) : match.start()]
                 if not _PLACE_SUFFIX.search(match.group(0)) and not _LOCATION_CUE.search(
                     before
@@ -650,7 +698,7 @@ def _dictionary_name_patterns() -> list[tuple[re.Pattern, float]]:
 def _clean_name(value: str) -> str:
     value = _normalise_quotes(value).strip().strip(" .,!?;:\"'")
     value = re.sub(r"^(?:si|og|ug|kay|ko'g|kog)\s+", "", value, flags=re.IGNORECASE)
-    value = re.sub(r"^([A-Za-z])-\1", "", value, flags=re.IGNORECASE)
+    value = re.sub(r"^([A-Za-z])-\1", r"\1", value, flags=re.IGNORECASE)
     value = re.sub(r"\s+", " ", value)
     return value
 
@@ -681,7 +729,25 @@ def _looks_like_name(value: str) -> bool:
     return first not in _non_name_terms()
 
 
+_ANONYMITY_REQUEST = re.compile(
+    r"\b(?:anonymous|mag-anonymous|"
+    r"dili lang nako i-sulti akong (?:pangalan|ngalan)|"
+    r"dili ko gusto mohatag sa akong (?:pangalan|ngalan)|"
+    r"ayaw lang ko pangayoi og (?:name|pangalan|ngalan)|"
+    r"dili ko gusto mohatag sa akong (?:pangalan|ngalan)|"
+    r"di ko gusto mohatag sa akong (?:pangalan|ngalan))\b",
+    re.IGNORECASE,
+)
+
+
+def requests_anonymity(text: str) -> bool:
+    """Return True when the caller explicitly asks to stay anonymous."""
+    return bool(_ANONYMITY_REQUEST.search(str(text or "")))
+
+
 def _extract_names(text: str) -> list[dict]:
+    if _ANONYMITY_REQUEST.search(text):
+        return []
     entities: list[dict] = []
     for regex, confidence in [*_name_patterns(), *_dictionary_name_patterns()]:
         for match in regex.finditer(text):
@@ -726,6 +792,137 @@ def _strip_speaker_labels(text: str) -> str:
     return "\n".join(lines)
 
 
+_CALLER_FIRST_PERSON = re.compile(
+    r"\b(?:ako|akong|nako|ko|namo|nila|akoa)\b", re.IGNORECASE
+)
+_RESPONDER_SECOND_PERSON = re.compile(
+    r"\b(?:ka|nimo|imo|imong|ikaw|kamo|ninyo)\b", re.IGNORECASE
+)
+_CALLER_CONTEXT = re.compile(
+    r"\b(?:kapoy|hilak|sakit|guol|kamingaw|hadlok|naulaw|maulaw|nanganak|"
+    r"bana|anak|pamilya|trabaho|gikapoy|mabuang|nabuang|overthink|single|"
+    r"minyo|babaye|lalaki|wala koy|dili ko|di ko|mao lagi|oo|basin)\b",
+    re.IGNORECASE,
+)
+_RESPONDER_CONTEXT = re.compile(
+    r"\b(?:salamat|nakasabot|kasabot|valid|normal|pwede|kailangan|importante|"
+    r"maayo|nindot|tabang|suporta|referral|psychologist|psychiatrist|doctor|"
+    r"clinic|breathing|inhale|exhale|grounding|postpartum|distress|matambalan|"
+    r"paminaw|amping|tawag paglaum|andam|maminaw|debrief)\b",
+    re.IGNORECASE,
+)
+
+
+def _role_scores(block: str) -> tuple[int, int]:
+    first_person = len(_CALLER_FIRST_PERSON.findall(block))
+    second_person = len(_RESPONDER_SECOND_PERSON.findall(block))
+    caller_context = len(_CALLER_CONTEXT.findall(block))
+    responder_context = len(_RESPONDER_CONTEXT.findall(block))
+    return (
+        (first_person + caller_context) * 2,
+        (second_person + responder_context) * 2,
+    )
+
+
+def _label_less_turns(raw: str) -> list[tuple[str, str]]:
+    """Best-effort alternating turns for transcripts without speaker labels.
+
+    Phase headers reset the turn order, which keeps back-to-back responder
+    turns in adjacent phases from shifting every later speaker.
+    """
+    raw = _TRANSCRIPT_HEADER.sub("", raw)
+    raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+    sections = _PHASE_HEADER.split(raw)
+    has_phases = len(sections) > 1
+    turns: list[tuple[str, str]] = []
+
+    for section in sections:
+        blocks = [
+            block.strip()
+            for block in re.split(r"\n\s*\n", section)
+            if block.strip()
+        ]
+        if not blocks:
+            continue
+        first = blocks[0].lower()
+        responder_opening = any(
+            marker in first
+            for marker in (
+                "tawag paglaum",
+                "unsa man ang akong ikatabang",
+                "unsa may akong ika",
+                "unsa akong matabang",
+                "open mi 24/7",
+                "andam ko maminaw",
+            )
+        )
+        caller_openers = (
+            "(breathing",
+            "(whispering",
+            "ako si",
+            "ang akong",
+            "babaye ko",
+            "di ko gusto",
+            "dili ko gusto",
+            "gusto ko",
+            "kapoy",
+            "mao lagi",
+            "naa koy",
+            "nasuko",
+            "niabot siya",
+            "sa cebu",
+            "sakit kaayo akong",
+            "sige miss",
+            "wala ko",
+        )
+        caller_start = 0
+        responder_start = 0
+        for index, block in enumerate(blocks):
+            caller_score, responder_score = _role_scores(block)
+            if index % 2 == 0:
+                caller_start += caller_score
+                responder_start += responder_score
+            else:
+                caller_start += responder_score
+                responder_start += caller_score
+        if responder_opening:
+            start_role = "responder"
+        elif caller_start > responder_start:
+            start_role = "caller"
+        elif responder_start > caller_start:
+            start_role = "responder"
+        else:
+            start_role = None
+        if start_role is None:
+            if any(first.startswith(opener) for opener in caller_openers):
+                start_role = "caller"
+            elif has_phases:
+                start_role = "responder"
+            else:
+                responder_markers = (
+                    "tawag paglaum",
+                    "maayong",
+                    "naa ko diri",
+                    "unsa may akong",
+                    "unsa man akong",
+                )
+                start_role = (
+                    "responder"
+                    if any(marker in first for marker in responder_markers)
+                    else "caller"
+                )
+        for index, block in enumerate(blocks):
+            if index % 2 == 0:
+                role = start_role
+            else:
+                role = "caller" if start_role == "responder" else "responder"
+            turns.append((role, block))
+
+    if len(turns) < 4:
+        return []
+    return turns
+
+
 def _extract_speaker_text(text: str, wanted_role: str) -> str:
     raw = str(text or "")
     raw = _TRANSCRIPT_HEADER.sub("", raw)
@@ -759,6 +956,15 @@ def _extract_speaker_text(text: str, wanted_role: str) -> str:
     flush()
 
     if not found:
+        fallback_turns = _label_less_turns(text)
+        if fallback_turns:
+            return clean_text(
+                "\n".join(
+                    block
+                    for role, block in fallback_turns
+                    if role == wanted_role
+                )
+            )
         return clean_text(text)
     return clean_text("\n".join(turns))
 
@@ -814,14 +1020,31 @@ _WIFE_REFERENCE = re.compile(
     re.IGNORECASE,
 )
 
+_GENDER_REFUSAL = re.compile(
+    r"\b(?:ayaw|dili|di)\s+(?:na\s+)?(?:lang\s+)?(?:ko\s+)?"
+    r"(?:pangutana|ipangutana)\b[^.!?]{0,80}"
+    r"\b(?:gender|sexo|kasarian)\b",
+    re.IGNORECASE,
+)
+
 
 def infer_gender_from_context(text: str) -> str | None:
     """Infer gender only from an explicit spouse reference."""
     value = _clean_term(str(text or ""))
+    if _GENDER_REFUSAL.search(value):
+        return None
     if _HUSBAND_REFERENCE.search(value):
         return "Female"
     if _WIFE_REFERENCE.search(value):
         return "Male"
+    return None
+
+
+def infer_civil_status_from_context(text: str) -> str | None:
+    """Infer marriage only from an explicit spouse reference."""
+    value = _clean_term(str(text or ""))
+    if _HUSBAND_REFERENCE.search(value) or _WIFE_REFERENCE.search(value):
+        return "Married"
     return None
 
 
