@@ -43,6 +43,7 @@
             <h3 class="text-brand font-bold text-sm text-center tracking-wider mb-4 uppercase">Caller Information</h3>
             <div class="space-y-4">
                     <div><label class="form-label" for="aiName">Name:</label><input type="text" id="aiName" class="form-input font-mono" placeholder="Juan Dela Cruz"></div>
+                    <div><label class="form-label" for="phoneNumber">Phone Number:</label><input type="tel" id="phoneNumber" class="form-input font-mono" placeholder="09171234567" pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
                     <div class="grid grid-cols-1 xs:grid-cols-[1fr_1fr_80px] sm:grid-cols-[1fr_1fr_80px] gap-4">
                         <div><label class="form-label" for="aiGender">Gender:</label><input type="text" id="aiGender" class="form-input font-mono" placeholder="Female"></div>
                         <div><label class="form-label" for="aiStatus">Civil Status:</label><input type="text" id="aiStatus" class="form-input font-mono" placeholder="Single"></div>
@@ -124,6 +125,7 @@
                         <label class="form-label" id="referralLabelText" for="referralTrigger">Referral:</label>
                         <div id="referralSelect" class="relative">
                             <input type="hidden" id="aiReferral" value="">
+                            <input type="hidden" id="aiReferralAffiliation" value="">
                             <button type="button" id="referralTrigger" class="form-input bg-white font-mono flex items-center justify-between gap-2 text-left cursor-pointer" aria-haspopup="listbox" aria-expanded="false" aria-controls="referralOptions">
                                 <span id="referralLabel" class="truncate text-gray-400">Select professional</span>
                                 <i class="ph-bold ph-caret-down text-gray-400 text-sm"></i>
@@ -334,6 +336,7 @@
     function initReferralSelect() {
         const wrapper = document.getElementById('referralSelect');
         const hidden = document.getElementById('aiReferral');
+        const affiliationHidden = document.getElementById('aiReferralAffiliation');
         const trigger = document.getElementById('referralTrigger');
         const label = document.getElementById('referralLabel');
         const menu = document.getElementById('referralMenu');
@@ -351,8 +354,9 @@
         let loaded = false;
         let loadingRequest = false;
 
-        function setValue(id, text) {
+        function setValue(id, text, affiliationId) {
             hidden.value = id || '';
+            if (affiliationHidden) affiliationHidden.value = affiliationId || '';
             label.textContent = text || 'Select professional';
             label.classList.toggle('text-gray-400', !id);
             label.classList.toggle('text-gray-700', !!id);
@@ -385,10 +389,11 @@
             option.setAttribute('aria-selected', 'false');
             option.dataset.id = '';
             option.dataset.label = '';
+            option.dataset.affiliationId = '';
             option.dataset.search = '';
             option.textContent = 'No referral';
             option.addEventListener('click', function () {
-                setValue('', '');
+                setValue('', '', '');
                 closeMenu();
                 trigger.focus();
             });
@@ -402,6 +407,7 @@
             option.setAttribute('aria-selected', 'false');
             option.dataset.id = item.id;
             option.dataset.label = item.label || item.name;
+            option.dataset.affiliationId = item.affiliation_id || '';
             option.dataset.search = searchText(item);
             if (String(item.id) === String(hidden.value)) {
                 option.setAttribute('aria-selected', 'true');
@@ -419,7 +425,7 @@
             option.appendChild(name);
             option.appendChild(meta);
             option.addEventListener('click', function () {
-                setValue(option.dataset.id, option.dataset.label);
+                setValue(option.dataset.id, option.dataset.label, option.dataset.affiliationId);
                 closeMenu();
                 trigger.focus();
             });
@@ -506,7 +512,7 @@
                 event.preventDefault();
                 const active = visibleOptions[activeIndex];
                 if (active) {
-                    setValue(active.dataset.id, active.dataset.label);
+                    setValue(active.dataset.id, active.dataset.label, active.dataset.affiliationId);
                     closeMenu();
                     trigger.focus();
                 }
@@ -523,11 +529,11 @@
         });
 
         window.resetReferralSelect = function () {
-            setValue('', '');
+            setValue('', '', '');
         };
 
         loadResults();
-        setValue('', '');
+        setValue('', '', '');
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -827,6 +833,7 @@
                 timeCalled: document.getElementById('timeCalled').value,
                 timeEnded: document.getElementById('timeEnded').value,
                 callerName: document.getElementById('aiName').value.trim() || 'Anonymous',
+                callerNumber: document.getElementById('phoneNumber').value.trim(),
                 callerGender: document.getElementById('aiGender').value,
                 callerStatus: document.getElementById('aiStatus').value,
                 callerAge: document.getElementById('aiAge').value,
@@ -835,6 +842,7 @@
                 riskAssessment: document.getElementById('aiRisk').value,
                 intervention: document.getElementById('aiIntervention').value,
                 referralProfessionalId: document.getElementById('aiReferral')?.value || '',
+                referralAffiliationId: document.getElementById('aiReferralAffiliation')?.value || '',
                 additionalComments: document.getElementById('aiComments').value,
                 aiSummary: document.getElementById('aiGeneratedSummary')?.value || aiSummaryDraft || '',
                 manualScriptNotes: document.getElementById('manual-script-textarea').value,
@@ -887,9 +895,9 @@
                     // CLEAR FIELDS ON SUCCESS
                     if (isSuccess) {
                         const fieldsToClear = [
-                            'aiName', 'aiGender', 'aiStatus', 'aiAge',
+                            'aiName', 'phoneNumber', 'aiGender', 'aiStatus', 'aiAge',
                             'aiLocation', 'aiReason', 'aiRisk',
-                            'aiIntervention', 'aiReferral', 'aiComments',
+                            'aiIntervention', 'aiReferral', 'aiReferralAffiliation', 'aiComments',
                             'aiGeneratedSummary', 'manual-script-textarea'
                         ];
                         

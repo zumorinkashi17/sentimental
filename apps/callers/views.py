@@ -66,7 +66,20 @@ def _annotated_callers(include_totals=False):
         latest_session_risk=Subquery(_latest_session_value('session_risk_assessment')),
     )
     if include_totals:
-        callers = callers.annotate(total_sessions=Count('callsession'))
+        number_count_sq = (
+            Caller.objects
+            .filter(
+                caller_number=OuterRef('caller_number'),
+                caller_number__isnull=False
+            )
+            .exclude(caller_number='')
+            .values('caller_number')
+            .annotate(num_count=Count('pk'))
+            .values('num_count')
+        )
+        
+        # 3. Annotate the result onto the main queryset
+        callers = callers.annotate(total_sessions=Subquery(number_count_sq))
     return callers
 
 # Applies search, risk, and time filters on the server.
@@ -76,11 +89,18 @@ def _apply_caller_filters(callers, request):
     period = (request.GET.get('period') or 'all').lower()
 
     if search:
-        filters = Q(caller_name__icontains=search)
-        if search.isdigit():
-            filters |= Q(caller_id_text__icontains=search)
-        callers = callers.filter(filters)
+        # Extract just the number if the user types the 'TPCB10-' prefix
+        id_search = search.split('-')[-1] if '-' in search else search
+        
+        # Search overrides other filters so specific IDs/names are never hidden
+        filters = (
+            Q(caller_name__icontains=search) | 
+            Q(caller_id_text__icontains=id_search) |
+            Q(caller_number__icontains=search)
+        )
+        return callers.filter(filters)
 
+    # Only apply risk and time filters if the user is NOT actively searching
     if risk in ('high', 'medium', 'low'):
         callers = callers.filter(latest_session_risk__icontains=risk)
 
@@ -94,7 +114,6 @@ def _apply_caller_filters(callers, request):
         callers = callers.filter(latest_session_date__gte=today.replace(day=1))
 
     return callers
-
 
 def _build_caller_list(callers, include_totals=False):
     """Builds template rows using one query to fetch the latest sessions."""
@@ -118,9 +137,9 @@ def list_view(request):
     if redirect_response:
         return redirect_response
 
-    callers = _apply_caller_filters(_annotated_callers(), request).order_by('-caller_id')
+    callers = _apply_caller_filters(_annotated_callers(include_totals=True), request).order_by('-caller_id')
     page_obj, querystring = paginate(request, callers)
-    caller_list = _build_caller_list(page_obj.object_list)
+    caller_list = _build_caller_list(page_obj.object_list, include_totals=True)
 
     return render(request, 'callers/list.html', {
         'caller_list': caller_list,
@@ -216,7 +235,7 @@ def transcribe_audio(request):
 
     try:
         segments, transcript = transcribe_tracks(
-            caller_track.wav, responder_track.wav, api_key
+            caller_track.audio, responder_track.audio, api_key
         )
     except TranscriptionError as exc:
         logger.warning("Transcription failed: %s", exc)
@@ -309,10 +328,12 @@ def save_call_documentation(request):
             shift_instance = ShiftCatalog.objects.filter(pk=shift_id).first()
 
         # Create the Caller record
+        caller_number = (data.get('callerNumber') or '').strip()
         caller = Caller.objects.create(
             caller_name=data.get('callerName'),
             caller_gender=data.get('callerGender'),
             caller_civil_status=data.get('callerStatus'),
+            caller_number=caller_number or None,
             caller_age=caller_age,
             caller_location=data.get('callerLocation')
         )
@@ -340,15 +361,9 @@ def save_call_documentation(request):
                 transcript_text=raw_transcript
             )
 
-        manual_notes = data.get('manualScriptNotes')
-        if manual_notes and manual_notes.strip():
-            CallTranscript.objects.create(
-                session=session,
-                transcript_text=manual_notes
-            )
-
         # Link the professional selected in the referral picker.
         referral_id = data.get('referralProfessionalId') or data.get('referral')
+        referral_affiliation_id = data.get('referralAffiliationId')
         if referral_id:
             from apps.referrals.models import (
                 Affiliation,
@@ -365,12 +380,22 @@ def save_call_documentation(request):
             except (TypeError, ValueError):
                 professional = None
             if professional:
-                affiliation = (
-                    professional.affiliation_set
-                    .filter(institution_id=professional.institution_id)
-                    .first()
-                    or professional.affiliation_set.first()
-                )
+                affiliation = None
+                if referral_affiliation_id:
+                    try:
+                        affiliation = Affiliation.objects.filter(
+                            pk=referral_affiliation_id,
+                            professional=professional,
+                        ).first()
+                    except (TypeError, ValueError):
+                        affiliation = None
+                if affiliation is None:
+                    affiliation = (
+                        professional.affiliation_set
+                        .filter(institution_id=professional.institution_id)
+                        .first()
+                        or professional.affiliation_set.first()
+                    )
                 if affiliation is None and professional.institution_id:
                     affiliation = Affiliation.objects.create(
                         professional=professional,

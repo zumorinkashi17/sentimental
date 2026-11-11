@@ -1,5 +1,5 @@
 """
-Converts caller and responder WebM audio tracks into 16 kHz mono WAV files
+Converts caller and responder WebM audio tracks into 16 kHz mono audio
 for speech-to-text processing. Uses imageio-ffmpeg for decoding and an
 explicit decoder to avoid requiring ffprobe.
 """
@@ -51,7 +51,14 @@ STT_SAMPLE_RATE = 16000
 STT_CHANNELS = 1
 STT_SAMPLE_WIDTH = 2
 
-MIME_WAV = "audio/wav"
+MIME_STT = "audio/ogg"
+
+# Tracks are sent to the transcription API as Opus-in-OGG instead of raw WAV:
+# a 4-minute call shrinks from ~7.7 MB to ~1 MB, so uploads finish well before
+# the request timeout even on slow connections.
+STT_EXPORT_FORMAT = "ogg"
+STT_EXPORT_CODEC = "libopus"
+STT_EXPORT_BITRATE = "24k"
 
 # Supported audio formats to try.
 _CODEC_CANDIDATES = {
@@ -78,7 +85,7 @@ MAX_CUT_DB = -20.0
 class NormalizedTrack(NamedTuple):
     """Stores the processed audio track and its measurements."""
 
-    wav: bytes
+    audio: bytes
     duration_ms: int
     input_dbfs: Optional[float] = None
     input_peak_dbfs: Optional[float] = None
@@ -111,19 +118,24 @@ def _decode(audio_bytes, source_format, codec):
     return AudioSegment.from_file(io.BytesIO(audio_bytes), **kwargs)
 
 
-# Converts audio to 16 kHz mono 16-bit PCM WAV. The format every STT backend expects.
+# Encodes audio as compressed Opus-in-OGG for a small upload payload.
 def _to_stt_format(segment):
-    """Converts audio to the standard format for speech-to-text."""
+    """Converts audio to the compressed format used for speech-to-text."""
     segment = segment.set_frame_rate(STT_SAMPLE_RATE)
     segment = segment.set_channels(STT_CHANNELS)
     segment = segment.set_sample_width(STT_SAMPLE_WIDTH)
 
     buffer = io.BytesIO()
     try:
-        segment.export(buffer, format="wav")
+        segment.export(
+            buffer,
+            format=STT_EXPORT_FORMAT,
+            codec=STT_EXPORT_CODEC,
+            bitrate=STT_EXPORT_BITRATE,
+        )
     except Exception as exc:
         raise AudioProcessingError(
-            f"Could not encode the track as WAV: {exc}"
+            f"Could not encode the track as {STT_EXPORT_FORMAT}: {exc}"
         ) from exc
 
     return buffer.getvalue()
@@ -178,9 +190,9 @@ def _measure(segment):
     return round(rms, 1), round(peak, 1)
 
 
-# MAIN-PYDUB: Decodes, converts, adjusts volume, and exports audio as WAV.
-def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
-    """Converts a track to normalized 16 kHz mono WAV for speech-to-text."""
+# MAIN-PYDUB: Decodes, converts, adjusts volume, and exports compressed audio.
+def to_stt_audio(audio_bytes, source_format="webm", codec=None, normalize=True):
+    """Converts a track to normalized 16 kHz mono Opus audio for speech-to-text."""
     if not audio_bytes:
         raise AudioProcessingError("Track is empty.")
 
@@ -229,14 +241,19 @@ def to_stt_wav(audio_bytes, source_format="webm", codec=None, normalize=True):
 
         buffer = io.BytesIO()
         try:
-            segment.export(buffer, format="wav")
+            segment.export(
+                buffer,
+                format=STT_EXPORT_FORMAT,
+                codec=STT_EXPORT_CODEC,
+                bitrate=STT_EXPORT_BITRATE,
+            )
         except Exception as exc:
             raise AudioProcessingError(
-                f"Could not encode the track as WAV: {exc}"
+                f"Could not encode the track as {STT_EXPORT_FORMAT}: {exc}"
             ) from exc
 
         return NormalizedTrack(
-            wav=buffer.getvalue(),
+            audio=buffer.getvalue(),
             duration_ms=duration_ms,
             input_dbfs=input_dbfs,
             input_peak_dbfs=input_peak,
@@ -257,7 +274,7 @@ def get_duration_ms(audio_bytes, source_format="webm", codec=None):
         return 0
 
     try:
-        return to_stt_wav(
+        return to_stt_audio(
             audio_bytes, source_format=source_format, codec=codec, normalize=False
         ).duration_ms
     except AudioProcessingError as exc:
