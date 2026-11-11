@@ -914,7 +914,11 @@
                         setSummaryAgainVisible(false);
                         setSummaryEditMode(false);
 
-                        window.location.reload();
+                        if (typeof window.sentiRefresh === 'function') {
+                            window.sentiRefresh();
+                        } else {
+                            window.location.reload();
+                        }
                     }
                 }, 2000);
             }

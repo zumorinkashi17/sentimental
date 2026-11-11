@@ -5,32 +5,26 @@
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
     <div class="max-w-6xl mx-auto w-full space-y-6">
         
-        <!-- Form for the Date Filter -->
-        <form method="GET" action="{% url 'documentation:history' %}">
-            <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800">My Call Logs</h1>
-                    <p class="text-gray-500">Review your past documented sessions and transcripts.</p>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <div class="relative w-full sm:w-56">
-                        <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" name="q" value="{{ search_query }}" placeholder="Search Session ID..." class="form-input bg-white w-full pl-8 py-1.5 text-xs text-gray-600 border-gray-200">
-                    </div>
-
-                    <select name="date_filter" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200">
-                        <option value="">All Time</option>
-                        <option value="this_month" {% if current_date_filter == 'this_month' %}selected{% endif %}>This Month</option>
-                        <option value="last_month" {% if current_date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
-                    </select>
-                    
-                    <button type="submit" class="px-4 py-2 border border-gray-200 bg-white text-gray-600 text-sm font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                        <i class="ph-bold ph-funnel"></i> Filter
-                    </button>
-                </div>
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3 mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">My Call Logs</h1>
+                <p class="text-gray-500">Review your past documented sessions and transcripts.</p>
             </div>
-        </form>
+            <form method="GET" action="{% url 'documentation:history' %}" class="flex flex-col sm:flex-row gap-2">
+                <!-- Session ID Search -->
+                <div class="relative w-full sm:w-56">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Session ID..." class="form-input bg-white w-full pl-8 py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg">
+                </div>
+
+                <!-- Date Filter -->
+                <select name="date_filter" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg cursor-pointer">
+                    <option value="">All Time</option>
+                    <option value="this_month" {% if current_date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                    <option value="last_month" {% if current_date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+                </select>
+            </form>
+        </div>
 
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="table-scroll">
@@ -151,14 +145,6 @@
                 </div>
             </div>
 
-            <div class="pt-4 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 mt-4">
-                <button type="button" class="px-4 py-2 border border-gray-200 text-gray-600 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-printer"></i> Print Record
-                </button>
-                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-brand text-white text-sm font-bold rounded-lg hover:bg-brand-dark transition-colors">
-                    Close Document
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -169,12 +155,12 @@
 
 <!-- SCRIPTS -->
 <script>
-    const transcriptsBySession = (function () {
+    var transcriptsBySession = (function () {
         const el = document.getElementById('transcript-data');
         return el ? JSON.parse(el.textContent) : {};
     })();
 
-    const referralsBySession = (function () {
+    var referralsBySession = (function () {
         const el = document.getElementById('referral-data');
         return el ? JSON.parse(el.textContent) : {};
     })();

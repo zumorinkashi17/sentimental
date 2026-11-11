@@ -249,6 +249,584 @@ ready(() => {
     initPasswordRequirementHints();
 });
 
+// =====================================================================
+// --- Skeleton Loading Overlay (navigation feedback) ---
+//
+// Navigation is normally a full page load (and, while a call is held, an
+// in-place swap - see "Recording-safe navigation" below). In both cases the
+// browser keeps painting the current page until the new one is ready, so a
+// skeleton shown the moment a link is clicked fills that gap with feedback.
+//
+// The skeleton is scoped to #tab-content-container so the header, the
+// sidebar and the persistent panel stay visible, and it is matched to
+// the destination URL so it mirrors the layout of the incoming page.
+// =====================================================================
+
+const SK_BAR = 'rounded bg-gray-200/80 animate-pulse';
+const SK_SOFT = 'rounded bg-gray-100 animate-pulse';
+
+function skBar(w, h) {
+    return `<div class="${h || 'h-3'} ${w} ${SK_BAR}"></div>`;
+}
+
+function skCard(inner, style, cls) {
+    return `<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 ${cls || ''}" ${style ? `style="${style}"` : ''}>${inner}</div>`;
+}
+
+function skTable(cols, rows) {
+    const head = `<div class="flex items-center gap-4 pb-3 border-b border-gray-100">${cols.map(c => skBar(c)).join('')}</div>`;
+    const body = Array.from({ length: rows }, () =>
+        `<div class="flex items-center gap-4 py-3 border-b border-gray-50">${cols.map(c => skBar(c, 'h-4')).join('')}</div>`).join('');
+    return head + body;
+}
+
+function skPagination() {
+    return `<div class="flex items-center justify-between pt-4">
+        ${skBar('w-24')}
+        <div class="flex gap-2">${skBar('w-8', 'h-8')}${skBar('w-8', 'h-8')}${skBar('w-8', 'h-8')}</div>
+    </div>`;
+}
+
+function skStat() {
+    return skCard(`${skBar('w-20')}<div class="mt-2 h-8 w-16 rounded-lg bg-gray-200/80 animate-pulse"></div><div class="mt-3 h-2 w-full ${SK_SOFT}"></div>`, 'h-28');
+}
+
+function skDoughnut() {
+    return skCard(`<div class="mx-auto mt-2 h-28 w-28 rounded-full border-[12px] border-gray-100 animate-pulse"></div>`, 'h-48');
+}
+
+function skProgress() {
+    return `<div class="space-y-2">${skBar('w-28')}<div class="h-2 w-full rounded-full bg-gray-100 animate-pulse"></div></div>`;
+}
+
+function skChip(w) {
+    return `<div class="h-10 ${w} rounded-lg bg-gray-100 animate-pulse"></div>`;
+}
+
+function skTitle(w) {
+    return `<div class="h-9 ${w} rounded-lg bg-gray-200/80 animate-pulse"></div>`;
+}
+
+function skCalendarGrid() {
+    const days = Array.from({ length: 7 }, () => `<div class="h-2 w-10 mx-auto ${SK_BAR}"></div>`).join('');
+    const cells = Array.from({ length: 35 }, () =>
+        `<div class="h-20 rounded-xl border border-gray-100 bg-white p-2"><div class="h-2 w-6 ${SK_BAR}"></div></div>`).join('');
+    return `<div class="grid grid-cols-7 gap-2 mb-2">${days}</div><div class="grid grid-cols-7 gap-2">${cells}</div>`;
+}
+
+function skMap() {
+    return `<div class="relative h-[28rem] w-full rounded-2xl bg-gray-100 overflow-hidden animate-pulse">
+        <div class="absolute top-1/4 left-1/4 h-4 w-4 rounded-full bg-brand/40 animate-ping"></div>
+        <div class="absolute top-1/2 right-1/3 h-5 w-5 rounded-full bg-red-400/50 animate-ping"></div>
+        <div class="absolute bottom-1/3 left-1/2 h-4 w-4 rounded-full bg-orange-300/50 animate-ping"></div>
+        <div class="absolute bottom-4 right-4 bg-white rounded-xl border border-gray-200 p-3 space-y-2">
+            <div class="h-2 w-24 ${SK_BAR}"></div>
+            <div class="h-2 w-16 ${SK_BAR}"></div>
+        </div>
+    </div>`;
+}
+
+function skInputRow(count, wide) {
+    return Array.from({ length: count }, (_, i) =>
+        `<div class="space-y-1 ${i === count - 1 && wide ? 'col-span-2' : ''}">${skBar('w-20', 'h-2')}${skBar('w-full', 'h-9')}</div>`).join('');
+}
+
+// --- Per-page skeletons ---
+
+function skAdminDashboard() {
+    return `
+    ${skTitle('w-72')}
+    <div class="flex gap-3">${skChip('w-32')}${skChip('w-40')}${skChip('w-48')}</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${skStat()}${skStat()}${skStat()}${skStat()}</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${skDoughnut()}${skDoughnut()}${skDoughnut()}</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div class="lg:col-span-2">${skCard(skTable(['w-1/5', 'w-1/4', 'w-1/3', 'w-1/6'], 5), 'min-h-[16rem]')}</div>
+        ${skCard(`<div class="space-y-6">${skBar('w-48', 'h-4')}${skProgress()}${skProgress()}${skProgress()}</div>`)}
+    </div>`;
+}
+
+function skResponderDashboard() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-64')}
+        <div class="h-10 w-32 rounded-lg bg-gray-100 animate-pulse"></div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">${skDoughnut()}${skDoughnut()}${skDoughnut()}</div>
+    <div class="flex flex-col lg:flex-row gap-4 items-stretch">
+        <div class="flex-1">${skCard(`${skBar('w-40', 'h-4')}<div class="mt-4 h-48 w-full rounded-xl bg-gray-100 animate-pulse"></div>`)}</div>
+        <div class="w-full lg:w-48">${skCard(`<div class="space-y-4">${skBar('w-20', 'h-4')}${skProgress()}${skProgress()}</div>`)}</div>
+    </div>
+    ${skCard(`${skBar('w-48', 'h-4')}<div class="mt-4">${skTable(['w-1/4', 'w-1/6', 'w-1/4', 'w-1/5', 'w-1/6'], 4)}</div>`)}`;
+}
+
+function skForecast() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-72')}
+        <div class="flex gap-2">${skChip('w-24')}${skChip('w-24')}</div>
+    </div>
+    ${skCard(`<div class="flex items-center gap-4">${skChip('w-44')}${skChip('w-40')}</div>`)}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">${Array.from({ length: 4 }, () =>
+        skCard(`${skBar('w-24')}<div class="mt-2 h-4 w-32 rounded bg-gray-200/80 animate-pulse"></div>`, 'h-20')).join('')}</div>
+    ${skCard(`${skBar('w-40', 'h-4')}<div class="mt-4 h-72 w-full rounded-xl bg-gray-100 animate-pulse"></div>`, 'h-[26rem]')}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">${Array.from({ length: 3 }, () =>
+        skCard(`${skBar('w-28')}<div class="mt-3 space-y-2">${skBar('w-full')}${skBar('w-3/4')}${skBar('w-1/2')}</div>`)).join('')}</div>
+    ${skCard(`${skBar('w-56', 'h-4')}<div class="mt-4">${skTable(['w-1/4', 'w-3/12', 'w-3/12', 'w-2/12'], 4)}</div>`)}`;
+}
+
+function skHeatmap() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-72')}
+        <div class="flex gap-3">${skChip('w-32')}${skChip('w-32')}</div>
+    </div>
+    ${skMap()}
+    ${skCard(`${skBar('w-40', 'h-4')}<div class="mt-4">${skTable(['w-1/4', 'w-1/6', 'w-1/6', 'w-1/6', 'w-1/6'], 5)}</div>`)}`;
+}
+
+function skAdminCalendar() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-80')}
+        <div class="h-10 w-28 rounded-xl bg-gray-200/80 animate-pulse"></div>
+    </div>
+    ${skCard(`<div class="flex items-center gap-4"><div class="h-10 w-10 rounded-full bg-brand/20 animate-pulse"></div><div class="flex-1 space-y-2">${skBar('w-56')}${skBar('w-40', 'h-2')}</div></div>`)}
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">${Array.from({ length: 5 }, () => skStat()).join('')}</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div class="lg:col-span-2 space-y-4">
+            ${skCard(`<div class="space-y-4">${skBar('w-32', 'h-4')}<div class="grid grid-cols-2 gap-4">${skInputRow(4)}${skInputRow(2, true)}</div><div class="h-10 w-44 rounded-lg bg-gray-200/80 animate-pulse"></div></div>`)}
+            ${skCard(`<div class="space-y-4">${skBar('w-44', 'h-4')}${Array.from({ length: 4 }, () =>
+                `<div class="flex items-center gap-3"><div class="h-10 w-10 rounded-full bg-gray-100 animate-pulse"></div><div class="flex-1 space-y-1">${skBar('w-36')}${skBar('w-24', 'h-2')}</div>${skBar('w-16', 'h-6')}</div>`).join('')}</div>`)}
+        </div>
+        <div class="space-y-4">
+            ${skCard(`<div class="space-y-4">${skBar('w-36', 'h-4')}${Array.from({ length: 3 }, () =>
+                `<div class="rounded-xl border border-gray-100 p-3 space-y-2">${skBar('w-28')}<div class="flex gap-2">${skBar('w-16', 'h-7')}${skBar('w-16', 'h-7')}</div></div>`).join('')}</div>`, 'min-h-[16rem]')}
+            ${skCard(`<div class="space-y-4">${skBar('w-36', 'h-4')}${Array.from({ length: 5 }, () => skBar('w-full', 'h-7')).join('')}</div>`, 'min-h-[12rem]')}
+        </div>
+    </div>`;
+}
+
+function skResponderCalendar() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-64')}
+        <div class="h-10 w-40 rounded-xl bg-gray-200/80 animate-pulse"></div>
+    </div>
+    ${skCard(skCalendarGrid())}
+    ${skCard(`${skBar('w-44', 'h-4')}<div class="mt-4">${skTable(['w-1/4', 'w-1/4', 'w-1/4', 'w-1/6'], 3)}</div>`)}`;
+}
+
+function skAccountsManage() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-56')}
+        <div class="h-10 w-36 rounded-xl bg-gray-200/80 animate-pulse"></div>
+    </div>
+    ${skCard(`<div class="flex gap-3 mb-5">${skChip('w-64')}${skChip('w-32')}</div>${skTable(['w-1/3', 'w-1/3', 'w-1/6', 'w-1/6'], 6)}${skPagination()}`)}`;
+}
+
+function skProfile() {
+    return `
+    ${skTitle('w-64')}
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        ${skCard(`<div class="flex flex-col items-center space-y-3">
+            <div class="h-24 w-24 rounded-full bg-gray-100 animate-pulse"></div>
+            ${skBar('w-28')}${skBar('w-20', 'h-2')}
+            <div class="mt-2 h-9 w-28 rounded-lg bg-gray-100 animate-pulse"></div>
+        </div>`, '', 'lg:col-span-1')}
+        <div class="lg:col-span-3">${skCard(`<div class="space-y-5">
+            ${skBar('w-40', 'h-4')}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${skInputRow(4)}${skInputRow(1, true)}</div>
+            <div class="h-px bg-gray-100"></div>
+            ${skBar('w-32', 'h-4')}
+            <div class="h-10 w-44 rounded-lg bg-gray-100 animate-pulse"></div>
+            <div class="h-10 w-36 rounded-lg bg-gray-200/80 animate-pulse"></div>
+        </div>`)}</div>
+    </div>`;
+}
+
+function skReferralsManage() {
+    return `
+    ${skTitle('w-72')}
+    ${skCard(`${skBar('w-48', 'h-4')}<div class="flex gap-3 my-4">${skChip('w-full')}${skChip('w-28')}</div>${skTable(['w-1/4', 'w-1/5', 'w-1/5', 'w-1/6', 'w-1/6'], 5)}${skPagination()}`)}
+    ${skCard(`${skBar('w-36', 'h-4')}<div class="flex gap-3 my-4">${skChip('w-40')}${skChip('w-full')}</div>${skTable(['w-1/4', 'w-1/5', 'w-1/5', 'w-1/6', 'w-1/6'], 5)}${skPagination()}`)}`;
+}
+
+function skReferralsDirectory() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-64')}
+        ${skChip('w-44')}
+    </div>
+    ${skCard(`${skChip('w-full')}<div class="mt-5">${skTable(['w-1/3', 'w-1/4', 'w-1/3'], 6)}</div>${skPagination()}`)}`;
+}
+
+function skCallersTable() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-56')}
+        ${skChip('w-36')}
+    </div>
+    ${skCard(`${skChip('w-full')}<div class="mt-5">${skTable(['w-1/4', 'w-1/6', 'w-1/6', 'w-1/4', 'w-1/6'], 6)}</div>${skPagination()}`)}`;
+}
+
+function skCallersList() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-56')}
+        <div class="flex gap-3">${skChip('w-32')}${skChip('w-32')}</div>
+    </div>
+    ${skCard(`${skChip('w-full')}<div class="mt-5 space-y-3">${Array.from({ length: 5 }, () =>
+        `<div class="flex items-center gap-4 rounded-xl border border-gray-100 p-3">
+            <div class="h-10 w-10 rounded-full bg-gray-100 animate-pulse"></div>
+            <div class="flex-1 space-y-1">${skBar('w-32')}${skBar('w-40', 'h-2')}</div>
+            ${skBar('w-20', 'h-6')}${skBar('w-24', 'h-8')}
+        </div>`).join('')}</div>${skPagination()}`)}`;
+}
+
+function skCallSetup() {
+    return `
+    <div class="space-y-3">
+        ${skTitle('w-80')}
+        ${skBar('w-96', 'h-2')}
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        ${skCard(`<div class="space-y-4">${skBar('w-40', 'h-3')}${skBar('w-16', 'h-2')}${skBar('w-full', 'h-11')}<div class="h-10 w-full rounded-lg bg-gray-100 animate-pulse"></div><div class="flex items-center gap-2">${skBar('w-8', 'h-2')}${skBar('w-full', 'h-1.5')}${skBar('w-8', 'h-2')}</div></div>`)}
+        ${skCard(`<div class="space-y-4">${skBar('w-40', 'h-3')}${skBar('w-16', 'h-2')}${skBar('w-full', 'h-11')}<div class="h-10 w-full rounded-lg bg-gray-100 animate-pulse"></div><div class="flex items-center gap-2">${skBar('w-8', 'h-2')}${skBar('w-full', 'h-1.5')}${skBar('w-8', 'h-2')}</div></div>`)}
+    </div>
+    ${skCard(`<div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex gap-3">${skBar('w-40', 'h-10')}${skBar('w-24', 'h-10')}</div>
+        <div class="space-y-2">${skBar('w-24', 'h-2')}${skBar('w-20', 'h-7')}</div>
+    </div>`)}`;
+}
+
+function skMasterHistory() {
+    return `
+    ${skTitle('w-72')}
+    <div class="flex gap-3">${skChip('w-40')}${skChip('w-44')}${skChip('w-36')}</div>
+    ${skCard(`${skTable(['w-1/6', 'w-1/4', 'w-1/5', 'w-1/6', 'w-1/6'], 7)}${skPagination()}`)}`;
+}
+
+function skHistory() {
+    return `
+    ${skTitle('w-64')}
+    <div class="flex gap-3">${skChip('w-full')}${skChip('w-40')}${skChip('w-24')}</div>
+    ${skCard(`${skTable(['w-1/5', 'w-1/4', 'w-1/5', 'w-1/6'], 7)}${skPagination()}`)}`;
+}
+
+function skReports() {
+    return `
+    <div class="flex items-center justify-between">
+        ${skTitle('w-64')}
+        <div class="flex gap-3">${skChip('w-32')}${skChip('w-36')}</div>
+    </div>
+    ${skCard(`${skTable(['w-1/3', 'w-1/5', 'w-1/6', 'w-1/4'], 6)}${skPagination()}`)}`;
+}
+
+function skDefault() {
+    return `
+    ${skTitle('w-64')}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${skStat()}${skStat()}${skStat()}${skStat()}</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div class="lg:col-span-2">${skCard(skTable(['w-1/4', 'w-1/4', 'w-1/4'], 6), 'min-h-[16rem]')}</div>
+        ${skCard(`<div class="space-y-5">${skBar('w-32', 'h-4')}${skProgress()}${skProgress()}</div>`)}
+    </div>`;
+}
+
+// Matched from longest to shortest prefix so '/schedules/admin-calendar/'
+// never falls through to the responder calendar skeleton, etc.
+// The third entry mirrors each page's max-width wrapper so the skeleton
+// aligns exactly like the real content it stands in for.
+const SKELETON_ROUTES = [
+    ['/dashboard/admin', skAdminDashboard, 'max-w-6xl'],
+    ['/dashboard', skResponderDashboard, 'max-w-6xl'],
+    ['/forecast', skForecast, 'max-w-6xl'],
+    ['/heatmap', skHeatmap, 'max-w-6xl'],
+    ['/schedules/admin-calendar', skAdminCalendar, 'max-w-6xl'],
+    ['/schedules', skResponderCalendar, 'max-w-6xl'],
+    ['/accounts/manage', skAccountsManage, 'max-w-6xl'],
+    ['/accounts/profile', skProfile, 'max-w-4xl'],
+    ['/referrals/manage', skReferralsManage, 'max-w-6xl'],
+    ['/referrals', skReferralsDirectory, 'max-w-5xl'],
+    ['/callers/database', skCallersTable, 'max-w-6xl'],
+    ['/callers/call-setup', skCallSetup, 'max-w-6xl'],
+    ['/callers', skCallersList, 'max-w-6xl'],
+    ['/documentation/master', skMasterHistory, 'max-w-6xl'],
+    ['/documentation', skHistory, 'max-w-6xl'],
+    ['/reports', skReports, 'max-w-6xl'],
+];
+
+function pickSkeletonRoute(pathname) {
+    const path = pathname.endsWith('/') ? pathname : pathname + '/';
+    for (const route of SKELETON_ROUTES) {
+        const prefix = route[0].endsWith('/') ? route[0] : route[0] + '/';
+        if (path === prefix || path.startsWith(prefix)) return route;
+    }
+    return [null, skDefault, 'max-w-6xl'];
+}
+
+function showSkeletonOverlay(url) {
+    const container = document.getElementById('tab-content-container');
+    if (!container || document.getElementById('page-skeleton-overlay')) return;
+
+    let pathname = '/';
+    try {
+        pathname = new URL(url, window.location.href).pathname;
+    } catch (err) { /* keep default */ }
+
+    const [, builder, width] = pickSkeletonRoute(pathname);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'page-skeleton-overlay';
+    overlay.className = 'absolute inset-0 z-[1100] bg-bgLight overflow-y-auto custom-scrollbar';
+    overlay.innerHTML = `<div class="p-4 sm:p-8 ${width} mx-auto w-full space-y-6">${builder()}</div>`;
+    container.appendChild(overlay);
+}
+
+function hideSkeletonOverlay() {
+    document.getElementById('page-skeleton-overlay')?.remove();
+}
+
+function isSkeletonNavigation(event) {
+    const link = event.target.closest('a');
+    if (!link || event.defaultPrevented) return false;
+    // Only plain left-clicks navigate in this tab
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    const href = link.getAttribute('href');
+    if (!href || href === '#') return false;
+    if (/logout/i.test(href)) return false;
+    if (link.hasAttribute('download')) return false;
+    if (link.target && link.target !== '_self') return false;
+    try {
+        const url = new URL(href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        // Same-page hash link: the browser scrolls, nothing is loading
+        if (url.pathname === window.location.pathname &&
+            url.search === window.location.search &&
+            url.hash) return false;
+    } catch (err) {
+        return false;
+    }
+    return true;
+}
+
+// Capture phase so the skeleton shows even if other handlers stop propagation.
+document.addEventListener('click', (event) => {
+    if (isSkeletonNavigation(event)) showSkeletonOverlay(event.target.closest('a').getAttribute('href'));
+}, true);
+
+// Coming back via the back/forward cache restores the old page: drop any
+// leftover skeleton so the restored content is visible.
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) hideSkeletonOverlay();
+});
+
+
+// =====================================================================
+// --- Recording-safe navigation (keeps an active call alive) ---
+//
+// A normal navigation is a full page load, which tears down recorder.js and
+// stops the active call. While a recording is in progress, internal links are
+// fetched and swapped into #tab-content-container instead, so the recorder
+// (and its MediaRecorder) keeps running across sections.
+// =====================================================================
+
+let ajaxNavigating = false;
+
+// True while a call is recording, and also while a finished recording is
+// still held in memory (so it can be reviewed/saved after stopping on another
+// page). Full reloads would discard both, so those navigations are swapped.
+function shouldPreserveCallState() {
+    if (!window.CallRecorder) return false;
+    if (typeof CallRecorder.isRecording === 'function' && CallRecorder.isRecording()) return true;
+    return typeof CallRecorder.getLatestBlob === 'function' && !!CallRecorder.getLatestBlob();
+}
+
+function isAjaxNavigable(event) {
+    const link = event.target.closest('a');
+    if (!link || event.defaultPrevented) return false;
+    // Only plain left-clicks navigate in this tab
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    const href = link.getAttribute('href');
+    if (!href || href === '#') return false;
+    if (link.hasAttribute('download')) return false;
+    if (link.target && link.target !== '_self') return false;
+    if (/logout/i.test(href)) return false;
+    try {
+        const url = new URL(href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        // Same-page hash link: the browser scrolls, nothing is loading
+        if (url.pathname === window.location.pathname &&
+            url.search === window.location.search &&
+            url.hash) return false;
+    } catch (err) {
+        return false;
+    }
+    return true;
+}
+
+function syncNavActive(pathname) {
+    document.querySelectorAll('#main-sidebar .nav-btn').forEach(link => {
+        let active = false;
+        try {
+            active = new URL(link.getAttribute('href'), window.location.href).pathname === pathname;
+        } catch (err) {
+            // Leave the link in its inactive state
+        }
+        link.classList.toggle('text-brand', active);
+        link.classList.toggle('text-gray-400', !active);
+        link.classList.toggle('hover:text-brand', !active);
+        const icon = link.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('ph-fill', active);
+            icon.classList.toggle('ph', !active);
+        }
+    });
+}
+
+// Injected content has inert scripts; re-create each one so it runs, in order.
+function runSwappedScripts(root) {
+    const scripts = Array.from(root.querySelectorAll('script'));
+    const originalAddEventListener = document.addEventListener;
+    const domReady = document.readyState !== 'loading';
+
+    // Scripts that wait for DOMContentLoaded would never run after a swap,
+    // because the document has already finished loading. Run them right away.
+    if (domReady) {
+        document.addEventListener = function (type, fn, options) {
+            if (type === 'DOMContentLoaded' && typeof fn === 'function') {
+                setTimeout(() => {
+                    try { fn.call(document, new Event('DOMContentLoaded')); }
+                    catch (err) { console.error(err); }
+                }, 0);
+                return;
+            }
+            return originalAddEventListener.call(this, type, fn, options);
+        };
+    }
+
+    let queue = Promise.resolve();
+    scripts.forEach(oldScript => {
+        // JSON data blocks and other non-JS scripts stay in place untouched.
+        const type = oldScript.getAttribute('type');
+        if (type && type !== 'text/javascript' && type !== 'module') return;
+
+        const src = oldScript.getAttribute('src');
+        queue = queue.then(() => {
+            if (src) {
+                const absolute = new URL(src, window.location.href).href;
+                // Ignore the inert copies inside the swapped container; only a
+                // script that was actually injected/loaded counts.
+                const alreadyLoaded = Array.from(document.querySelectorAll('script[src]'))
+                    .some(existing => existing.src === absolute && !root.contains(existing));
+                if (alreadyLoaded) return;
+                const fresh = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => fresh.setAttribute(attr.name, attr.value));
+                return new Promise(resolve => {
+                    fresh.onload = resolve;
+                    fresh.onerror = resolve;
+                    document.head.appendChild(fresh);
+                });
+            }
+            const fresh = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => fresh.setAttribute(attr.name, attr.value));
+            fresh.textContent = oldScript.textContent;
+            oldScript.replaceWith(fresh);
+        });
+    });
+
+    return queue.finally(() => {
+        document.addEventListener = originalAddEventListener;
+    });
+}
+
+async function ajaxNavigate(url, options) {
+    if (!shouldPreserveCallState() || ajaxNavigating) return false;
+    ajaxNavigating = true;
+    showSkeletonOverlay(url);
+    try {
+        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!response.ok) throw new Error('Request failed with status ' + response.status);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const next = doc.getElementById('tab-content-container');
+        if (!next) throw new Error('Destination page has no tab content container');
+
+        // Let the current page release timers/loops before it is detached.
+        if (typeof window.beforePageSwap === 'function') {
+            try { window.beforePageSwap(); } catch (err) { console.error(err); }
+        }
+        window.beforePageSwap = null;
+        window.afterContentSwap = null;
+
+        const container = document.getElementById('tab-content-container');
+        if (!container) throw new Error('Tab content container is missing');
+        container.innerHTML = next.innerHTML;
+        container.scrollTop = 0;
+
+        await runSwappedScripts(container);
+
+        if (doc.title) document.title = doc.title;
+        syncNavActive(new URL(url, window.location.href).pathname);
+
+        if (!options || options.updateHistory !== false) {
+            window.history.pushState({ sentiAjax: true }, '', url);
+        }
+        return true;
+    } catch (err) {
+        console.error('Recording-safe navigation failed:', err);
+        window.location.href = url;
+        return false;
+    } finally {
+        ajaxNavigating = false;
+        hideSkeletonOverlay();
+    }
+}
+
+document.addEventListener('click', (event) => {
+    if (!shouldPreserveCallState() || !isAjaxNavigable(event)) return;
+    const href = event.target.closest('a').getAttribute('href');
+    event.preventDefault();
+    ajaxNavigate(href);
+});
+
+// Back/forward while a call is held must swap content instead of reloading.
+window.addEventListener('popstate', () => {
+    if (!shouldPreserveCallState() || ajaxNavigating) return;
+    ajaxNavigate(window.location.href, { updateHistory: false });
+});
+
+// Shared navigation helper for script-driven redirects (e.g. notification
+// items) so they keep an active call alive instead of doing a full reload.
+window.sentiNavigate = function (url) {
+    if (shouldPreserveCallState()) {
+        ajaxNavigate(url);
+    } else {
+        window.location.href = url;
+    }
+};
+
+// Shared refresh helper: pages that used to call location.reload() can call
+// this so refreshing does not discard an in-progress/unsaved call.
+window.sentiRefresh = function () {
+    if (shouldPreserveCallState()) {
+        ajaxNavigate(window.location.href, { updateHistory: false });
+    } else {
+        window.location.reload();
+    }
+};
+
+// A full reload or tab close would discard the call; ask before leaving.
+window.addEventListener('beforeunload', (event) => {
+    if (window.CallRecorder
+        && typeof CallRecorder.isRecording === 'function'
+        && CallRecorder.isRecording()) {
+        event.preventDefault();
+        event.returnValue = '';
+    }
+});
+
+
 function populateLoginRole() {
     const roleSelect = document.getElementById('login-role');
     if (roleSelect) {
@@ -701,10 +1279,9 @@ function initCharts() {
 // it and redirects back to the Call Volume Forecast page with the result.
 // This handler only adds the loading state.
 //
-// The listeners are delegated on `document` on purpose: the app's sidebar
-// navigation swaps the page body with innerHTML, so a listener bound to the
-// form element itself would be lost the moment the user navigates to the
-// page through the sidebar.
+// The listeners are delegated on `document` on purpose: a listener bound to
+// the form element itself would be lost if the page content is ever swapped
+// out dynamically, and delegation keeps working in that case.
 // =====================================================================
 
 let forecastGenerationBound = false;
@@ -1067,74 +1644,4 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
     }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Target all sidebar navigation links (nav items + the Start Call button)
-    const navLinks = document.querySelectorAll('.nav-btn, .call-btn');
-    const contentContainer = document.getElementById('tab-content-container');
-
-    if (!contentContainer) return;
-
-    navLinks.forEach(link => {
-        link.addEventListener('click', async (e) => {
-            const url = link.getAttribute('href');
-            
-            // Do not intercept logout, external links, or empty links
-            if (!url || url === '#' || url.includes('logout')) return;
-
-            e.preventDefault(); // Stop the browser from refreshing
-
-            try {
-                // Allow the current page to clean up before being swapped out
-                if (typeof window.beforePageSwap === 'function') {
-                    try { window.beforePageSwap(); } catch (err) { console.error(err); }
-                }
-
-                // Fetch the new page in the background
-                const response = await fetch(url);
-                const html = await response.text();
-                
-                // Parse the downloaded HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Extract just the dynamic center content
-                const newContent = doc.getElementById('tab-content-container');
-                
-                if (newContent) {
-                    // Swap the content
-                    contentContainer.innerHTML = newContent.innerHTML;
-
-                    // inline <script> blocks do NOT run when inserted via
-                    // innerHTML, so re-execute them manually
-                    contentContainer.querySelectorAll('script').forEach(oldScript => {
-                        const fresh = document.createElement('script');
-                        fresh.textContent = oldScript.textContent;
-                        oldScript.getAttributeNames().forEach(name => {
-                            const val = oldScript.getAttribute(name);
-                            if (val !== null) fresh.setAttribute(name, val);
-                        });
-                        oldScript.replaceWith(fresh);
-                    });
-
-                    // Update the browser's URL bar silently
-                    window.history.pushState({}, '', url);
-                    
-                    // Re-initialize scripts specific to the new page (like charts)
-                    if (typeof window.afterContentSwap === 'function') {
-                        try { window.afterContentSwap(); } catch (err) { console.error(err); }
-                    }
-                    if (typeof initCharts === 'function') initCharts();
-                    if (typeof initForecastGeneration === 'function') initForecastGeneration();
-                } else {
-                    // Fallback if the layout is different
-                    window.location.href = url; 
-                }
-            } catch (err) {
-                console.error("AJAX navigation failed:", err);
-                window.location.href = url; // Fallback to normal navigation on error
-            }
-        });
-    });
 });

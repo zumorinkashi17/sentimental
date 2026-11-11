@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sentimental - Helpline Manager</title>
+    <link rel="icon" type="image/png" href="{% static 'images/Sentimental-logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/Sentimental-logo.png' %}">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,7 +47,7 @@
     <script src="{% static 'js/recorder.js' %}?v=1"></script>
 
     <!-- Global CSS -->
-    <link rel="stylesheet" href="{% static 'css/global.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/global.css' %}?v=4">
 </head>
 <body class="bg-bgLight text-slate-800 min-h-screen overflow-x-hidden lg:overflow-hidden relative">
 
@@ -55,7 +57,7 @@
         <div id="sidebar-backdrop" onclick="closeSidebar()" class="fixed inset-0 z-30 hidden bg-slate-900/40 md:hidden"></div>
 
         <!-- SIDEBAR -->
-        <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-100 flex flex-col items-center py-6 shadow-[2px_0_8px_rgba(0,0,0,0.02)] flex-shrink-0 overflow-y-auto custom-scrollbar transition-all duration-300 -translate-x-full md:translate-x-0 md:w-20" aria-label="Main navigation">
+        <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-[1200] w-64 bg-white border-r border-gray-100 flex flex-col items-center py-6 shadow-[2px_0_8px_rgba(0,0,0,0.02)] flex-shrink-0 overflow-y-auto custom-scrollbar transition-all duration-300 -translate-x-full md:translate-x-0 md:w-20" aria-label="Main navigation">
             
             <div class="sidebar-logo-container mb-8 flex items-center gap-3 px-4 w-full overflow-hidden">
                 <img src="{% static 'images/Sentimental-logo.png' %}" alt="SentiMental" class="w-9 h-9 object-contain flex-shrink-0">
@@ -229,6 +231,7 @@
                 <div class="lg:flex-1 lg:h-full min-h-0 overflow-hidden lg:overflow-auto relative min-w-0" id="tab-content-container">
                     {% block content %}
                     {% endblock %}
+                    {% block extra_js %}{% endblock %}
                 </div> 
 
                 <!-- Include Persistent Panel Component (For Documentation App Integration) -->
@@ -240,7 +243,7 @@
     {% include 'partials/modals.html' %}
 
     <!-- Script assets -->
-    <script src="{% static 'js/main.js' %}?v=20"></script>
+    <script src="{% static 'js/main.js' %}?v=27"></script>
     <!-- DJANGO MESSAGES HIDDEN DATA -->
     {% if messages %}
         <div id="django-messages" class="hidden">
@@ -341,7 +344,7 @@
             if (isAdmin) {
                 list.innerHTML = items.map(n => `
                     <div class="px-4 py-3 hover:bg-gray-50 transition-colors">
-                        <div class="flex items-start gap-2 cursor-pointer" onclick="window.location.href='{% url "schedules:admin_calendar" %}'">
+                        <div class="flex items-start gap-2 cursor-pointer" onclick="window.sentiNavigate ? window.sentiNavigate('{% url "schedules:admin_calendar" %}') : (window.location.href='{% url "schedules:admin_calendar" %}')">
                             <div class="w-7 h-7 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <i class="ph ph-calendar-check text-brand text-sm"></i>
                             </div>
@@ -363,7 +366,7 @@
                     const statusClass = approved ? 'text-green-600 font-bold' : 'text-red-600 font-bold';
                     const bgClass = approved ? 'bg-green-50' : 'bg-red-50';
                     return `
-                        <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{% url "schedules:calendar" %}'">
+                        <div class="px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.sentiNavigate ? window.sentiNavigate('{% url "schedules:calendar" %}') : (window.location.href='{% url "schedules:calendar" %}')">
                             <div class="flex items-start gap-2">
                                 <div class="w-7 h-7 rounded-full ${bgClass} flex items-center justify-center flex-shrink-0 mt-0.5">
                                     <i class="ph ${iconClass} text-sm"></i>
@@ -420,6 +423,5 @@
         }
     })();
     </script>
-    {% block extra_js %}{% endblock %}
 </body>
 </html>
