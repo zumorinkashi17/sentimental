@@ -151,85 +151,82 @@
     </div>
 
 <!-- Edit Responder Modal (status & role only) -->
-<div id="modal-add-edit-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-md shadow-2xl">
-    <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10 rounded-t-2xl">
-        <h3 id="modal-title" class="font-bold text-gray-800 text-lg">User Settings</h3>
-        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition-colors" aria-label="Close">
+<div id="modal-add-edit-responder" class="modal-content hidden bg-white rounded-xl w-full max-w-md border border-gray-200 shadow-lg">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-start gap-4">
+        <div class="min-w-0">
+            <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Account settings</p>
+            <h3 id="modal-title" class="mt-1 font-semibold text-gray-900 text-lg tracking-tight">User Settings</h3>
+        </div>
+        <button type="button" onclick="closeModal()" class="-mr-1 p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors" aria-label="Close">
             <i class="ph-bold ph-x text-xl"></i>
         </button>
     </div>
-    <div class="p-6">
-        <form id="responder-form" class="space-y-6">
+    <div class="px-6 py-6">
+        <form id="responder-form" class="space-y-7">
             {% csrf_token %}
             <input type="hidden" id="profile_id" name="profile_id" value="">
             <input type="hidden" id="user_status" name="user_status" value="Active">
             <input type="hidden" id="user_role" name="user_role" value="Responder">
             
-            <!-- Status Selection (Selectable Cards) -->
+            <!-- Status Selection -->
             <div>
-                <p class="form-label mb-3 text-gray-600">Account Status</p>
+                <div class="mb-3 flex items-baseline justify-between gap-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">Account status</p>
+                    <span class="text-[11px] text-gray-400">Sign-in access</span>
+                </div>
                 <div class="space-y-2">
-                    <button type="button" data-toggle="user_status" data-value="Active"
-                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-green-500 bg-green-50 text-green-700 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                            <i class="ph-bold ph-power text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold">Activate Account</p>
-                            <p class="text-xs text-green-600/80">User can log in and access the system.</p>
-                        </div>
-                        <i class="ph-bold ph-check-circle-fill text-xl text-green-500"></i>
+                    <button type="button" data-toggle="user_status" data-value="Active" aria-pressed="true"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-brand bg-brand-light/50">
+                        <span class="h-2 w-2 flex-shrink-0 rounded-full bg-brand"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Active</span>
+                            <span class="block text-xs text-gray-500">User can log in and access the system.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0" aria-hidden="true"></i>
                     </button>
                     
-                    <button type="button" data-toggle="user_status" data-value="Inactive"
-                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-gray-200 bg-white text-gray-500 hover:border-gray-300">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                            <i class="ph-bold ph-power-off text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold">Deactivate Account</p>
-                            <p class="text-xs text-gray-400">User will be locked out and cannot log in.</p>
-                        </div>
-                        <i class="ph-bold ph-check-circle-fill text-xl text-gray-300 hidden"></i>
+                    <button type="button" data-toggle="user_status" data-value="Inactive" aria-pressed="false"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
+                        <span class="h-2 w-2 flex-shrink-0 rounded-full bg-gray-300"></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Inactive</span>
+                            <span class="block text-xs text-gray-500">User will be locked out and cannot log in.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0 hidden" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
             
-            <div class="border-t border-gray-100 pt-6"></div>
-            
-            <!-- Role Selection (Selectable Cards) -->
+            <!-- Role Selection -->
             <div>
-                <p class="form-label mb-3 text-gray-600">System Role</p>
+                <div class="mb-3 flex items-baseline justify-between gap-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">System role</p>
+                    <span class="text-[11px] text-gray-400">Permissions</span>
+                </div>
                 <div class="space-y-2">
-                    <button type="button" data-toggle="user_role" data-value="Responder"
-                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-brand bg-brand-light text-brand-dark shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-                            <i class="ph-bold ph-headset text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold">Responder</p>
-                            <p class="text-xs text-brand/80">Handles incoming calls and documentation.</p>
-                        </div>
-                        <i class="ph-bold ph-check-circle-fill text-xl text-brand"></i>
+                    <button type="button" data-toggle="user_role" data-value="Responder" aria-pressed="true"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-brand bg-brand-light/50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Responder</span>
+                            <span class="block text-xs text-gray-500">Handles incoming calls and documentation.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0" aria-hidden="true"></i>
                     </button>
                     
                     <!-- data-value is 'Admin' so it saves correctly to DB -->
-                    <button type="button" data-toggle="user_role" data-value="Admin"
-                        class="toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left border-gray-200 bg-white text-gray-500 hover:border-gray-300">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                            <i class="ph-bold ph-shield-star text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold">Helpline Manager</p>
-                            <p class="text-xs text-gray-400">Full access to reports, users, and settings.</p>
-                        </div>
-                        <i class="ph-bold ph-check-circle-fill text-xl text-gray-300 hidden"></i>
+                    <button type="button" data-toggle="user_role" data-value="Admin" aria-pressed="false"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Helpline Manager</span>
+                            <span class="block text-xs text-gray-500">Full access to reports, users, and settings.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0 hidden" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
             
-            <button id="submit-btn" type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-xl hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 shadow-md mt-2">
-                <i class="ph-bold ph-floppy-disk"></i> Save Changes
+            <button id="submit-btn" type="submit" class="w-full bg-brand text-white text-sm font-semibold py-2.5 rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                <i class="ph-bold ph-check text-base" aria-hidden="true"></i> Save Changes
             </button>
         </form>
     </div>

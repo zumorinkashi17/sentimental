@@ -114,6 +114,19 @@ _NON_NAMES = {
     "please",
     "palihug",
     "salamat",
+    "pasensya",
+    "pasensya na",
+    "ganina",
+    "friend",
+    "amigo",
+    "amiga",
+    "migo",
+    "higala",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "twitter",
+    "messenger",
     "unsa",
     "ngano",
     "pwede",
@@ -735,7 +748,14 @@ _ANONYMITY_REQUEST = re.compile(
     r"dili ko gusto mohatag sa akong (?:pangalan|ngalan)|"
     r"ayaw lang ko pangayoi og (?:name|pangalan|ngalan)|"
     r"dili ko gusto mohatag sa akong (?:pangalan|ngalan)|"
-    r"di ko gusto mohatag sa akong (?:pangalan|ngalan))\b",
+    r"di ko gusto mohatag sa akong (?:pangalan|ngalan)|"
+    r"wag na ang (?:pangalan|ngalan)|"
+    r"ayaw na lang (?:ang|nang) (?:pangalan|ngalan)|"
+    r"ayaw lang (?:ang|nang) (?:pangalan|ngalan)|"
+    r"di lang ko musulti sa akong (?:name|pangalan|ngalan)|"
+    r"dili lang ko musulti sa akong (?:name|pangalan|ngalan)|"
+    r"di ko musulti sa akong (?:name|pangalan|ngalan)|"
+    r"dili ko musulti sa akong (?:name|pangalan|ngalan))\b",
     re.IGNORECASE,
 )
 

@@ -23,6 +23,14 @@ _SUICIDE_DENIAL = re.compile(
     r"|wala(?: sad)?(?: man)?(?:\s+(?:hinuon|gyud|jud|kaayo|lang))?"
     r"(?: ko| koy| akoy)? naghunahuna(?: nga| og| sa)? "
     r"(?:magpakamatay|mamatay|hikog|pasakitan ang akong kaugalingon)"
+    r"|(?:nahadlok|hadlok|mahadlok|kahadlok|scared|afraid)"
+    r"(?:\s+(?:kaayo|gyud|jud|man|lang))?"
+    r"(?:\s+(?:ko|siya|mi|kami))?"
+    r"(?:\s+(?:nga|na))?\s+"
+    r"(?:mo[\s-]?suicide|magpakamatay|mamatay|hikog|"
+    r"pasakitan ang akong kaugalingon)"
+    r"|pasakitan(?:\s+ang)?\s+akong kaugalingon,?\s+"
+    r"(?:wala|wa)(?:\s+(?:man|jud|gyud|ko|koy|nako))?"
     r")\b",
     re.IGNORECASE,
 )
@@ -197,7 +205,27 @@ _REASON_RULES = (
     ),
     (
         "Financial Problem",
-        ("financial", "kwarta", "pobre", "ikabayad", "budget", "utang", "money"),
+        (
+            "financial",
+            "kwarta",
+            "pobre",
+            "ikabayad",
+            "budget",
+            "utang",
+            "money",
+            "negosyo",
+            "business",
+            "savings",
+            "na-close",
+            "nag-close",
+            "ni-close",
+            "bankrupt",
+            "na-bankrupt",
+            "zero na",
+            "napildi",
+            "gibuhos nako tanan",
+            "gipusta nako tanan",
+        ),
     ),
     ("Work/Employment Problem", ("trabaho", "work", "employment", "boss", "overtime")),
     ("Marital Problem", ("asawa", "bana", "marital", "kaminyoon")),
@@ -362,8 +390,6 @@ _REASON_RULES = (
             "mingaw",
             "lonely",
             "alone",
-            "nag-inusara",
-            "mag-inusara",
             "sadness",
             "empty nest",
             "wala nay purpose",
@@ -556,6 +582,45 @@ _SYMPTOM_RULES = (
             "kamot nagkurog",
             "shaky hands",
             "trembling hands",
+        ),
+    ),
+    (
+        "racing thoughts",
+        (
+            "galumba-lumba akong huna-huna",
+            "galumba lumba akong huna huna",
+            "galumba-lumba ang akong huna-huna",
+            "paspas akong huna-huna",
+            "paspas ang akong huna-huna",
+            "racing thoughts",
+            "saba kaayo akong utok",
+            "akong utok saba kaayo",
+            "daghan kaayo kog huna-huna",
+        ),
+    ),
+    (
+        "compulsive handwashing",
+        (
+            "panghugas sa akong kamot",
+            "panghugas sa kamot",
+            "sige kog panghugas",
+            "sige ko panghugas",
+            "nanghugas sa kamot",
+            "compulsion",
+            "compulsions",
+            "nag-dugo akong kamot",
+            "nagdugo akong kamot",
+        ),
+    ),
+    (
+        "sakit ang kamot",
+        (
+            "sakit akong kamot",
+            "sakit akong mga kamot",
+            "sakit kaayo akong kamot",
+            "sakit kaayo akong mga kamot",
+            "sakit ang kamot",
+            "sakit ang mga kamot",
         ),
     ),
     (
@@ -796,6 +861,17 @@ _SYMPTOM_RULES = (
         ("kapoy na kaayo mabuhi", "kapoy mabuhi", "kapoy na ko mabuhi"),
     ),
     (
+        "gusto lang nga mawala",
+        (
+            "mawala lang ko",
+            "mawala lang ko kadali",
+            "mawala ko kadali",
+            "gusto lang ko mawala",
+            "gusto lang nako mawala",
+            "gusto ko mawala",
+        ),
+    ),
+    (
         "naglaom nga dili na momata",
         (
             "di na momata",
@@ -1002,6 +1078,17 @@ _SYMPTOM_RULES = (
             "garasan akong kaugalingon",
             "garasan nako akong kaugalingon",
             "garas akong kaugalingon",
+            "garasan akong bukton",
+            "garasan nako akong bukton",
+            "garasan ang bukton",
+            "garas akong bukton",
+            "nagkuha kog blade",
+            "nakakuha kog blade",
+            "nagkuha ko og blade",
+            "nagkuha kog kutsilyo",
+            "nakakuha kog kutsilyo",
+            "blade",
+            "kutsilyo",
         ),
     ),
     (
@@ -1048,6 +1135,7 @@ _SYMPTOM_PRIORITY = {
     "adunay mga hunahuna sa pagpasakit sa kaugalingon": 0,
     "wala na siyay paglaom": 0,
     "naglaom nga dili na momata": 0,
+    "gusto lang nga mawala": 1,
     "mobuto ang dughan": 1,
     "grabeng kasuko": 1,
     "gusto manumbag": 1,
@@ -1070,6 +1158,9 @@ _SYMPTOM_PRIORITY = {
     "empty ang pamati": 2,
     "nagkurog ang lawas": 2,
     "nagkurog ang kamot": 2,
+    "racing thoughts": 1,
+    "compulsive handwashing": 1,
+    "sakit ang kamot": 3,
     "nanghagdaw ang kamot": 3,
     "nagkurog ang tuhod": 3,
     "paghuot sa totonlan": 3,
@@ -1244,7 +1335,9 @@ def _reason_phrase(
     if not inferred and summary_text:
         inferred = _first_match(summary_text, _REASON_RULES)
     normalized = _normalize(caller_text)
-    if _BIPOLAR_PATTERN.search(normalized):
+    if _BIPOLAR_PATTERN.search(normalized) or re.search(
+        r"\b(?:bipolar|ocd)\b", normalized
+    ):
         inferred = "Bipolar and OCD"
     if inferred in {
         "Work/Employment Problem",
@@ -1381,6 +1474,9 @@ _EN_SYMPTOM_TRANSLATIONS = {
     "nagsuka": "vomiting",
     "nagkurog ang lawas": "body trembling",
     "nagkurog ang kamot": "hand trembling",
+    "racing thoughts": "racing thoughts",
+    "compulsive handwashing": "compulsive handwashing",
+    "sakit ang kamot": "hand pain",
     "nanghagdaw ang kamot": "hand tremor",
     "nagkurog ang tuhod": "knee trembling",
     "paghuot sa totonlan": "throat tightness",
@@ -1403,6 +1499,7 @@ _EN_SYMPTOM_TRANSLATIONS = {
     "nawala ang purpose": "loss of purpose",
     "gikapoy mabuhi": "tired of living",
     "naglaom nga dili na momata": "hoping not to wake up",
+    "gusto lang nga mawala": "wishing to disappear",
     "nakasinati og kamingaw": "loneliness",
     "nag-inusara": "feeling alone",
     "gilabad ang ulo": "headache",

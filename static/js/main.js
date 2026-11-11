@@ -1434,23 +1434,24 @@ function setToggle(group, value) {
         const active = btn.dataset.value === value;
         const checkIcon = btn.querySelector('.ph-check-circle-fill');
 
-        const baseClass = "toggle-card w-full flex items-center gap-3 p-3 border-2 rounded-xl transition-all text-left";
+        const baseClass = "toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg transition-colors text-left";
         
         if (active) {
             if (group === 'user_status') {
                 if (value === 'Active') {
-                    btn.className = `${baseClass} border-green-500 bg-green-50 text-green-700 shadow-sm`;
+                    btn.className = `${baseClass} border-brand bg-brand-light/50`;
                 } else {
-                    btn.className = `${baseClass} border-red-400 bg-red-50 text-red-600 shadow-sm`;
+                    btn.className = `${baseClass} border-gray-300 bg-gray-50`;
                 }
             } else {
-                btn.className = `${baseClass} border-brand bg-brand-light text-brand-dark shadow-sm`;
+                btn.className = `${baseClass} border-brand bg-brand-light/50`;
             }
             if (checkIcon) checkIcon.classList.remove('hidden');
         } else {
-            btn.className = `${baseClass} border-gray-200 bg-white text-gray-500 hover:border-gray-300`;
+            btn.className = `${baseClass} border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50`;
             if (checkIcon) checkIcon.classList.add('hidden');
         }
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     document.getElementById(group).value = value;
 }

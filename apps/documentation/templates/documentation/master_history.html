@@ -90,6 +90,8 @@
                                     data-risk="{{ session.session_risk_assessment }}"
                                     data-reason="{{ session.session_reason_for_calling|default:'No reason provided.' }}"
                                     data-intervention="{{ session.session_intervention|default:'No intervention notes provided.' }}"
+        data-summarization="{{ session.session_summarization|default:'No summarization available.' }}"
+        data-additional-comments="{{ session.session_additional_comments|default:'No additional comments provided.' }}"
                                     class="text-brand hover:text-brand-dark font-bold text-xs bg-brand-light px-4 py-1.5 rounded-lg transition-colors border border-brand/20">
                                     <i class="ph-bold ph-file-text"></i> View Docs
                                 </button>
@@ -147,6 +149,14 @@
             <div>
                 <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Intervention & Notes</span>
                 <p id="modal-intervention" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Session Summarization</span>
+                <p id="modal-summarization" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
+            </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Additional Comments</span>
+                <p id="modal-additional-comments" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
             </div>
             
             <!-- Referral provided -->
@@ -275,6 +285,8 @@
         const risk = buttonElement.getAttribute('data-risk');
         const reason = buttonElement.getAttribute('data-reason');
         const intervention = buttonElement.getAttribute('data-intervention');
+        const summarization = buttonElement.getAttribute('data-summarization');
+        const additionalComments = buttonElement.getAttribute('data-additional-comments');
 
         // 2. Inject text data into modal
         document.getElementById('modal-session-id').textContent = 'Session Document: ' + sessionId;
@@ -283,6 +295,8 @@
         document.getElementById('modal-caller').textContent = caller;
         document.getElementById('modal-reason').textContent = reason;
         document.getElementById('modal-intervention').textContent = intervention;
+        document.getElementById('modal-summarization').textContent = summarization;
+        document.getElementById('modal-additional-comments').textContent = additionalComments;
 
         // 2b. Render the session's call_transcript records as chat bubbles.
         const transcriptContainer = document.getElementById('modal-transcript');
