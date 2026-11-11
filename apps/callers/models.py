@@ -16,7 +16,7 @@ class Caller(models.Model):
     caller_name = models.CharField(max_length=255, default="Anonymous")
     caller_gender = models.CharField(max_length=50, blank=True, null=True)
     caller_civil_status = models.CharField(max_length=50, blank=True, null=True)
-    caller_number = models.IntegerField(blank=True, null=True)
+    caller_number = models.CharField(max_length=50, blank=True, null=True)
     caller_age = models.IntegerField(blank=True, null=True)
     caller_location = models.CharField(max_length=255, blank=True, null=True)
 

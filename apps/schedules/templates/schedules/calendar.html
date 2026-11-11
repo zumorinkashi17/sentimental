@@ -91,9 +91,15 @@
         </div>
         
         <div class="p-6 space-y-4 flex-1">
-            <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1" for="requestDate">Date Requested</label>
-                <input type="date" id="requestDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestStartDate">Start Date</label>
+                    <input type="date" id="requestStartDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1" for="requestEndDate">End Date</label>
+                    <input type="date" id="requestEndDate" class="form-input w-full bg-white text-sm border-gray-200 py-2 rounded-lg cursor-pointer" required>
+                </div>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-600 mb-1" for="requestReason">Reason</label>
@@ -205,14 +211,20 @@
         return cookieValue;
     }
 
-    async function submitDayOffRequest() {
+   async function submitDayOffRequest() {
         const btn = document.getElementById('submit-request-btn');
-        const reqDate = document.getElementById('requestDate').value;
+        const reqStartDate = document.getElementById('requestStartDate').value;
+        const reqEndDate = document.getElementById('requestEndDate').value;
         const reqReason = document.getElementById('requestReason').value;
         const reqNotes = document.getElementById('requestNotes').value;
 
-        if (!reqDate || !reqReason) {
-            alert('Please select a date and reason.');
+        if (!reqStartDate || !reqEndDate || !reqReason) {
+            alert('Please select a start date, end date, and reason.');
+            return;
+        }
+
+        if (new Date(reqStartDate) > new Date(reqEndDate)) {
+            alert('Start date cannot be after end date.');
             return;
         }
 
@@ -226,7 +238,12 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ date: reqDate, reason: reqReason, notes: reqNotes })
+                body: JSON.stringify({ 
+                    start_date: reqStartDate, 
+                    end_date: reqEndDate, 
+                    reason: reqReason, 
+                    notes: reqNotes 
+                })
             });
 
             const result = await response.json();

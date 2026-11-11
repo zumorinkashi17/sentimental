@@ -242,11 +242,17 @@ def _professional_search_payload(professional):
     """Build the lightweight JSON row used by the panel's referral picker."""
     institution = professional.institution
     affiliations = [
-        affiliation.institution
+        affiliation
         for affiliation in professional.affiliation_set.all()
         if affiliation.institution_id
     ]
-    display_institution = institution or (affiliations[0] if affiliations else None)
+    display_affiliation = next(
+        (a for a in affiliations if a.institution_id == professional.institution_id),
+        affiliations[0] if affiliations else None,
+    )
+    display_institution = institution or (
+        display_affiliation.institution if display_affiliation else None
+    )
     institution_name = (
         display_institution.institution_name if display_institution else ''
     )
@@ -280,6 +286,9 @@ def _professional_search_payload(professional):
 
     return {
         'id': professional.professional_id,
+        'affiliation_id': (
+            display_affiliation.affiliation_id if display_affiliation else ''
+        ),
         'name': professional.professional_name,
         'specialization': professional.professional_specialization,
         'gender': professional.professional_gender or '',

@@ -276,8 +276,6 @@ def save_schedule(request):
             shift_date__range=[start_date, end_date]
         )
 
-        # Check for ACTUAL conflicts. We exclude 'Leave' because we want to allow generating 
-        # schedules around already-approved leaves.
         actual_conflicts = existing_schedules.exclude(schedule_status='Leave')
 
         if actual_conflicts.exists():
@@ -286,31 +284,36 @@ def save_schedule(request):
                 'message': 'This responder already has scheduled shifts or days off within this date range.'
             }, status=400)
 
-        # 3Get a fast lookup set of the dates that are already saved in the database (e.g., the Leave days)
         existing_dates = set(existing_schedules.values_list('shift_date', flat=True))
+
+        # NEW: Fetch approved leave dates from DayOffRequest for this user
+        approved_leaves = DayOffRequest.objects.filter(
+            user=responder,
+            requested_date__range=[start_date, end_date],
+            requested_status=DayOffRequest.StatusChoices.APPROVED
+        ).values_list('requested_date', flat=True)
+        
+        approved_leave_dates = set(approved_leaves)
 
         schedules_to_create = []
         delta = timedelta(days=1)
         current_date = start_date
 
-        # Loop through the dates and prepare them for bulk creation
         while current_date <= end_date:
-            
-            # IF THIS DATE ALREADY EXISTS IN THE DB (Like an approved leave), SKIP IT!
             if current_date in existing_dates:
                 current_date += delta
                 continue
 
-            # Get the string name of the day (e.g., 'monday', 'tuesday')
             day_name = current_date.strftime("%A").lower()
             
-            # Determine the status for this specific date
-            if day_name in day_offs:
+            # NEW: Check if the current date is an approved leave first
+            if current_date in approved_leave_dates:
+                status = 'Leave'
+            elif day_name in day_offs:
                 status = 'Day Off'
             else:
                 status = 'Scheduled'
             
-            # Append the instance to our list (not hitting the DB yet)
             schedules_to_create.append(
                 ShiftSchedule(
                     user=responder,
@@ -319,18 +322,15 @@ def save_schedule(request):
                     schedule_status=status
                 )
             )
-            
-            # Move to the next day
             current_date += delta
 
-        # 5. Bulk insert all new days at once for database efficiency
         ShiftSchedule.objects.bulk_create(schedules_to_create)
         
         return JsonResponse({'status': 'success', 'message': 'Shift schedule generated successfully!'})
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
+    
 def responder_schedule_view(request):
     # Determine current user
     if hasattr(request, 'user') and request.user.is_authenticated:
@@ -412,6 +412,7 @@ def submit_dayoff_request(request):
     try:
         data = json.loads(request.body)
         
+        # 1. Check Authentication
         if hasattr(request, 'user') and request.user.is_authenticated:
             current_user = request.user
         else:
@@ -426,19 +427,48 @@ def submit_dayoff_request(request):
         if not current_user:
             return JsonResponse({'status': 'error', 'message': 'User not authenticated.'}, status=401)
 
-        DayOffRequest.objects.create(
-            user=current_user,
-            requested_date=data.get('date'),
-            requested_reason=data.get('reason'),
-            requested_additional_notes=data.get('notes', ''),
-            requested_status=DayOffRequest.StatusChoices.PENDING
-        )
+        # 2. Extract start and end dates from the frontend payload
+        start_date_str = data.get('start_date')
+        end_date_str = data.get('end_date')
+
+        if not start_date_str or not end_date_str:
+            return JsonResponse({'status': 'error', 'message': 'Missing date range.'}, status=400)
+
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+
+        if start_date > end_date:
+            return JsonResponse({'status': 'error', 'message': 'Start date cannot be after end date.'}, status=400)
+
+        # 3. Loop through the date range
+        delta = timedelta(days=1)
+        current_date = start_date
+        requests_to_create = []
+
+        while current_date <= end_date:
+            # Prevent creating duplicate pending requests for the exact same day
+            if not DayOffRequest.objects.filter(user=current_user, requested_date=current_date).exists():
+                requests_to_create.append(
+                    DayOffRequest(
+                        user=current_user,
+                        requested_date=current_date, # Uses the date from the loop
+                        requested_reason=data.get('reason'),
+                        requested_additional_notes=data.get('notes', ''),
+                        requested_status=DayOffRequest.StatusChoices.PENDING
+                    )
+                )
+            current_date += delta
         
-        return JsonResponse({'status': 'success', 'message': 'Request submitted successfully.'})
+        # 4. Save to database
+        if requests_to_create:
+            DayOffRequest.objects.bulk_create(requests_to_create)
+            return JsonResponse({'status': 'success', 'message': 'Requests submitted successfully.'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Requests for these dates already exist.'}, status=400)
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-    
 @require_POST
 def update_dayoff_status(request):
     try:
@@ -446,22 +476,37 @@ def update_dayoff_status(request):
         leave_id = data.get('leave_id')
         action = data.get('action')
 
+        # 1. Fetch the currently logged-in user (the one processing the request)
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            current_user = request.user
+        else:
+            current_user = None
+            session_user_id = request.session.get('user_id')
+            if session_user_id:
+                try:
+                    current_user = User.objects.get(user_id=session_user_id)
+                except User.DoesNotExist:
+                    current_user = None
+
+        if not current_user:
+            return JsonResponse({'status': 'error', 'message': 'User not authenticated.'}, status=401)
+
         with transaction.atomic():
             leave_request = DayOffRequest.objects.select_for_update().get(request_id=leave_id)
             
             if action == 'approve':
-                leave_request.requested_status = DayOffRequest.StatusChoices.APPROVED
+                leave_request.requested_status = DayOffRequest.StatusChoices.APPROVED  
                 
-                # ... (Keep your existing existing_schedules checking code here) ...
+                # Update the actual schedule to "Leave" if it has already been generated
+                ShiftSchedule.objects.filter(
+                    user=leave_request.user, 
+                    shift_date=leave_request.requested_date
+                ).update(schedule_status='Leave')
                 
             elif action == 'deny':
-                leave_request.requested_status = DayOffRequest.StatusChoices.DENIED
-                
-            # NEW: Handle the cancellation from the responder
+                leave_request.requested_status = DayOffRequest.StatusChoices.DENIED       
             elif action == 'cancel':
-                # Ensure they can only cancel it if it hasn't been approved/denied yet
                 if leave_request.requested_status == DayOffRequest.StatusChoices.PENDING:
-                    # Update this exact string to match whatever 'Cancel' choice is in your models.py
                     leave_request.requested_status = 'Canceled' 
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Only pending requests can be canceled.'}, status=400)
@@ -469,7 +514,9 @@ def update_dayoff_status(request):
             else:
                 return JsonResponse({'status': 'error', 'message': 'Invalid action received.'}, status=400)
 
-            # Save the DayOffRequest status to the database
+            # 2. Assign the user who processed this request
+            leave_request.processed_by = current_user
+            
             leave_request.save()
 
         return JsonResponse({'status': 'success', 'message': f'Request {action}d successfully.'})

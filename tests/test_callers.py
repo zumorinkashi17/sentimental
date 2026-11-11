@@ -105,7 +105,7 @@ class TranscribeViewTests(TestCase):
     @patch("apps.callers.views.normalize_track")
     def test_transcribe_audio_success_returns_json(self, mock_norm, mock_trans):
         class T:
-            wav = b"wav"
+            audio = b"audio"
             duration_ms = 500
             def as_levels(self):
                 return {"rms": -20}

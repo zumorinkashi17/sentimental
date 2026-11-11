@@ -29,7 +29,7 @@
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-6">
             <div class="relative w-full">
                 <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
-                <label for="search" class="sr-only">Search callers</label>
+                <label for="search" class="sr-only">Search callers or ID Digit Number</label>
                 <input id="search" name="search" form="caller-filters" type="text" value="{{ request.GET.search|default:'' }}" placeholder="Search by caller name or Session ID..." class="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all text-sm shadow-sm">
             </div>
 

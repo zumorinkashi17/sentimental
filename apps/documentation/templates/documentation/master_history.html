@@ -14,6 +14,11 @@
                 <input type="hidden" name="highlight" value="{{ request.GET.highlight|default:highlight }}">
                 <input type="hidden" name="region" value="{{ current_region }}">
                 <input type="hidden" name="location" value="{{ current_location }}">
+                <!-- Session ID Search -->
+                <div class="relative w-full sm:w-56">
+                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search Session ID..." class="form-input bg-white w-full pl-8 py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg">
+                </div>
                 <!-- Responder Filter -->
                 <select name="responder" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-1.5 text-xs text-gray-600 border-gray-200 rounded-lg cursor-pointer">
                     <option value="">All Responders</option>
@@ -59,7 +64,7 @@
                     <tbody class="text-sm text-gray-700 divide-y divide-gray-50">
                         {% for session in sessions %}
                         <tr id="call-{{ session.session_id }}" class="hover:bg-gray-50 transition-colors{% if highlight and session.session_id == highlight %} bg-emerald-50 ring-2 ring-emerald-400{% endif %}">
-                            <td class="p-4 font-mono text-gray-500 font-bold">TPCB10-{{ session.session_id }}</td>
+                            <td class="p-4 font-mono text-gray-500 font-bold">{{ session.session_id }}</td>
                             <td class="p-4">{{ session.session_call_date|date:"M d, Y" }} • {{ session.session_time_called|time:"h:i A" }}</td>
                             <td class="p-4 font-medium text-gray-800">
                                 {{ session.user.user_first_name|default:"Unknown" }}
@@ -77,6 +82,8 @@
                                 <button type="button" 
                                     onclick="populateAndOpenModal(this)" 
                                     data-id="TPCB10-{{ session.session_id }}"
+                                    data-session-key="{{ session.session_id }}"
+                                    data-time="{{ session.session_time_called|time:'h:i A' }}"
                                     data-datetime="{{ session.session_call_date|date:'M d, Y' }} • {{ session.session_time_called|time:'h:i A' }}"
                                     data-responder="{{ session.user.user_first_name|default:'Unknown' }}"
                                     data-caller="{{ session.caller.caller_name|default:'Unknown Caller' }}"
@@ -142,33 +149,18 @@
                 <p id="modal-intervention" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
             </div>
             
-            <!-- Static AI elements -->
+            <!-- Referral provided -->
             <div class="border-t border-gray-100 pt-4 mt-2">
-                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-sparkle"></i> AI Suggested Referrals Provided</span>
-                <div class="bg-brand-light/30 border border-brand/20 p-3 rounded-lg flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white flex-shrink-0"><i class="ph-bold ph-hospital"></i></div>
-                    <div>
-                        <p class="font-bold text-gray-800 text-sm">PsychHub Co. (Dr. Bridget Olowojeje)</p>
-                        <p class="text-xs text-gray-500">Cebu City • Contact: bridget.olowojeje@email.com</p>
-                    </div>
+                <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-sparkle"></i>Referrals Provided</span>
+                <div id="modal-referrals" class="space-y-3">
+                    <p class="text-sm text-gray-400">No referral provided for this session.</p>
                 </div>
             </div>
 
             <div class="border-t border-gray-100 pt-4 mt-2">
                 <span class="text-brand flex items-center gap-1 text-xs font-bold uppercase mb-2"><i class="ph-fill ph-waveform"></i> AI Audio Transcript</span>
-                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 h-[300px] overflow-y-auto custom-scrollbar space-y-4 text-sm">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 ml-2">06:12 PM - Quev C. (Responder)</span>
-                        <div class="bg-brand text-white p-3 rounded-2xl rounded-tl-sm self-start max-w-[90%] sm:max-w-[80%] shadow-sm">
-                            Tawag Paglaum, maayong gabii. Unsaon nako pag tabang nimo karon?
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-end">
-                        <span class="text-[10px] text-gray-400 font-bold uppercase mb-1 mr-2">06:13 PM - Maria Santos (Caller)</span>
-                        <div class="bg-white border border-gray-200 text-gray-800 p-3 rounded-2xl rounded-tr-sm self-end max-w-[90%] sm:max-w-[80%] shadow-sm">
-                            Hello... uhm, naglisod lang gyud ko karon. I feel so overwhelmed sa school and sige mig away sa ako partner. Dili na nako kaya...
-                        </div>
-                    </div>
+                <div id="modal-transcript" class="bg-gray-50 p-4 rounded-xl border border-gray-100 h-[300px] overflow-y-auto custom-scrollbar space-y-4 text-sm">
+                    <p class="text-center text-gray-400 py-4 text-sm">No transcript available for this session.</p>
                 </div>
             </div>
 
@@ -187,8 +179,101 @@
     
 </div>
 
+{{ transcripts|json_script:"transcript-data" }}
+{{ referrals|json_script:"referral-data" }}
+
 <!-- SCRIPTS -->
 <script>
+    const transcriptsBySession = (function () {
+        const el = document.getElementById('transcript-data');
+        return el ? JSON.parse(el.textContent) : {};
+    })();
+
+    const referralsBySession = (function () {
+        const el = document.getElementById('referral-data');
+        return el ? JSON.parse(el.textContent) : {};
+    })();
+
+    function escapeTranscriptHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function buildTranscriptHtml(texts, time, responderName, callerName) {
+        const lines = [];
+        (texts || []).forEach(function (text) {
+            String(text || '').split('\n').forEach(function (line) {
+                if (!line.trim()) return;
+                const match = line.match(/^\[([^\]]+)\]\s?(.*)$/);
+                if (match) {
+                    lines.push({ speaker: match[1].trim(), text: match[2] });
+                } else {
+                    lines.push({ speaker: '', text: line });
+                }
+            });
+        });
+
+        if (!lines.length) {
+            return '<p class="text-center text-gray-400 py-4 text-sm">No transcript available for this session.</p>';
+        }
+
+        return lines.map(function (item) {
+            const isCaller = /caller/i.test(item.speaker);
+            const role = item.speaker || '';
+            const fallbackName = isCaller ? 'Caller' : 'Responder';
+            const name = (isCaller ? callerName : responderName) || fallbackName;
+            const label = (time ? escapeTranscriptHtml(time) + ' - ' : '')
+                + escapeTranscriptHtml(name)
+                + (role ? ' (' + escapeTranscriptHtml(role) + ')' : '');
+            const text = escapeTranscriptHtml(item.text);
+
+            if (isCaller) {
+                return '<div class="flex flex-col items-end">'
+                    + '<span class="text-[10px] text-gray-400 font-bold uppercase mb-1 mr-2">' + label + '</span>'
+                    + '<div class="bg-white border border-gray-200 text-gray-800 p-3 rounded-2xl rounded-tr-sm self-end max-w-[90%] sm:max-w-[80%] shadow-sm">' + text + '</div>'
+                    + '</div>';
+            }
+            return '<div class="flex flex-col">'
+                + '<span class="text-[10px] text-gray-400 font-bold uppercase mb-1 ml-2">' + label + '</span>'
+                + '<div class="bg-brand text-white p-3 rounded-2xl rounded-tl-sm self-start max-w-[90%] sm:max-w-[80%] shadow-sm">' + text + '</div>'
+                + '</div>';
+        }).join('');
+    }
+
+    function buildReferralHtml(referral) {
+        if (!referral) {
+            return '<p class="text-sm text-gray-400">No referral provided for this session.</p>';
+        }
+
+        const institution = escapeTranscriptHtml(referral.institution || '');
+        const professional = escapeTranscriptHtml(referral.professional || '');
+        let title = professional || 'Referral';
+        if (institution && professional) {
+            title = institution + ' (' + professional + ')';
+        } else if (institution) {
+            title = institution;
+        }
+
+        const subParts = [];
+        if (referral.location) subParts.push(escapeTranscriptHtml(referral.location));
+        if (referral.contact) subParts.push('Contact: ' + escapeTranscriptHtml(referral.contact));
+        const subtitle = subParts.length
+            ? subParts.join(' • ')
+            : 'No contact details provided.';
+
+        return '<div class="bg-brand-light/30 border border-brand/20 p-3 rounded-lg flex items-center gap-3">'
+            + '<div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white flex-shrink-0"><i class="ph-bold ph-hospital"></i></div>'
+            + '<div>'
+            + '<p class="font-bold text-gray-800 text-sm">' + title + '</p>'
+            + '<p class="text-xs text-gray-500">' + subtitle + '</p>'
+            + '</div>'
+            + '</div>';
+    }
+
     function populateAndOpenModal(buttonElement) {
         // 1. Extract data from the clicked button's data attributes
         const sessionId = buttonElement.getAttribute('data-id');
@@ -206,6 +291,25 @@
         document.getElementById('modal-caller').textContent = caller;
         document.getElementById('modal-reason').textContent = reason;
         document.getElementById('modal-intervention').textContent = intervention;
+
+        // 2b. Render the session's call_transcript records as chat bubbles.
+        const transcriptContainer = document.getElementById('modal-transcript');
+        if (transcriptContainer) {
+            transcriptContainer.innerHTML = buildTranscriptHtml(
+                transcriptsBySession[buttonElement.getAttribute('data-session-key')],
+                buttonElement.getAttribute('data-time'),
+                responder,
+                caller
+            );
+        }
+
+        // 2c. Render the session_referral record.
+        const referralContainer = document.getElementById('modal-referrals');
+        if (referralContainer) {
+            referralContainer.innerHTML = buildReferralHtml(
+                referralsBySession[buttonElement.getAttribute('data-session-key')]
+            );
+        }
 
         // 3. Format Risk Badge based on the data
         const riskBadgeContainer = document.getElementById('modal-risk-badge');

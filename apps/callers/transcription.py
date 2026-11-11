@@ -6,12 +6,13 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 import requests
 from django.conf import settings
-from .audio import MIME_WAV, SUPPORTED_FORMATS, AudioProcessingError, to_stt_wav
+from .audio import MIME_STT, SUPPORTED_FORMATS, AudioProcessingError, to_stt_audio
 
 logger = logging.getLogger(__name__)
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-REQUEST_TIMEOUT = 300
+# Generous window so uploads of long compressed tracks can finish on slow links.
+REQUEST_TIMEOUT = 600
 REQUEST_CONNECT_TIMEOUT = 10
 
 CALLER = "Caller"
@@ -122,13 +123,13 @@ def _parse_segments(raw_text, speaker):
     return segments
 
 
-# Sends a WAV track to Gemini and returns segments, raising an error if it fails.
-def transcribe_track(wav_bytes, speaker, api_key):
+# Sends a compressed audio track to Gemini and returns segments, raising an error if it fails.
+def transcribe_track(audio_bytes, speaker, api_key):
     if not api_key:
         raise TranscriptionError(
             "Gemini API key is not configured. Add GEMINI_API_KEY=AIza... to your .env file."
         )
-    if not wav_bytes:
+    if not audio_bytes:
         raise TranscriptionError(f"No audio received for the {speaker.lower()} track.")
 
     payload = {
@@ -138,8 +139,8 @@ def transcribe_track(wav_bytes, speaker, api_key):
                     {"text": build_prompt(speaker)},
                     {
                         "inlineData": {
-                            "mimeType": MIME_WAV,
-                            "data": base64.b64encode(wav_bytes).decode("ascii"),
+                            "mimeType": MIME_STT,
+                            "data": base64.b64encode(audio_bytes).decode("ascii"),
                         }
                     },
                 ]
@@ -208,11 +209,11 @@ def render_transcript(segments):
 
 
 # Transcribes both tracks in parallel, then merges and formats the conversation.
-def transcribe_tracks(caller_wav, responder_wav, api_key):
+def transcribe_tracks(caller_audio, responder_audio, api_key):
     with ThreadPoolExecutor(max_workers=2) as pool:
-        caller_future = pool.submit(transcribe_track, caller_wav, CALLER, api_key)
+        caller_future = pool.submit(transcribe_track, caller_audio, CALLER, api_key)
         responder_future = pool.submit(
-            transcribe_track, responder_wav, RESPONDER, api_key
+            transcribe_track, responder_audio, RESPONDER, api_key
         )
         caller_segments = caller_future.result()
         responder_segments = responder_future.result()
@@ -230,7 +231,7 @@ def normalize_track(uploaded_file, label, codec=None, normalize=True):
     if source_format not in SUPPORTED_FORMATS:
         source_format = "webm"
     try:
-        return to_stt_wav(
+        return to_stt_audio(
             raw, source_format=source_format, codec=codec, normalize=normalize
         )
     except AudioProcessingError:
