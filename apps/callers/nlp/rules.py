@@ -209,6 +209,11 @@ _NON_NAMES = {
     "amping",
     "maayo",
     "hello",
+    "hi",
+    "good",
+    "bye",
+    "thanks",
+    "thank",
     "uhm",
     "um",
     "okay",
@@ -263,6 +268,15 @@ _NON_NAMES = {
     "office",
     "affairs",
     "school",
+    "oa",
+    "daghan",
+    "hinay",
+    "actually",
+    "exactly",
+    "akong",
+    "nagpabilin",
+    "niingon",
+    "ganahan",
 }
 
 
@@ -516,6 +530,7 @@ _AGE_CONTEXT = re.compile(
     r"mag-|tungtong|pangedaron|age)",
     re.IGNORECASE,
 )
+_AMBIGUOUS_AGE_WORDS = {"once"}
 _AGE_EXCLUDE_BEFORE = re.compile(
     r"(grade|level|floor|month|minute|hour|week|day|peso|php|₱|#|no\.?)\s*$",
     re.IGNORECASE,
@@ -585,7 +600,7 @@ def _extract_ages(text: str) -> list[dict]:
         entities.append(_entity("AGE", text, match.start(), match.end(), value, confidence, "rule"))
         used.append((match.start(), match.end()))
 
-    for _, regex, value in _age_word_rules():
+    for phrase, regex, value in _age_word_rules():
         for match in regex.finditer(text):
             if any(start <= match.start() and match.end() <= end for start, end in used):
                 continue
@@ -594,6 +609,8 @@ def _extract_ages(text: str) -> list[dict]:
             if _AGE_EXCLUDE_BEFORE.search(before) or _AGE_EXCLUDE_AFTER.search(after):
                 continue
             has_context = bool(_AGE_CONTEXT.search(before) or _AGE_CONTEXT.search(after))
+            if phrase in _AMBIGUOUS_AGE_WORDS and not has_context:
+                continue
             confidence = 0.94 if has_context else 0.68
             entities.append(
                 _entity("AGE", text, match.start(), match.end(), value, confidence, "rule")
@@ -641,7 +658,7 @@ def _extract_terms(text: str, rules, label: str, confidence: float) -> list[dict
 
 def _name_patterns() -> list[tuple[re.Pattern, float]]:
     patterns: list[tuple[str, float]] = [
-        (rf"(?m)^\s*({NAME_PATTERN})\s*(?:[.,!?]|$)", 0.8),
+        (rf"(?m)^\s*({NAME_PATTERN})\s*[.,!?]?\s*$", 0.8),
         (rf"\b(?:my|the)\s+name\s+is\s+({NAME_PATTERN})\b", 0.95),
         (rf"\b(?:akong|ang)\s+(?:ngalan|name|pangalan)\s+(?:is|mao\s+si)\s+({NAME_PATTERN})\b", 0.94),
         (rf"\bako(?:\s+diay)?\s+si\s+({NAME_PATTERN})\b", 0.95),
@@ -828,9 +845,17 @@ _RESPONDER_CONTEXT = re.compile(
     r"\b(?:salamat|nakasabot|kasabot|valid|normal|pwede|kailangan|importante|"
     r"maayo|nindot|tabang|suporta|referral|psychologist|psychiatrist|doctor|"
     r"clinic|breathing|inhale|exhale|grounding|postpartum|distress|matambalan|"
-    r"paminaw|amping|tawag paglaum|andam|maminaw|debrief)\b",
+    r"paminaw|amping|tawag paglaum|andam|maminaw|debrief|klaro|danger)\b",
     re.IGNORECASE,
 )
+_RESPONDER_QUESTION = re.compile(
+    r"\b(?:unsa|unsay|pila|asa|kanus-a|ngano|kinsa|kumusta|"
+    r"pwede\s+ba|naa\s+ba|gusto\s+ba|safe\s+ba|open\s+ka\s+ba)\b",
+    re.IGNORECASE,
+)
+
+
+_ROLE_MARGIN = 4
 
 
 def _role_scores(block: str) -> tuple[int, int]:
@@ -838,10 +863,41 @@ def _role_scores(block: str) -> tuple[int, int]:
     second_person = len(_RESPONDER_SECOND_PERSON.findall(block))
     caller_context = len(_CALLER_CONTEXT.findall(block))
     responder_context = len(_RESPONDER_CONTEXT.findall(block))
+    questions = len(_RESPONDER_QUESTION.findall(block)) + block.count("?")
     return (
         (first_person + caller_context) * 2,
-        (second_person + responder_context) * 2,
+        (second_person + responder_context + questions) * 2,
     )
+
+
+def _merge_same_role_blocks(blocks: list[str]) -> list[str]:
+    """Join paragraph breaks that belong to the same strong speaker turn."""
+    merged: list[str] = []
+    previous_role: str | None = None
+    previous_strong = False
+    for block in blocks:
+        caller_score, responder_score = _role_scores(block)
+        if caller_score > responder_score:
+            role = "caller"
+        elif responder_score > caller_score:
+            role = "responder"
+        else:
+            role = None
+        strong = role is not None and abs(caller_score - responder_score) >= _ROLE_MARGIN
+        if (
+            merged
+            and role is not None
+            and role == previous_role
+            and strong
+            and previous_strong
+            and not block.lstrip().startswith(('"', "'", "“", "‘"))
+        ):
+            merged[-1] = f"{merged[-1]}\n{block}"
+        else:
+            merged.append(block)
+        previous_role = role
+        previous_strong = strong
+    return merged
 
 
 def _label_less_turns(raw: str) -> list[tuple[str, str]]:
@@ -864,6 +920,7 @@ def _label_less_turns(raw: str) -> list[tuple[str, str]]:
         ]
         if not blocks:
             continue
+        blocks = _merge_same_role_blocks(blocks)
         first = blocks[0].lower()
         responder_opening = any(
             marker in first

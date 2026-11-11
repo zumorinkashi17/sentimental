@@ -20,7 +20,10 @@ _SUPPORT_CATEGORY = "Responder provided empathetic listening and support"
 _ER_AVOIDANCE = re.compile(
     r"\b(?:dili|di|ayaw)\s+(?:lang\s+)?"
     r"(?:ig-abot|abot|maabot|kinahanglan|kailangan|moadto|mo-adto)\b"
-    r"[^.!?]{0,40}\b(?:er|emergency room|emergency department)\b",
+    r"[^.!?]{0,40}\b(?:er|emergency room|emergency department)\b"
+    r"|\b(?:if\s+ever|kung\s+ever|kung\s+moabot|if\s+it\s+gets|"
+    r"kung\s+dili\s+na\s+safe|if\s+you\s+feel\s+unsafe)\b"
+    r"[^.!?]{0,220}\b(?:er|emergency room|emergency department|emergency service)\b",
     re.IGNORECASE,
 )
 
@@ -68,7 +71,6 @@ _RULES: dict[str, dict[str, float]] = {
         "school counselor": 2,
         "academic adviser": 2,
         "student affairs": 2,
-        "guidance": 2,
         "school guidance": 3,
         "counseling office": 2,
     },
@@ -190,6 +192,9 @@ _RULES: dict[str, dict[str, float]] = {
         "kondisyon": 2,
         "diagnosis": 2,
         "assessment": 2,
+        "appropriate assessment": 3,
+        "child development": 2,
+        "qualified professional": 2,
         "psychoeducation": 3,
         "psychology": 3,
         "mid twenties crisis": 3,
@@ -265,6 +270,9 @@ _RULES: dict[str, dict[str, float]] = {
         "valid": 2,
         "normal ra nga": 2,
         "walay timeframe": 3,
+        "angay seryosohon": 3,
+        "maistoryahan sa professional": 3,
+        "dili kinahanglan nga ikaw ra": 2,
     },
     "Others": {
         "barangay": 2,

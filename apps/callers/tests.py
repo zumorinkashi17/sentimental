@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from django.urls import reverse
 
 from .nlp import analyze
+from .nlp.rules import extract_caller_text
 from .nlp.summary import build_summary, translate_summary
 from .nlp.textrank import summarize
 
@@ -1711,6 +1712,731 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertIn("Given Referrals", categories)
         self.assertIn("Refused Referrals", categories)
         self.assertIn("Psychoeducation", categories)
+
+    def test_summarizes_academic_failure_with_active_si_and_guidance_referral(self):
+        text = (
+            "Maayong adlaw, Tawag Paglaum. Ako si Anna. Naa ba koy matabang "
+            "nimo karon?\n\n"
+            "Hi miss... uhm, nag-hesitate ko manawag ba pero gusto lang ko "
+            "naay mapahungawan karon. Dili na gyud nako kaya.\n\n"
+            "Okay ra kaayo na. Sakto imong gibuhat nga nitawag ka. Diri sa "
+            "Tawag Paglaum, safe kaayo ka mag-share. Unsa man diay ang "
+            "naghatag nimo og kabug-at karon?\n\n"
+            "Murag ma-buang na gyud ko miss. Sige ra kog hilak since pagmata "
+            "nako ganiha. Wala ko kabalo unsaon nako pag-atubang ani.\n\n"
+            "Sige, paminawon tika. Para mas comfortable atong storya, pwede "
+            "ba ko makabalo unsay imong pangalan?\n\n"
+            "Tawga lang ko og Kim.\n\n"
+            "Hi Kim. Pila na diay imong edad ug taga-asa ka, para lang "
+            "magka-ila ta og tarong?\n\n"
+            "20 pa ko. Taga-Talisay City, miss.\n\n"
+            "Salamat, Kim. Sultihi daw ko, unsa may nahitabo nga nagsige man "
+            "ka og hilak ganiha pa?\n\n"
+            "Ni-gawas man gud ang mga grades namo sa portal ganiha buntag. "
+            "Hagbong ko sa akong duha ka major subjects. Karon pa ko "
+            "na-hagbong sa akong tibuok kinabuhi miss. Nursing man gud akong "
+            "gikuha. Dili na ko kabalo unsaon pag-atubang sa akong parents, "
+            "especially sa akong papa.\n\n"
+            "Grabe gyud na nga shock, Kim, labi na nga first time ni nimo "
+            "nasinati unya major subjects pa gyud. Bug-at gyud na sa "
+            "pagbati.\n\n"
+            "Oo, miss. Strict kaayo akong papa. Ang expectation nila kay "
+            "maka-graduate ko with honors unya maka-work dayon abroad para "
+            "makatabang sa mga manghod. Ako pay panganay. Kung makabalo sila "
+            "ani, ipaundang na gyud ko nila ug skwela o kaha palayason ko sa "
+            "balay.\n\n"
+            "Nakasabot ko sa kahadlok nimo karon, Kim. Lahi gyud ang pressure "
+            "basta panganay unya dako ang expectations. Aside sa paghilak, "
+            "unsa pa may imong na-feel karon sa imong lawas or huna-huna?\n\n"
+            "Nagkurog akong kamot ganiha pa, miss. Ug nagsuka ko "
+            "pagkahibalo nako sa grades. Murag di nako makaginhawa sa "
+            "kakulba every time mahinumdom ko nga mouli na akong papa unyang "
+            "hapon. Wala pa koy tulog tarong kay nag-cramming man ko gabii "
+            "naghimo ug projects, unya pag-open nako sa portal mao to akong "
+            "nakita.\n\n"
+            "Ingon ka nga grabe imong kakulba unya murag di ka "
+            "makaginhawa. Sa kani nga sitwasyon nga gibati nimo og grabeng "
+            "kahadlok nga mouli imong papa, nakahunahuna ba ka og buhaton "
+            "nga makapasakit sa imong kaugalingon?\n\n"
+            "Nakahunahuna ko nga molayas na lang miss... or moinom og "
+            "daghang tambal para makatulog ug di na momata kay di ko gusto "
+            "maka-dungog sa kasaba ug kasakit. Pero nahadlok man pud ko "
+            "buhaton.\n\n"
+            "I appreciate your honesty, Kim. Importante kaayo nga nisulti ka "
+            "nako ana. Ang kahadlok nga imong gibati kay nagpakita nga gusto "
+            "pa nimo mangita og laing paagi nga masulbad ni, gawas sa "
+            "pagpasakit sa imong kaugalingon. It takes courage to admit "
+            "that.\n\n"
+            "Right now, dako kaayo ang anxiety nga imong na-feel ug "
+            "nag-panic imong lawas. Gusto nako nga tabangan tika ma-ground "
+            "imong kaugalingon. Pwede ba ta mag-dungan og focus sa atong "
+            "pagginhawa kadiyot?\n\n"
+            "S-sige miss.\n\n"
+            "Okay. I-relax imong abaga. Ginhawa og lalom sa ilong for 4 "
+            "seconds... unya pag-exhale slowly sa baba. (pause) Usa pa, "
+            "inhale in... exhale out.\n\n"
+            "(breathing deeply) ...\n\n"
+            "Good. Gusto lang ko mo-remind nimo, Kim, nga ang imohang worth "
+            "as a person ug as an anak kay wala nag-depende sa duha ka "
+            "grades. Kahibalo ko nga bug-at ang expectation sa parents, pero "
+            "failing a subject doesn't mean failure ka sa kinabuhi.\n\n"
+            "Dili lang gyud ko ready nga mo-face niya ron miss. Basig "
+            "kulatahon ko.\n\n"
+            "Valid na nga kahadlok. Naa ba kay close friend, or kapamilya "
+            "like tita or tito, nga pwede nimo adtoan o maestorya karon "
+            "before nimo atubangon imong papa? O kaha sa school ninyo, "
+            "na-try ba nimo ug duol ang guidance counselor para ma-discuss "
+            "ang options sa imong nabagsak nga subjects?\n\n"
+            "Naa koy tita nga buotan kaayo, igsoon sa akong mama, ug close "
+            "pud sila ni papa. Pwede ko adto sa ilaha mag-stay karong hapon, "
+            "basin matabangan ko niya og sulti. Sa guidance counselor, wala "
+            "pa miss kay na-shock pa lagi ko.\n\n"
+            "That's a very good and safe plan, Kim. Adto sa imong tita para "
+            "naay mu-support nimo, labi na kung nabalaka ka sa imong safety. "
+            "And then next week, pag medyo kalma na ang tanan, pwede nimo "
+            "adtoan ang guidance office para makabalo ka unsa ang process sa "
+            "retake sa imong subjects.\n\n"
+            "Sige miss. Mo-text ko sa akong tita karon dayon nga mo-adto ko. "
+            "Medyo ni-kalma na akong kurog. Salamat kay naminaw ka.\n\n"
+            "Nalipay ko nakadungog ana, Kim. Hinay-hinay lang usa. Pag-inom "
+            "og tubig, and make sure nga mo-kaon ka. And remember, naa ra "
+            "ang Tawag Paglaum if ever kailangan nimo og kaestorya usab.\n\n"
+            "Thank you so much, miss Anna. Dako kay ni og tabang.\n\n"
+            "Amping kanunay, Kim. Take care. Bye."
+        )
+
+        result = analyze(text, risk_assessment="High Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+        caller_text = extract_caller_text(text)
+
+        self.assertEqual(result["fields"]["callerName"], "Kim")
+        self.assertEqual(result["fields"]["callerAge"], 20)
+        self.assertEqual(result["fields"]["callerGender"], "N/A")
+        self.assertEqual(result["fields"]["callerStatus"], "N/A")
+        self.assertEqual(result["fields"]["callerLocation"], "Talisay City")
+        self.assertEqual(
+            categories,
+            ["Referred to Guidance Counselors", "Psychoeducation"],
+        )
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Academic Problem."
+        )
+        for phrase in (
+            "adunay mga hunahuna sa pagpakamatay",
+            "gikulbaan",
+            "nagsige og hilak",
+            "nagkurog ang kamot",
+        ):
+            self.assertIn(phrase, lines[1])
+        self.assertNotIn("gisagpa ug gitukmod", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, high risk.")
+        self.assertIn("nag-refer sa guidance counselor", lines[3])
+        self.assertIn("psychoeducation", lines[3])
+        self.assertNotIn("Right now, dako kaayo", caller_text)
+        self.assertNotIn("Valid na nga kahadlok", caller_text)
+        self.assertEqual(
+            [(entity["label"], entity["text"]) for entity in result["entities"]],
+            [
+                ("NAME", "Kim"),
+                ("AGE", "20"),
+                ("LOCATION", "Talisay City"),
+            ],
+        )
+
+    def test_handles_consecutive_responder_questions_and_panic_symptoms(self):
+        text = """
+Hello, Tawag Paglaum ni. Ako si Ana, usa ko sa mga responders diri. Kumusta man ka karon?
+
+Hello... okay ra man siguro. Medyo lisod lang gyud akong gibati karon.
+
+Sige, salamat nga nitawag ka. Unsa man ang nahitabo karon?
+
+Murag dili na nako makontrol akong hunahuna. Sige kog overthink.
+
+Kanus-a nimo unang nabantayan nga ing-ani na ka pirmi?
+
+Mga pila na ka buwan. Usahay wala koy problema, pero kalit lang ko makulbaan.
+
+Bisan wala kay klarong problema, mobati gihapon ka og kahadlok?
+
+Oo. Murag naay something bad nga mahitabo.
+
+Lisod siguro nang naa kay kahadlok.
+
+Mao gyud. Abi nako OA ra ko.
+
+Dili nato kinahanglan tawgon dayon nga OA imong gibati. Importante nga nakabantay ka nga nakaapekto na siya nimo.
+
+By the way, unsa diay akong itawag nimo?
+
+Jessa.
+
+Hi, Jessa. Pila na imong edad karon?
+
+Twenty-four ko.
+
+Salamat, Jessa. Asa ka dapit karon?
+
+Sa Lapu-Lapu ko nagpuyo.
+
+Okay. Unsa imong gender?
+
+Female ko.
+
+Sige. Single pa ka karon?
+
+Oo, single pa.
+
+Unsa imong gibati sa imong lawas kung kusog ang kakulba?
+
+Mupaspas akong heartbeat. Mangurog akong kamot usahay, unya murag dili ko kapugngan akong breathing. Mura kog kulang sa hangin bisan kabalo ko nga nagginhawa man ko.
+
+Once magsugod akong heart nga paspas, mahadlok na pud ko nga basin atakehon ko.
+
+Kumusta imong tulog?
+
+Dili maayo. Usahay alas dos o alas tres na ko makatulog. Pagkabuntag, murag wala koy energy.
+
+Nakaabot ba ka sa punto nga nakahunahuna ka nga pasakitan imong kaugalingon?
+
+Wala. Wala ko naghunahuna nga pasakitan akong kaugalingon.
+
+Normal ra nga makulbaan ka kung first time. Valid na imong gibati.
+
+Kung open ka, pwede tika ma-refer sa psychologist.
+
+Actually, willing ko.
+"""
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+        caller_text = extract_caller_text(text)
+
+        self.assertEqual(result["fields"]["callerName"], "Jessa")
+        self.assertEqual(result["fields"]["callerAge"], 24)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Lapu-Lapu City")
+        self.assertEqual(categories, ["Given Referrals", "Psychoeducation"])
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Panic Attack.")
+        for phrase in (
+            "gikulbaan",
+            "dili makaginhawa og tarong",
+            "dili makatulog og tarong",
+            "nagkurog ang kamot",
+        ):
+            self.assertIn(phrase, lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertNotIn("By the way, unsa diay akong itawag nimo?", caller_text)
+        self.assertNotIn("Normal ra nga makulbaan ka", caller_text)
+        self.assertEqual(
+            [
+                (entity["label"], entity["text"])
+                for entity in result["entities"]
+                if entity["label"] in {"NAME", "AGE"}
+            ],
+            [("NAME", "Jessa"), ("AGE", "Twenty-four")],
+        )
+
+    def test_handles_depression_with_passive_si_and_conditional_er_plan(self):
+        text = """
+Maayong gabii, nakaabot ka sa Tawag Paglaum. Ako si Carlo. Pwede ra kaayo ka mag-share diri sa unsay naa sa imong hunahuna. Unsay nahitabo karon nga nakapadasig nimo nga motawag?
+
+
+Hi... dugay na gyud ko naghunahuna kung motawag ba ko. Karon lang gyud ko ni-decide kay murag dili na nako kaya nga ako ra.
+
+
+Okay. Salamat nga nakahimo ka og step nga motawag. Dili ka kinahanglan magdali sa pag-storya. Unsa man gyud ang pinakabug-at para nimo karon?
+
+
+Murag nawala na akong gana sa tanan. Sauna active kaayo ko, sige kog gawas, makigkita sa friends. Karon ganahan ra ko magpundo sa kwarto.
+
+
+Dako gyud og kausaban kung gikan sa pagka-active, nahimo na lang kang ganahan mag-inusara. Dugay na ni nga imong gibati?
+
+
+Mga upat ka bulan na siguro. At first abi nako kapoy lang ko tungod sa work. Pero niabot sa point nga bisan weekends, dili na ko ganahan mobangon.
+
+
+Unsa imong gibuhat kasagaran kung naa ka ana nga feeling?
+
+
+Matulog ko. Or maghigda ra ko, magtan-aw sa ceiling. Usahay mag-phone ko for hours pero wala gyud koy ma-feel nga enjoyment.
+
+
+Pwede ko makabalo sa imong name?
+
+
+Mark.
+
+
+Hi, Mark. Pila na ka tuig?
+
+
+Twenty-seven.
+
+
+Asa ka nagpuyo karon, Mark?
+
+
+Sa Mandaue ko nagpuyo.
+
+
+Ug married na ka or single?
+
+
+Married ko. Duha mi kabuok sa akong wife.
+
+
+Salamat sa pag-share. Unsay gender nimo, Mark?
+
+
+Lalaki ko.
+
+
+Naa bay nahitabo mga upat ka bulan ang milabay nga tingali naka-trigger sa imong gibati?
+
+
+Oo. Na-promote ko unta sa work pero wala nako nakuha. Ang akong kauban nga mas bag-o pa nako, siya ang napili. Dili man unta ko suko niya, pero murag na-question gyud nako akong kaugalingon.
+
+
+Murag nakaapekto siya sa imong pagtan-aw sa imong kaugalingon.
+
+
+Oo. Sige kog compare. Makaingon ko, "Unsay kulang nako?" Unya pagkahuman ato, nagsunod-sunod na ang problema. Naa pud mi'y financial issues sa balay.
+
+
+Nakasulti ba ka sa imong wife bahin sa imong gibati?
+
+
+Gamaya ra. Dili ko ganahan nga ma-stress pud siya. Kung mangutana siya kung okay ra ba ko, moingon ra ko nga kapoy ko.
+
+
+So kadaghanan sa imong gibati, imo rang gitago.
+
+
+Oo. Kay lalaki man ko, unya murag expected nga dapat kabalo ko unsaon pag-handle sa problema.
+
+
+Pero sa sulod nimo, unsa gyud imong kasinatian?
+
+
+Murag empty. Wala koy excitement. Bisan akong mga anak nga ganahan kaayo ko sauna makigdula, usahay makakita ko nila pero wala koy energy nga mosabay.
+
+
+Nabantayan nimo nga naapektuhan na pud imong trabaho?
+
+
+Oo. Maglisod kog focus. Naay times nga magtan-aw ra ko sa computer unya wala gyud ko kasabot sa akong gibasa. Naa pud koy mga tasks nga akong ginapalangan.
+
+
+Kumusta imong tulog ug pagkaon these past few weeks?
+
+
+Ang tulog kay gubot. Usahay sayo ko matulog pero mata ko mga alas tres sa buntag. Then maghunahuna na pud ko hangtod buntag. Sa pagkaon, usahay usa ra ko ka meal sa tibuok adlaw kung busy ko.
+
+
+Unsa kasagaran imong gihunahuna kung mata ka sa kadlawon?
+
+
+Nga wala ko'y pulos. Nga basin dili gyud ko maayo sa akong trabaho. Usahay mahunahuna nako nga mas maayo pa siguro kung dili na lang ko mahimong burden sa akong family.
+
+
+Bug-at kaayo nang mga hunahuna. Kung moabot na ka ana nga point, unsa imong gibati emotionally?
+
+
+Maka-drain. Usahay mohilak ko nga ako ra. Dili ko ganahan makita sa akong mga anak.
+
+
+Mark, mangutana ko nimo direkta kay importante nga masiguro nato imong safety. Kung moabot ka sa thought nga burden ka sa imong family, nakaabot ba ka sa punto nga nakahunahuna ka nga pasakitan imong kaugalingon o tapuson imong kinabuhi?
+
+
+Nahunahuna nako usahay nga basin mas maayo kung mawala na lang ko. Pero wala koy plano nga pasakitan akong kaugalingon.
+
+
+Salamat sa imong pagkamatinud-anon. Karon mismo, naa ba kay gibati nga mahimo nimong pasakitan imong kaugalingon?
+
+
+Wala. Karon dili. Gusto ra gyud ko makagawas ani nga feeling.
+
+
+Okay. Importante nga karon safe ka. Kung mosamot ang thoughts ug mobati ka nga basin dili na nimo mapugngan ang imong kaugalingon, ayaw pag-inusara—duol dayon sa imong wife o sa laing tawo nga imong kasaligan ug pangayo og immediate nga tabang.
+
+
+Sige. Actually, basin kinahanglan na gyud nako mosulti sa akong wife.
+
+
+Sa imong gi-share, murag dugay na nimo ning gidala nga ikaw ra. Pwede nato sugdan sa gamay nga step: dili kinahanglan nimo masulbad tanan karong gabhiona. Ang importante, naa kay usa ka tawo nga makasabot kung unsa gyud imong giagian.
+
+
+Lisod siya buhaton pero basin mas maayo kaysa sige ra kog tago.
+
+
+Yes. Ug karon, suwayi sa paghinay-hinay og ginhawa. Dili para mawala dayon ang problema, pero para makatabang nga ma-settle gamay imong lawas samtang nag-storya ta.
+
+
+Okay.
+
+
+Inhale hinay... unya exhale. Ayaw pugsa. Focus lang sa imong breathing for a few moments.
+
+
+Okay... medyo mas relaxed ko gamay.
+
+
+Maayo. Ug gusto pud nako nga mahibaloan nimo nga ang imong gibati dili kinahanglan nga ikaw ra ang mosulbad. Ang pagkawala sa gana, problema sa tulog, lisod nga concentration, ug dugay nga kabug-at nga imong gi-experience kay mga butang nga angay seryosohon ug maistoryahan sa professional.
+
+
+Kung okay ra nimo, pwede tika ma-refer sa psychologist para mas ma-assess ang imong gibati ug makadawat ka og support nga angay sa imong situation.
+
+
+Oo, willing ko. Actually, gusto na gyud nako nga naay makatabang nako.
+
+
+Maayo. Pwede pud nimo isulti sa imong wife karong gabhiona nga dili ka okay lately ug gusto ka nga ubanan ka niya sa pagpangita og professional support.
+
+
+Sige. I think mao na akong buhaton. Dili na nako gusto nga ako ra.
+
+
+And if ever moabot ka sa point nga dili na safe nga ikaw ra, pangayo dayon og immediate help gikan sa imong wife o trusted person ug adto sa emergency service o nearest emergency room.
+
+
+Okay. Sabton nako.
+
+
+Before ta mag-end, Mark, gusto lang nako ma-check—safe pa ba ka karon, ug naa ba kay plan nga buhaton after sa atong conversation?
+
+
+Safe ko. Tawagan nako akong wife unya istoryahan nako siya. Ug mangita gyud ko og psychologist.
+
+
+Maayo nga naa kay klaro nga next step. Dili kinahanglan nga ma-fix nimo tanan dayon. Usa-usa lang. Ug salamat nga nakahimo ka og share karong gabhiona bisan lisod para nimo.
+
+
+Salamat pud. Murag dugay na gyud ko wala nakaingon sa akong gibati.
+"""
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Mark")
+        self.assertEqual(result["fields"]["callerAge"], 27)
+        self.assertEqual(result["fields"]["callerGender"], "Male")
+        self.assertEqual(result["fields"]["callerStatus"], "Married")
+        self.assertEqual(result["fields"]["callerLocation"], "Mandaue City")
+        self.assertEqual(categories, ["Given Referrals", "Psychoeducation"])
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Depression.")
+        for phrase in (
+            "naglaom nga dili na momata",
+            "wala nay kalipay",
+            "dili makatulog og tarong",
+            "empty ang pamati",
+        ):
+            self.assertIn(phrase, lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, low risk.")
+
+    def test_handles_overwhelm_with_work_trigger_and_passive_escape(self):
+        text = """
+Maayong hapon. Tawag Paglaum ni. Ako si Nica, responder karon. Kumusta ka? Unsay nahitabo nga nakaingon ka nga motawag ka today?
+
+Hi, ma'am... dili ko sure asa magsugod. Murag kalit lang gyud ko na-overwhelm. Since this morning sige na kog hilak.
+
+Okay ra. Pwede ra gyud ka magsugod bisan asa. Unsa man ang pinakabug-at sa imong gibati karon?
+
+Murag tanan. Akong work, akong family, mga problema nga wala pa nako na-solve. Murag niabot ko sa point nga dili na gyud ko kabalo unsa akong unahon.
+
+Murag daghan kaayo og nagsabay-sabay nga imong gidala.
+
+Oo. Kasagaran kaya ra nako man. Pero karon murag kalit lang ko na-collapse emotionally. Wala gani koy gana mobangon ganina.
+
+Naa bay nahitabo karong mga adlawa nga murag naka-push sa imong emotions ngadto ana nga point?
+
+Naay problema sa work. Gisaway ko sa akong supervisor about a mistake. Dili man gani siya dako nga mistake, pero after ato murag akong tanan nakong previous failures nibalik sa akong huna-huna.
+
+So dili lang tong usa ka incident, pero murag nahimo siyang trigger sa daghan na nimong gipangdala daan.
+
+Mao gyud. Then pag-abot nako sa balay, naa napud koy family issue. Murag wala gyud koy time nga makapahuway mentally.
+
+Kasabot ko. Sometimes one difficult moment can make everything else feel heavier, especially kung kapoy na daan ka.
+
+Mao. Mao pud tingali nga nitawag ko kay dili ko gusto nga magpadayon ko nga ako ra usa.
+
+By the way, unsa imong pangalan? Unsay itawag nako nimo?
+
+Camille.
+
+Hi, Camille. Pila na imong edad?
+
+29.
+
+Asa ka nagpuyo karon?
+
+Sa Lapu-Lapu City ko nagpuyo.
+
+Okay. Unsa pud imong gender?
+
+Babaye ko.
+
+Salamat. Married ba ka or single?
+
+Single pa ko.
+
+Camille, unsa imong gibuhat pagkahuman nimo ma-receive ang feedback sa imong supervisor?
+
+Nagpabilin ra ko sa akong desk. Niingon ko sa akong kaugalingon nga okay ra, pero internally grabe na akong ka-pressure. Pag-break nako, didto na ko nagsugod ug hilak.
+
+Naa bay naka-notice sa imong ka-work nga dili ka okay?
+
+Naay usa ka officemate nga nangutana kung okay ra ba ko. Niingon lang ko nga kapoy ko.
+
+Ngano nga lisod para nimo isulti nga emotionally overwhelmed ka?
+
+Dili ko ganahan nga luoyon ko. And naanad ko nga ako ang tig-handle sa akong problems. Murag embarrassing pud nga tungod lang sa usa ka mistake, ing-ani na dayon akong reaction.
+
+Pero para nimo, feeling nimo nga mas dako na ang impact kaysa sa actual mistake.
+
+Oo. Sige kog ingon sa akong kaugalingon nga incompetent ko. Basin dili gyud ko maayo sa akong work. Then maabot pa sa point nga mahuna-hunaan nako nga disappoint ko sa akong family.
+
+Pirmi ba ni nga thought, or karon lang siya kusog?
+
+Karon lang gyud siya grabe. Normally ma-stress ra ko, pero karon murag dili nako ma-stop akong thoughts.
+
+Unsay mahitabo kung mosugod na sila?
+
+Mag-imagine ko sa worst things. Basin mawala akong trabaho, basin maguba akong relationship with my family, basin wala gyud koy ma-achieve. Then makahilak na pud ko.
+
+Karon, Camille, unsa gyud imong physical ug emotional feeling? Naa kay gibati nga tension or something similar?
+
+Tight akong chest. Murag bug-at akong lawas. Sige pud kog sigh. And emotionally, murag empty ko after all the crying.
+
+Kumusta imong sleep these past few nights?
+
+Dili kaayo maayo. Around five hours lang. Magmata ko usahay in the middle of the night unya maghunahuna gihapon sa work.
+
+Naa ba kay gana mokaon?
+
+Dili kaayo. This morning kape ra akong nainom. Wala ko naka-breakfast.
+
+Nakaapekto na ba ni sa imong normal routine?
+
+Oo. Even akong usual chores, wala nako nabuhat. Ganahan ra ko magpabilin sa room.
+
+Naa pa kay moments nga makaparelax ka or makapahappy gamay?
+
+Akong dog usually. Pero karon gani, bisan ganahan ko makigdula niya, murag wala lang gyud koy energy.
+
+Camille, mangutana ko ug direct nga question kay importante nga masiguro nato imong safety. Tungod kay ingon ka nga murag dili na nimo ma-stop imong thoughts, nakaabot ba ka sa point nga nakahunahuna ka nga dili na lang ka gusto mabuhi or nga pasakitan imong kaugalingon?
+
+Naa koy moment ganina nga nakaingon ko, "Kung mawala lang unta ko kadali, dili na ko kinahanglan mag-atubang ani tanan." Pero wala ko naghunahuna unsaon pagpasakit sa akong kaugalingon.
+
+Sige. Salamat nga gisulti nimo na honestly. Karon, naa ba kay intention nga pasakitan imong kaugalingon?
+
+Wala, ma'am.
+
+Naa ba kay plano nga buhaton kana karon or later?
+
+Wala pud.
+
+Safe ra ka karon diin ka?
+
+Oo. Naa ra ko sa akong room, unya naa akong ate sa sala.
+
+Maayo nga naa kay close nga person nearby. If mahimo, ayaw sa pag-inusara karong gabhiona while you're feeling this overwhelmed.
+
+Sige. Pwede ra nako siya duolon.
+
+Maayo. Importante nga naa kay someone nga pwede nimo maistoryahan while you're going through this.
+
+Camille, at this moment, dili nato kinahanglan sulbaron tanan nimong problema. Murag overloaded na kaayo imong mind, so atong i-focus sa usa ka butang nga makatabang nimo makalma gamay.
+
+Okay.
+
+Try nato ug hinay nga breathing. Ibutang lang imong feet sa floor. Hinay nga inhale... unya hinay pud nga exhale. Ayaw pugsa nga mawala dayon ang emotion. Just give yourself a moment to slow down.
+
+Sige... medyo lisod at first.
+
+Okay ra. Another one. Hinay lang. Dili kinahanglan perfect.
+
+Medyo ni-relax gamay akong shoulders.
+
+Good. And karon, instead nga tan-awon nimo tanan nga problema as one big thing, unsa man ang pinakaduol nga kinahanglan nimong atubangon? Dili necessarily ang pinaka-dako, but the next manageable thing.
+
+Siguro kinahanglan lang ko makauli sa normal nga state before ko maghuna-huna sa work again.
+
+Sakto. For tonight, okay ra nga dili nimo anay solve-on ang issue sa office. Makapahulay sa imong body ug mind first. Ug pwede pud nimo isulti sa imong ate nga dili ka okay karon para dili nimo kinahanglan magpanggap nga fine.
+
+Sige. I think mas maayo gyud nga isulti nako niya.
+
+Camille, since niabot na sa point nga grabe ang emotional distress ug naapektuhan na imong sleep, appetite, ug adlaw-adlaw nga functioning, maayo pud nga makastorya ka ug mental health professional.
+
+Psychologist?
+
+Yes, pwede ka mangita ug psychologist for a proper consultation. Pwede pud ka mangutana sa inyong local health services kung unsay available nga mental health support ug asa ka mahimong ma-connect.
+
+Okay. I think willing ko ana.
+
+Maayo. Dili nimo kinahanglan hulaton nga mosamot pa before ka mangayo ug support.
+
+Oo. Murag mas okay ko knowing nga naa koy option.
+
+For tonight, stay close sa imong ate or another trusted person. Ug kung mausab ang imong gibati ngadto sa point nga mobati ka nga dili na ka safe, pangayo dayon ug immediate help ug ayaw pag-inusara.
+
+Sige, ma'am.
+
+
+Before ta mahuman, Camille, kinsa imong unang duolon after ani nga call?
+
+Akong ate. Moingon ko niya nga dili gyud ko okay today and maybe I need someone to stay with me.
+
+Maayo na nga step. Dili kinahanglan nga ma-explain nimo tanan niya dayon. Pwede ra nimo sugdan sa "Dili ko okay karon, pwede ko nimo ubanan?"
+
+Sige. Murag kaya nako na.
+
+Kumusta imong feeling compared sa pagsugod nato?
+
+Medyo lighter. Wala pa nawala akong problema, pero dili na kaayo gubot akong huna-huna.
+
+Maayo. One step at a time lang karon. Ayaw sa pag-demand nga kinahanglan okay na dayon ka.
+
+Thank you kaayo, ma'am. Needed gyud nako nga makastorya ug someone.
+
+Salamat pud nga nitawag ka ug nisulti sa imong gibati. Before ta mo-end, safe ra gihapon ka?
+
+Oo, safe ra ko.
+
+Sige, Camille. Duol sa imong ate karon ug hatagi ug chance imong kaugalingon nga makapahuay. Maayong hapon.
+
+Maayong hapon pud, ma'am. Thank you.
+"""
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Camille")
+        self.assertEqual(result["fields"]["callerAge"], 29)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Lapu-Lapu City")
+        self.assertEqual(categories, ["Given Referrals", "Psychoeducation"])
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Work/Employment Problem."
+        )
+        for phrase in (
+            "dili makatulog og tarong",
+            "gusto lang nga mawala",
+            "nagsige og hilak",
+            "empty ang pamati",
+        ):
+            self.assertIn(phrase, lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, low risk.")
+        self.assertEqual(
+            [
+                (entity["label"], entity["text"])
+                for entity in result["entities"]
+                if entity["label"] == "NAME"
+            ],
+            [("NAME", "Camille")],
+        )
+
+    def test_handles_child_development_concern_without_false_guidance_referral(self):
+        text = (
+            "Hello, Tawag Paglaum ni. Ako si Liza. Unsa may nahitabo?\n\n"
+            "Naa koy problema bahin sa akong anak. Lisod siya mosunod og simple "
+            "instructions.\n\n"
+            "Unsa iyang edad karon?\n\n"
+            "Six years old.\n\n"
+            "Unsa imong gibati sa dihang gisultihan ka sa teacher?\n\n"
+            "Nahadlok ko. Nakaingon iyang teacher nga kinahanglan siya og extra "
+            "guidance.\n\n"
+            "Unsa diay imong ngalan?\n\n"
+            "Maricel.\n\n"
+            "Pila na imong edad?\n\n"
+            "Thirty-four.\n\n"
+            "Asa ka nagpuyo karon?\n\n"
+            "Sa Talisay ko nagpuyo.\n\n"
+            "Unsa imong gender?\n\n"
+            "Female.\n\n"
+            "Married ka or single?\n\n"
+            "Married ko.\n\n"
+            "Kumusta ka mismo ani tanan?\n\n"
+            "Oo. Sige kog worry. Usahay gabii na kaayo ko makatulog kay "
+            "maghunahuna ko.\n\n"
+            "Unsay kasagaran mosulod sa imong hunahuna?\n\n"
+            '"Unsa kaha kung dili siya maka-catch up?" "Unsa kaha kung '
+            'kinahanglan niya og special nga support?" Daghan kaayo kog '
+            "questions pero wala koy klarong tubag.\n\n"
+            "Murag ang uncertainty gyud ang pinakabug-at para nimo.\n\n"
+            "Oo. Mas okay pa siguro kung kahibalo ko unsa akong buhaton. Karon "
+            "kay sige ra kog search online.\n\n"
+            "Nakaapekto ba sa imong appetite o energy?\n\n"
+            "Usahay dili ko gutom. Pero mostly anxiety ug sige kog hunahuna ang "
+            "problema.\n\n"
+            "Maricel, mangutana lang ko para makasiguro ko sa imong safety. "
+            "Nakaabot ba ka sa punto nga nakahunahuna ka nga pasakitan imong "
+            "kaugalingon?\n\n"
+            "Wala, ma'am. Wala gyud.\n\n"
+            "Okay. Karon, safe ra ka sa inyong balay?\n\n"
+            "Oo, safe ra ko.\n\n"
+            "Sige. At least klaro nga wala kay immediate danger karon.\n\n"
+            "Maricel, murag dili man kinahanglan nga ikaw ra ang mag-figure out "
+            "ani tanan. Ang importante karon kay makuha ninyo ang sakto nga "
+            "assessment gikan sa qualified professional.\n\n"
+            "Mao pud akong gusto. Pero wala gyud ko kabalo asa magsugod.\n\n"
+            "Pwede nato hinay-hinayon. Isulat lang ang mga behavior nga imong "
+            "nabantayan. Ayaw pud basola imong kaugalingon.\n\n"
+            "Okay. Salamat.\n\n"
+            "Based sa imong gi-share, mas maayo nga ma-assess siya sa child "
+            "development or mental health professional. Pwede tika ma-refer sa "
+            "psychologist.\n\n"
+            "Yes, gusto ko ana.\n\n"
+            "Sige. Dalha ang observations sa teacher para sa assessment.\n\n"
+            "Okay. Mangayo ko og copy.\n\n"
+            "Before ta mag-end, unsa imong unang buhaton?\n\n"
+            "Istoryahan nako akong husband, then mangita mi og psychologist.\n\n"
+            "Maayo na nga next steps. One step at a time lang.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+        caller_text = extract_caller_text(text)
+
+        self.assertEqual(result["fields"]["callerName"], "Maricel")
+        self.assertEqual(result["fields"]["callerAge"], 34)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Married")
+        self.assertEqual(result["fields"]["callerLocation"], "Talisay City")
+        self.assertEqual(categories, ["Given Referrals", "Psychoeducation"])
+        self.assertNotIn("Referred to Guidance Counselors", categories)
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Family Problem.")
+        for phrase in (
+            "dili makatulog og tarong",
+            "gikulbaan",
+            "nawad-an og gana mokaon",
+            "sige og overthink",
+        ):
+            self.assertIn(phrase, lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertEqual(lines[2], "Sa risk assessment, low risk.")
+        self.assertIn("referral", lines[3])
+        self.assertIn("psychoeducation", lines[3])
+        self.assertIn("Unsa kaha kung dili siya maka-catch up?", caller_text)
+        self.assertNotIn("murag dili man kinahanglan nga ikaw ra", caller_text)
+        self.assertEqual(
+            [
+                (entity["label"], entity["text"])
+                for entity in result["entities"]
+                if entity["label"] == "NAME"
+            ],
+            [("NAME", "Maricel")],
+        )
 
     def test_pipeline_reports_textrank_template_summary(self):
         result = analyze(
