@@ -48,8 +48,9 @@ class Professional(models.Model):
                 INACTIVE = 'Inactive', 'Inactive'
 
     professional_id = models.AutoField(primary_key=True)
-    institution = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    institution = models.ForeignKey(Institution, null=True, blank=True, on_delete=models.CASCADE)
     professional_gender = models.CharField(max_length=50, blank=True, null=True)
+    professional_location = models.CharField(max_length=255, blank=True, null=True)
     professional_name = models.CharField(max_length=255)
     professional_specialization = models.CharField(max_length=50, choices=SpecializationChoices.choices)
     professional_last_updated = models.DateTimeField()

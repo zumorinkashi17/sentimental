@@ -359,6 +359,17 @@ canvas {
     background-color: #fb923c;
     border-radius: 50%;
 }
+.fc-day-holiday .fc-daygrid-day-frame { border-color: #fde68a; }
+.fc-day-holiday .fc-daygrid-day-frame::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 6px;
+    height: 6px;
+    background-color: #eab308;
+    border-radius: 50%;
+}
 
 /* Today */
 .fc .fc-day-today .fc-daygrid-day-frame {
@@ -389,6 +400,12 @@ canvas {
 }
 .text-status-dayoff { color: #3b82f6; }
 .text-status-leave { color: #f97316; }
+.text-status-holiday {
+    color: #b45309;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 /* ==========================================
     MOBILE RESPONSIVENESS OVERRIDES
@@ -443,7 +460,8 @@ canvas {
     
     /* Adjust dots */
     .fc-day-dayoff .fc-daygrid-day-frame::after,
-    .fc-day-leave .fc-daygrid-day-frame::after {
+    .fc-day-leave .fc-daygrid-day-frame::after,
+    .fc-day-holiday .fc-daygrid-day-frame::after {
         top: 6px;
         right: 6px;
         width: 4px;

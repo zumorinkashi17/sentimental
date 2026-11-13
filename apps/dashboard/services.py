@@ -210,13 +210,24 @@ def _contacts(limit=6):
             key=lambda contact: (CONTACT_ORDER.get(contact.contact_type, 9), contact.contact_type),
         )
         institution = professional.institution
+        
+        # --- NEW SAFEGUARD ---
+        if institution:
+            loc = (institution.institution_location or "").strip() or institution.institution_name
+            inst_name = institution.institution_name
+        else:
+            # Fallback to the professional's personal location if they have no institution
+            loc = professional.professional_location or "—"
+            inst_name = "Independent Practice"
+        # ---------------------
+            
         rows.append(
             {
                 "name": professional.professional_name,
                 "gender": professional.professional_gender or "—",
-                "location": (institution.institution_location or "").strip() or institution.institution_name,
+                "location": loc,
                 "contacts": [{"type": contact.contact_type, "value": contact.contact_number} for contact in contacts],
-                "institution": institution.institution_name,
+                "institution": inst_name,
             }
         )
     return rows

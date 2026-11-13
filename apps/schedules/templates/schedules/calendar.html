@@ -170,6 +170,7 @@
                     if (status === 'Scheduled') dayCell.classList.add('fc-day-scheduled');
                     else if (status === 'Day Off') dayCell.classList.add('fc-day-dayoff');
                     else if (status === 'Leave') dayCell.classList.add('fc-day-leave');
+                    else if (status === 'Holiday') dayCell.classList.add('fc-day-holiday');
                 }
             },
 
@@ -188,6 +189,9 @@
                     html = '<div class="text-custom-status text-status-dayoff">Day Off</div>';
                 } else if (status === 'Leave') {
                     html = '<div class="text-custom-status text-status-leave">Leave</div>';
+                } else if (status === 'Holiday') {
+                    var holidayName = arg.event.extendedProps.holiday || arg.event.title;
+                    html = '<div class="text-custom-status text-status-holiday" title="' + holidayName + '">' + holidayName + '</div>';
                 }
                 return { html: html };
             }

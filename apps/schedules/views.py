@@ -15,6 +15,36 @@ from collections import defaultdict
 
 ROSTER_PAGE_SIZE = 10
 
+
+def _philippine_holiday_events(start_year=None, end_year=None):
+    """Return Philippine holidays as FullCalendar all-day events."""
+    import holidays as holidays_lib
+
+    today = date.today()
+    if start_year is None:
+        start_year = min(2020, today.year)
+    if end_year is None:
+        end_year = today.year + 10
+
+    ph_holidays = holidays_lib.Philippines(years=range(start_year, end_year + 1))
+
+    events = []
+    for holiday_date, name in sorted(ph_holidays.items()):
+        events.append({
+            "title": name,
+            "start": holiday_date.strftime("%Y-%m-%d"),
+            "allDay": True,
+            "backgroundColor": "#fef3c7",
+            "borderColor": "#f59e0b",
+            "textColor": "#b45309",
+            "extendedProps": {
+                "status": "Holiday",
+                "holiday": name,
+            },
+        })
+    return events
+
+
 def admin_calendar_view(request):
     shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
     
@@ -136,6 +166,7 @@ def admin_calendar_view(request):
         'today_date': today,
         'pending_leaves': pending_leaves,
         'processed_leaves': processed_leaves, 
+        'holidays_json': json.dumps(_philippine_holiday_events()),
         
         'active_today_count': active_today_count,
         'active_week_count': active_week_count,
@@ -399,6 +430,9 @@ def responder_schedule_view(request):
                         "status": "Leave"
                     }
                 })
+
+    # Add Philippine holidays so they appear on the calendar view.
+    events.extend(_philippine_holiday_events())
 
     context = {
         'dayoff_requests': dayoff_requests,

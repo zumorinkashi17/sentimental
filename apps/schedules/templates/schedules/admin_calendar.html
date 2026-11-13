@@ -181,6 +181,13 @@
                                 <span class="text-gray-400 font-bold hidden sm:block">-</span>
                                 <input type="date" id="scheduleEndPeriod" class="form-input bg-white w-full text-sm border-gray-200 py-2 rounded-lg text-gray-700 cursor-pointer" required>
                             </div>
+                            <!-- PH holidays within the selected schedule period -->
+                            <div id="period-holiday-hint" class="hidden mt-2 flex flex-wrap items-center gap-1.5">
+                                <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                                    <i class="ph-fill ph-confetti"></i> Holidays:
+                                </span>
+                                <div id="period-holiday-list" class="flex flex-wrap gap-1.5"></div>
+                            </div>
                         </div>
                         
                         <!-- Shift -->
@@ -513,6 +520,7 @@
                     <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-brand"><i class="ph-fill ph-briefcase text-sm"></i> Scheduled</span>
                     <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-blue-500"><i class="ph-fill ph-coffee text-sm"></i> Day Off</span>
                     <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-orange-500"><i class="ph-fill ph-airplane-tilt text-sm"></i> Leave</span>
+                    <span class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 text-amber-600"><i class="ph-fill ph-confetti text-sm"></i> Holiday</span>
                 </div>
             </div>
             
@@ -592,6 +600,10 @@
                             <span class="w-4 h-4 rounded bg-amber-400 border border-amber-500"></span> 
                             <span class="font-bold text-gray-700">Approved Leave</span>
                         </li>
+                        <li class="flex items-center gap-3">
+                            <span class="w-4 h-4 rounded bg-yellow-200 border border-yellow-400"></span> 
+                            <span class="font-bold text-gray-700">PH Holiday</span>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -605,11 +617,67 @@
     </div>
 </div>
 
+<script id="holiday-data" type="application/json">{{ holidays_json|safe|default:"[]" }}</script>
+
 <script>
     var currentEditState = [];
     var currentShiftTime = '';
     var currentCalendar = null;
     var editCalendar = null;
+
+    var phHolidays = [];
+    try {
+        var holidayDataEl = document.getElementById('holiday-data');
+        phHolidays = holidayDataEl ? JSON.parse(holidayDataEl.textContent) : [];
+    } catch (e) {
+        console.error('Failed to parse holiday data', e);
+    }
+
+    function updatePeriodHolidayHint() {
+        var startInput = document.getElementById('scheduleStartPeriod');
+        var endInput = document.getElementById('scheduleEndPeriod');
+        var hint = document.getElementById('period-holiday-hint');
+        var list = document.getElementById('period-holiday-list');
+        if (!startInput || !endInput || !hint || !list) return;
+
+        list.innerHTML = '';
+
+        if (!startInput.value || !endInput.value) {
+            hint.classList.add('hidden');
+            return;
+        }
+
+        var startDate = new Date(startInput.value + 'T00:00:00');
+        var endDate = new Date(endInput.value + 'T00:00:00');
+        if (startDate > endDate) {
+            hint.classList.add('hidden');
+            return;
+        }
+
+        var matches = phHolidays.filter(function(holiday) {
+            var holidayDate = new Date(holiday.start + 'T00:00:00');
+            return holidayDate >= startDate && holidayDate <= endDate;
+        });
+
+        if (matches.length === 0) {
+            list.innerHTML = '<span class="text-[11px] text-gray-400 italic">No PH holidays in this period</span>';
+        } else {
+            matches.forEach(function(holiday) {
+                var holidayDate = new Date(holiday.start + 'T00:00:00');
+                var label = holidayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                var badge = document.createElement('span');
+                badge.className = 'text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full';
+                badge.title = holiday.title;
+                badge.textContent = label + ' · ' + holiday.title;
+                list.appendChild(badge);
+            });
+        }
+
+        hint.classList.remove('hidden');
+    }
+
+    document.getElementById('scheduleStartPeriod')?.addEventListener('change', updatePeriodHolidayHint);
+    document.getElementById('scheduleEndPeriod')?.addEventListener('change', updatePeriodHolidayHint);
 
     // CSRF Helper
     function getCookie(name) {
@@ -673,6 +741,19 @@
             };
         });
 
+        const holidayEvents = phHolidays.map((holiday, index) => {
+            return {
+                id: `edit-holiday-${index}`,
+                title: holiday.title,
+                start: holiday.start,
+                allDay: true,
+                extendedProps: {
+                    isHoliday: true,
+                    holiday: holiday.title
+                }
+            };
+        });
+
         editCalendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             initialDate: initialDate,
@@ -681,15 +762,26 @@
                 right: 'prev,next'
             },
             height: 'auto',
-            events: editableEvents,
+            events: editableEvents.concat(holidayEvents),
             
             eventClick: function(info) {
+                if (info.event.extendedProps.isHoliday) return;
                 const stateIndex = info.event.extendedProps.index;
                 toggleDayStatus(stateIndex);
             },
 
             // Detailed HTML rendering without icons, showing shift times on scheduled days
             eventContent: function(info) {
+                if (info.event.extendedProps.isHoliday) {
+                    return {
+                        html: `
+                            <div class="bg-amber-50 text-amber-700 border border-amber-200 p-1 sm:p-1.5 rounded flex flex-col items-center justify-center w-full text-center overflow-hidden" title="${info.event.title}">
+                                <span class="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider truncate w-full">Holiday</span>
+                                <span class="text-[7px] sm:text-[9px] font-medium leading-tight truncate w-full hidden sm:block">${info.event.title}</span>
+                            </div>`
+                    };
+                }
+
                 const status = info.event.extendedProps.status;
                 let htmlContent = '';
 
@@ -768,6 +860,19 @@
             }
         });
 
+        // Add Philippine holidays as read-only calendar events.
+        phHolidays.forEach(holiday => {
+            instantEvents.push({
+                title: holiday.title,
+                start: holiday.start,
+                allDay: true,
+                extendedProps: {
+                    status: 'holiday',
+                    holiday: holiday.title
+                }
+            });
+        });
+
         // Inject calculated metrics into the UI
         document.getElementById('stat-scheduled').innerText = countScheduled;
         document.getElementById('stat-dayoff').innerText = countDayOff;
@@ -804,7 +909,12 @@
                 let status = info.event.extendedProps.status;
                 let htmlContent = '';
                 
-                if (status === 'day off') {
+                if (status === 'holiday') {
+                    htmlContent = `
+                        <div title="${info.event.title}" style="background-color: #fefce8; color: #a16207; padding: 2px 4px; border-left: 3px solid #eab308; border-radius: 3px; margin: 1px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">${info.event.title}</div>
+                        </div>`;
+                } else if (status === 'day off') {
                     htmlContent = `
                         <div title="Day Off" style="background-color: #eff6ff; color: #2563eb; padding: 2px 4px; border-left: 3px solid #3b82f6; border-radius: 3px; margin: 1px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                             <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">OFF</div>

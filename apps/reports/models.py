@@ -6,7 +6,6 @@ class Report(models.Model):
     class ReportTypeChoices(models.TextChoices):
         COMPLIANCE = 'Compliance', 'Compliance'
         ANALYTICS = 'Analytics', 'Analytics'
-        SECURITY = 'Security', 'Security'
 
     report_id = models.AutoField(primary_key=True)
     report_title = models.CharField(max_length=255)

@@ -10,6 +10,21 @@
                 <h1 class="text-2xl font-bold text-gray-800">Referral Directory Manager</h1>
                 <p class="text-gray-500 text-sm sm:text-base">Manage external clinics and professionals.</p>
             </div>
+            <!-- GLOBAL REGION FILTER -->
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <form id="global-region-filter" method="get" class="w-full sm:w-auto">
+                    <input type="hidden" name="inst_search" value="{{ current_inst_search }}">
+                    <input type="hidden" name="prof_search" value="{{ current_prof_search }}">
+                    <input type="hidden" name="prof_spec" value="{{ current_prof_spec }}">
+                    
+                    <select id="filter-manage-region" name="region" onchange="this.form.submit()" class="form-input bg-white w-full sm:w-auto py-2 px-3 font-semibold text-sm text-brand border border-gray-200 shadow-sm rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <option value="All" {% if current_region == 'All' or not current_region %}selected{% endif %}>All Regions</option>
+                        {% for val, label in region_choices %}
+                            <option value="{{ val }}" {% if current_region == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
         </div>
 
         <!-- INSTITUTIONS SECTION -->
@@ -24,6 +39,7 @@
                         <input type="text" id="search-manage-inst" name="inst_search" value="{{ current_inst_search }}" placeholder="Search institutions..." class="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all">
                         <input type="hidden" name="prof_search" value="{{ current_prof_search }}">
                         <input type="hidden" name="prof_spec" value="{{ current_prof_spec }}">
+                        <input type="hidden" name="region" value="{{ current_region }}">
                         <input type="hidden" name="prof_page" value="{{ request.GET.prof_page|default:'' }}">
                     </form>
                     <button type="button" id="btn-add-inst" class="bg-brand text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-colors whitespace-nowrap w-full sm:w-auto">
@@ -36,23 +52,29 @@
                     <thead class="sticky top-0 bg-gray-50 z-10">
                         <tr class="text-[10px] uppercase text-gray-500">
                             <th class="p-3 font-bold w-[25%]">Institution Name</th>
-                            <th class="p-3 font-bold w-[25%]">Location</th>
-                            <th class="p-3 font-bold w-[25%]">Contacts</th>
-                            <th class="p-3 font-bold w-[15%] text-center">Status</th>
+                            <th class="p-3 font-bold w-[20%]">Location</th>
+                            <th class="p-3 font-bold w-[20%]">Contacts</th>
+                            <th class="p-3 font-bold w-[15%] text-center">Last Updated</th>
+                            <th class="p-3 font-bold w-[10%] text-center">Status</th>
                             <th class="p-3 font-bold w-[10%] text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-manage-inst" class="text-sm text-gray-700 divide-y divide-gray-100">
                         {% for inst in institution_list %}
                         <tr class="inst-row" data-search="{{ inst.institution_name|lower }} {{ inst.institution_location|lower }}">
-                            <td class="p-3 font-bold text-gray-800 truncate">{{ inst.institution_name }}</td>
-                            <td class="p-3 truncate">{{ inst.institution_location }}</td>
+                            <td class="p-3 font-bold text-gray-800 whitespace-normal break-words">{{ inst.institution_name }}</td>
+                            <td class="p-3 whitespace-normal break-words">{{ inst.institution_location }}</td>
                             <td class="p-3">
                                 {% for contact in inst.institutioncontact_set.all %}
-                                    <div class="text-xs truncate"><span class="font-semibold text-gray-500">{{ contact.institution_contact_type }}:</span> {{ contact.institution_contact_number }}</div>
+                                    <div class="text-xs whitespace-normal break-words"><span class="font-semibold text-gray-500">{{ contact.institution_contact_type }}:</span> {{ contact.institution_contact_number }}</div>
                                 {% empty %}
                                     <span class="text-gray-400 italic text-xs">No contacts</span>
                                 {% endfor %}
+                            </td>
+                            <td class="p-3 text-center text-xs text-gray-500">
+                                {% with first_contact=inst.institutioncontact_set.all|first %}
+                                    {{ first_contact.institution_contact_last_update|date:"M d, Y"|default:"-" }}
+                                {% endwith %}
                             </td>
                             <td class="p-3 text-center">
                                 {% if inst.institution_status == 'Inactive' %}
@@ -71,7 +93,7 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No institutions found.</td></tr>
+                        <tr><td colspan="6" class="p-4 text-center text-gray-400">No institutions found.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -90,6 +112,8 @@
                     <form id="prof-filters" method="get" class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <input type="hidden" name="inst_search" value="{{ current_inst_search }}">
                         <input type="hidden" name="inst_page" value="{{ request.GET.inst_page|default:'' }}">
+                        <input type="hidden" name="region" value="{{ current_region }}">
+
                         <select id="filter-manage-spec" name="prof_spec" onchange="this.form.submit()" class="form-input bg-gray-50 border-gray-200 text-sm py-2 rounded-lg w-full sm:w-auto focus:bg-white">
                             <option value="All" {% if current_prof_spec == 'All' or not current_prof_spec %}selected{% endif %}>All Specializations</option>
                             {% for value, label in specialization_choices %}
@@ -112,31 +136,37 @@
                     <thead class="sticky top-0 bg-gray-50 z-10">
                         <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
                             <th class="p-3 font-bold w-[25%]">Name</th>
-                            <th class="p-3 font-bold w-[25%]">Contacts</th>
+                            <th class="p-3 font-bold w-[20%]">Contacts</th>
                             <th class="p-3 font-bold w-[25%]">Affiliations & Schedules</th>
-                            <th class="p-3 font-bold w-[15%] text-center">Status</th>
+                            <th class="p-3 font-bold w-[10%] text-center">Last Updated</th>
+                            <th class="p-3 font-bold w-[10%] text-center">Status</th>
                             <th class="p-3 font-bold w-[10%] text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-manage-prof" class="text-sm text-gray-700 divide-y divide-gray-100">
                         {% for prof in professionals %}
-                        <tr class="prof-row" data-spec="{{ prof.professional_specialization }}" data-search="{{ prof.professional_name|lower }} {% if prof.institution and prof.institution.institution_status != 'Inactive' %}{{ prof.institution.institution_name|lower }} {{ prof.institution.institution_location|lower }}{% endif %} {% for aff in prof.affiliation_set.all %}{% if aff.institution.institution_status != 'Inactive' %}{{ aff.institution.institution_name|lower }} {{ aff.institution.institution_location|lower }} {% endif %}{% endfor %}">
+                        <tr class="prof-row" data-spec="{{ prof.professional_specialization }}" data-search="{{ prof.professional_name|lower }} {{ prof.professional_location|default:''|lower }} {% if prof.institution and prof.institution.institution_status != 'Inactive' %}{{ prof.institution.institution_name|lower }} {{ prof.institution.institution_location|lower }}{% endif %} {% for aff in prof.affiliation_set.all %}{% if aff.institution.institution_status != 'Inactive' %}{{ aff.institution.institution_name|lower }} {{ aff.institution.institution_location|lower }} {% endif %}{% endfor %}">
                             <td class="p-3">
-                                <div class="font-bold text-gray-800 truncate">{{ prof.professional_name }}</div>
+                                <div class="font-bold text-gray-800 whitespace-normal break-words">{{ prof.professional_name }}</div>
                                 <div class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mt-0.5 truncate">
                                     {{ prof.professional_specialization }}
                                 </div>
+                                {% if prof.professional_location %}
+                                <div class="text-[11px] text-gray-500 mt-1 whitespace-normal break-words">
+                                    <i class="ph-fill ph-map-pin text-brand mr-1"></i>{{ prof.professional_location }}
+                                </div>
+                                {% endif %}
                             </td>
                             <td class="p-3 text-xs font-semibold text-gray-500">
                                 {% for contact in prof.professionalcontact_set.all %}
-                                    <div class="truncate">{{ contact.contact_type }}: {{ contact.contact_number }}</div>
+                                    <div class="whitespace-normal break-words">{{ contact.contact_type }}: {{ contact.contact_number }}</div>
                                 {% empty %}
                                     <span class="text-gray-400 italic text-xs font-normal">No contacts</span>
                                 {% endfor %}
                             </td>
                             <td class="p-3">
                                 {% if prof.institution and prof.institution.institution_status != 'Inactive' %}
-                                    <div class="text-xs mb-1.5 truncate">
+                                    <div class="text-xs mb-1.5 whitespace-normal break-words">
                                         <span class="font-bold text-brand">{{ prof.institution.institution_name }}</span>
                                         <span class="bg-brand/10 text-brand text-[9px] px-1 py-0.5 rounded uppercase font-bold tracking-wider ml-1">Primary</span><br>
                                         <span class="text-gray-500">{{ prof.institution.institution_location|default:"No location set" }}</span>
@@ -144,7 +174,7 @@
                                 {% endif %}
                                 {% for aff in prof.affiliation_set.all %}
                                     {% if aff.institution.institution_status != 'Inactive' %}
-                                        <div class="text-xs mb-1.5 truncate">
+                                        <div class="text-xs mb-1.5 whitespace-normal break-words">
                                             <span class="font-bold text-brand">{{ aff.institution.institution_name }}</span><br>
                                             <span class="text-gray-500">{{ aff.schedule|default:"No schedule set" }}</span>
                                         </div>
@@ -153,6 +183,9 @@
                                 {% if not prof.institution and not prof.affiliation_set.all %}
                                     <span class="text-gray-400 italic text-xs">No affiliations</span>
                                 {% endif %}
+                            </td>
+                            <td class="p-3 text-center text-xs text-gray-500">
+                                {{ prof.professional_last_updated|date:"M d, Y" }}
                             </td>
                             <td class="p-3 text-center">
                                 {% if prof.professional_status == 'Inactive' %}
@@ -167,6 +200,7 @@
                                     data-name="{{ prof.professional_name|escapejs }}" 
                                     data-gender="{{ prof.professional_gender|escapejs }}" 
                                     data-spec="{{ prof.professional_specialization|escapejs }}" 
+                                    data-location="{{ prof.professional_location|default:''|escapejs }}"
                                     data-inst="{% if prof.institution %}{{ prof.institution.institution_id }}{% endif %}" 
                                     data-status="{{ prof.professional_status|default:'Active'|escapejs }}"
                                     data-contacts="{% for c in prof.professionalcontact_set.all %}{{ c.contact_type }}::{{ c.contact_number|escapejs }}{% if not forloop.last %}~~{% endif %}{% endfor %}"
@@ -174,7 +208,7 @@
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="5" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
+                        <tr><td colspan="6" class="p-4 text-center text-gray-400">No professionals found.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -198,7 +232,6 @@
 
 <!-- MODAL: ADD/EDIT INSTITUTION -->
 <div id="modal-institution" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-    <!-- Adjusted width for mobile w-[95%] -->
     <div class="bg-white rounded-2xl shadow-xl w-[95%] sm:w-full max-w-md overflow-hidden flex flex-col">
         <div class="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="font-bold text-gray-800" id="inst-modal-title">Add Institution</h3>
@@ -209,7 +242,6 @@
             <input type="hidden" name="action" value="save_institution">
             <input type="hidden" name="institution_id" id="inst_id">
             
-            <!-- Switched to grid-cols-1 for mobile, sm:grid-cols-2 for desktop -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="col-span-1 sm:col-span-2"><label class="form-label">Institution Name</label><input type="text" name="institution_name" id="inst_name" class="form-input" required></div>
                 <div class="col-span-1 sm:col-span-2"><label class="form-label">Location (Address/City)</label><input type="text" name="institution_location" id="inst_loc" class="form-input"></div>
@@ -237,7 +269,6 @@
 
 <!-- MODAL: ADD/EDIT PROFESSIONAL -->
 <div id="modal-professional" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4">
-    <!-- Adjusted width for mobile w-[95%] -->
     <div class="bg-white rounded-2xl shadow-xl w-[95%] sm:w-full max-w-lg overflow-hidden flex flex-col">
         <div class="p-4 sm:p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="font-bold text-gray-800" id="prof-modal-title">Add Professional</h3>
@@ -248,7 +279,6 @@
             <input type="hidden" name="action" value="save_professional">
             <input type="hidden" name="professional_id" id="prof_id">
             
-            <!-- Switched to grid-cols-1 for mobile, sm:grid-cols-2 for desktop -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="col-span-1 sm:col-span-2"><label class="form-label">Full Name</label><input type="text" name="professional_name" id="prof_name" class="form-input" required></div>
                 <div>
@@ -266,6 +296,11 @@
                     </select>
                 </div>
                 
+                <div class="col-span-1 sm:col-span-2">
+                    <label class="form-label">Personal Location <span class="text-[10px] text-gray-400 font-normal ml-1">(Optional)</span></label>
+                    <input type="text" name="professional_location" id="prof_location" class="form-input" placeholder="e.g. Cebu City">
+                </div>
+                
                 <div class="col-span-1 sm:col-span-2 hidden" id="prof_status_container">
                     <label class="form-label">Status</label>
                     <select name="professional_status" id="prof_status" class="form-input">
@@ -276,8 +311,8 @@
                 </div>
                 
                 <div class="col-span-1 sm:col-span-2">
-                    <label class="form-label">Primary Institution</label>
-                    <select name="institution_id" id="prof_inst" class="form-input" required>
+                    <label class="form-label">Primary Institution <span class="text-[10px] text-gray-400 font-normal ml-1">(Optional)</span></label>
+                    <select name="institution_id" id="prof_inst" class="form-input">
                         <!-- Loaded via JS from template -->
                     </select>
                 </div>
@@ -398,11 +433,12 @@
             modal.classList.add('flex');
         }
 
-        function openProfModal(id='', name='', gender='Male', spec='Psychiatry', primaryInst='', status='Active', contactsStr='', affilsStr='') {
+        function openProfModal(id='', name='', gender='Male', spec='Psychiatry', location='', primaryInst='', status='Active', contactsStr='', affilsStr='') {
             document.getElementById('prof_id').value = id;
             document.getElementById('prof_name').value = name;
             document.getElementById('prof_gender').value = gender;
             document.getElementById('prof_spec').value = spec;
+            document.getElementById('prof_location').value = location;
             document.getElementById('prof_status').value = status || 'Active';
             
             const instSelect = document.getElementById('prof_inst');
@@ -485,6 +521,7 @@
                     this.dataset.name, 
                     this.dataset.gender, 
                     this.dataset.spec, 
+                    this.dataset.location,
                     this.dataset.inst, 
                     this.dataset.status,
                     this.dataset.contacts,

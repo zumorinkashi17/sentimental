@@ -8,8 +8,48 @@ from .models import (
     Institution, InstitutionContact, Professional, ProfessionalContact, Affiliation
 )
 
+# --- DETAILED REGION MAPPING ---
+REGION_MAP = {
+    'NCR': ['Caloocan', 'Las Piñas', 'Makati', 'Malabon', 'Mandaluyong', 'Manila', 'Marikina', 'Muntinlupa', 'Navotas', 'Parañaque', 'Pasay', 'Pasig', 'Quezon City', 'San Juan', 'Taguig', 'Valenzuela', 'NCR', 'Metro Manila'],
+    'CAR': ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province', 'Baguio', 'Cordillera'],
+    'Region I': ['Ilocos Norte', 'Ilocos Sur', 'La Union', 'Pangasinan', 'Region I'],
+    'Region II': ['Batanes', 'Cagayan', 'Isabela', 'Nueva Vizcaya', 'Quirino', 'Tuguegarao', 'Region II'],
+    'Region III': ['Aurora', 'Bataan', 'Bulacan', 'Nueva Ecija', 'Pampanga', 'Tarlac', 'Zambales', 'Angeles', 'Olongapo', 'Region III'],
+    'Region IV-A': ['Batangas', 'Cavite', 'Laguna', 'Quezon', 'Rizal', 'Lucena', 'CALABARZON', 'Region IV-A'],
+    'Region IV-B': ['Marinduque', 'Occidental Mindoro', 'Oriental Mindoro', 'Palawan', 'Romblon', 'Puerto Princesa', 'MIMAROPA', 'Region IV-B'],
+    'Region V': ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon', 'Naga', 'Bicol', 'Region V'],
+    'Region VI': ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Ilo ilo', 'Negros Occidental', 'Bacolod', 'Western Visayas', 'Region VI'],
+    'Region VII': ['Bohol', 'Cebu', 'Negros Oriental', 'Siquijor', 'Mandaue', 'Lapu-Lapu', 'Central Visayas', 'Region VII'],
+    'Region VIII': ['Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte', 'Ormoc', 'Tacloban', 'Eastern Visayas', 'Region VIII'],
+    'Region IX': ['Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay', 'Zamboanga City', 'Isabela City', 'Zamboanga Peninsula', 'Region IX'],
+    'Region X': ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental', 'Cagayan de Oro', 'Iligan', 'Northern Mindanao', 'Region X'],
+    'Region XI': ['Davao de Oro', 'Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental', 'Davao City', 'Davao Region', 'Region XI'],
+    'Region XII': ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat', 'General Santos', 'SOCCSKSARGEN', 'Region XII'],
+    'Region XIII': ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur', 'Butuan', 'Caraga', 'Region XIII'],
+    'BARMM': ['Basilan', 'Lanao del Sur', 'Maguindanao', 'Maguindanao del Norte', 'Maguindanao del Sur', 'Sulu', 'Tawi-Tawi', 'Cotabato City', 'Bangsamoro', 'BARMM']
+}
 
-def _filter_professionals(professionals, search, specialization):
+REGION_CHOICES = [
+    ("NCR", "NCR \u2013 Metro Manila"),
+    ("CAR", "CAR \u2013 Cordillera Administrative Region"),
+    ("Region I", "Region I \u2013 Ilocos Region"),
+    ("Region II", "Region II \u2013 Cagayan Valley"),
+    ("Region III", "Region III \u2013 Central Luzon"),
+    ("Region IV-A", "Region IV-A \u2013 CALABARZON"),
+    ("Region IV-B", "Region IV-B \u2013 MIMAROPA"),
+    ("Region V", "Region V \u2013 Bicol Region"),
+    ("Region VI", "Region VI \u2013 Western Visayas"),
+    ("Region VII", "Region VII \u2013 Central Visayas"),
+    ("Region VIII", "Region VIII \u2013 Eastern Visayas"),
+    ("Region IX", "Region IX \u2013 Zamboanga Peninsula"),
+    ("Region X", "Region X \u2013 Northern Mindanao"),
+    ("Region XI", "Region XI \u2013 Davao Region"),
+    ("Region XII", "Region XII \u2013 SOCCSKSARGEN"),
+    ("Region XIII", "Region XIII \u2013 Caraga"),
+    ("BARMM", "BARMM \u2013 Bangsamoro"),
+]
+
+def _filter_professionals(professionals, search, specialization, region):
     """Apply the shared directory/manager professional filters server-side."""
     search = (search or '').strip()
     if search:
@@ -17,6 +57,7 @@ def _filter_professionals(professionals, search, specialization):
             Q(professional_name__icontains=search)
             | Q(institution__institution_name__icontains=search)
             | Q(institution__institution_location__icontains=search)
+            | Q(professional_location__icontains=search)
             | Q(affiliation__institution__institution_name__icontains=search)
             | Q(affiliation__institution__institution_location__icontains=search)
         ).distinct()
@@ -24,15 +65,51 @@ def _filter_professionals(professionals, search, specialization):
     if specialization and specialization != 'All':
         professionals = professionals.filter(professional_specialization=specialization)
 
+    # Apply Regional Filtering
+    if region and region != 'All':
+        places = REGION_MAP.get(region, [])
+        if places:
+            region_query = Q()
+            for place in places:
+                region_query |= Q(professional_location__icontains=place)
+                region_query |= Q(institution__institution_location__icontains=place)
+                region_query |= Q(affiliation__institution__institution_location__icontains=place)
+            professionals = professionals.filter(region_query).distinct()
+
     return professionals
 
 
 def directory_view(request):
-    # 1. Check if the user is logged in at all
     if not request.session.get('user_id'):
         messages.error(request, "You must be logged in to view the directory.")
         return redirect('accounts:login')
 
+    search = request.GET.get('search', '')
+    specialization = request.GET.get('specialization', 'All')
+    region = request.GET.get('region', 'All')
+
+    # --- 1. INSTITUTIONS TABLE (Read-Only) ---
+    institutions = Institution.objects.filter(
+        institution_status=Institution.StatusChoices.ACTIVE
+    ).prefetch_related('institutioncontact_set').order_by('institution_name')
+    
+    if search:
+        institutions = institutions.filter(
+            Q(institution_name__icontains=search)
+            | Q(institution_location__icontains=search)
+        )
+        
+    if region != 'All':
+        places = REGION_MAP.get(region, [])
+        if places:
+            region_query = Q()
+            for place in places:
+                region_query |= Q(institution_location__icontains=place)
+            institutions = institutions.filter(region_query).distinct()
+            
+    inst_page_obj, inst_querystring = paginate(request, institutions, page_param='inst_page')
+
+    # --- 2. PROFESSIONALS TABLE ---
     professionals = Professional.objects.filter(
         professional_status=Professional.StatusChoices.ACTIVE
     ).select_related('institution').prefetch_related(
@@ -41,28 +118,33 @@ def directory_view(request):
 
     professionals = _filter_professionals(
         professionals,
-        request.GET.get('search'),
-        request.GET.get('specialization'),
+        search,
+        specialization,
+        region,
     ).order_by('professional_name')
 
-    page_obj, querystring = paginate(request, professionals)
+    prof_page_obj, prof_querystring = paginate(request, professionals, page_param='prof_page')
 
     return render(request, 'referrals/directory.html', {
-        'professionals': page_obj.object_list,
-        'page_obj': page_obj,
-        'querystring': querystring,
-        'current_search': request.GET.get('search', ''),
-        'current_specialization': request.GET.get('specialization', 'All'),
+        'institution_list': inst_page_obj.object_list,
+        'inst_page_obj': inst_page_obj,
+        'inst_querystring': inst_querystring,
+        'professionals': prof_page_obj.object_list,
+        'prof_page_obj': prof_page_obj,
+        'prof_querystring': prof_querystring,
+        'current_search': search,
+        'current_specialization': specialization,
+        'current_region': region,
         'specialization_choices': Professional.SpecializationChoices.choices,
+        'region_choices': REGION_CHOICES,
     })
 
+
 def manage_view(request):
-    # 1. Check if the user is logged in
     if not request.session.get('user_id'):
         messages.error(request, "You must be logged in to access this page.")
         return redirect('accounts:login')
         
-    # 2. Restrict access to Admins only
     if request.session.get('user_role') != 'Admin':
         messages.error(request, "You do not have permission to manage the directory.")
         return redirect('referrals:directory')
@@ -78,7 +160,6 @@ def manage_view(request):
                 location = request.POST.get('institution_location')
                 status = request.POST.get('institution_status') or Institution.StatusChoices.ACTIVE
                 
-                # Duplicate check logic
                 duplicate_query = Institution.objects.filter(institution_name__iexact=name)
                 if inst_id:
                     duplicate_query = duplicate_query.exclude(pk=inst_id)
@@ -121,10 +202,10 @@ def manage_view(request):
                 name = request.POST.get('professional_name').strip()
                 gender = request.POST.get('professional_gender')
                 specialization = request.POST.get('professional_specialization')
+                location = request.POST.get('professional_location')
                 primary_inst_id = request.POST.get('institution_id')
                 status = request.POST.get('professional_status') or Professional.StatusChoices.ACTIVE
                 
-                # --- PROFESSIONAL DUPLICATE PREVENTION ---
                 duplicate_prof_query = Professional.objects.filter(
                     professional_name__iexact=name,
                     professional_specialization=specialization
@@ -135,19 +216,15 @@ def manage_view(request):
                 if duplicate_prof_query.exists():
                     messages.error(request, f'A professional named "{name}" with this specialization already exists.')
                     return redirect('referrals:manage')
-                # -----------------------------------------
 
-                # --- DUPLICATE AFFILIATIONS CHECK ---
                 affil_inst_ids = request.POST.getlist('affiliation_inst_id[]')
                 affil_schedules = request.POST.getlist('affiliation_schedule[]')
                 
-                # Filter out empty strings to only check actual selected affiliations
                 valid_affil_ids = [aid for aid in affil_inst_ids if aid.strip()]
                 
                 if len(valid_affil_ids) != len(set(valid_affil_ids)):
                     messages.error(request, 'You cannot add the same institution multiple times in the affiliations list.')
                     return redirect('referrals:manage')
-                # ------------------------------------
 
                 primary_institution = Institution.objects.get(pk=primary_inst_id) if primary_inst_id else None
 
@@ -156,6 +233,7 @@ def manage_view(request):
                     prof.professional_name = name
                     prof.professional_gender = gender
                     prof.professional_specialization = specialization
+                    prof.professional_location = location
                     prof.institution = primary_institution
                     prof.professional_status = status
                     prof.professional_last_updated = timezone.now()
@@ -168,6 +246,7 @@ def manage_view(request):
                         professional_name=name,
                         professional_gender=gender,
                         professional_specialization=specialization,
+                        professional_location=location,
                         institution=primary_institution,
                         professional_status=status,
                         professional_last_updated=timezone.now()
@@ -203,12 +282,25 @@ def manage_view(request):
 
     institutions = Institution.objects.prefetch_related('institutioncontact_set').order_by('institution_name')
     inst_search = (request.GET.get('inst_search') or '').strip()
+    
+    # Shared global region filter
+    global_region = request.GET.get('region', 'All')
+    
     inst_queryset = institutions
     if inst_search:
         inst_queryset = inst_queryset.filter(
             Q(institution_name__icontains=inst_search)
             | Q(institution_location__icontains=inst_search)
         )
+        
+    if global_region != 'All':
+        places = REGION_MAP.get(global_region, [])
+        if places:
+            region_query = Q()
+            for place in places:
+                region_query |= Q(institution_location__icontains=place)
+            inst_queryset = inst_queryset.filter(region_query).distinct()
+            
     inst_page_obj, inst_querystring = paginate(request, inst_queryset, page_param='inst_page')
 
     professionals = Professional.objects.select_related('institution').prefetch_related(
@@ -218,6 +310,7 @@ def manage_view(request):
         professionals,
         request.GET.get('prof_search'),
         request.GET.get('prof_spec'),
+        global_region # Apply the same region to professionals
     ).order_by('professional_name')
     prof_page_obj, prof_querystring = paginate(request, professionals, page_param='prof_page')
 
@@ -232,14 +325,15 @@ def manage_view(request):
         'current_inst_search': inst_search,
         'current_prof_search': request.GET.get('prof_search', ''),
         'current_prof_spec': request.GET.get('prof_spec', 'All'),
+        'current_region': global_region,
         'specialization_choices': Professional.SpecializationChoices.choices,
         'contact_type_choices': ProfessionalContact.ContactTypeChoices.choices,
         'status_choices': Institution.StatusChoices.choices,
+        'region_choices': REGION_CHOICES,
     })
 
 
 def _professional_search_payload(professional):
-    """Build the lightweight JSON row used by the panel's referral picker."""
     institution = professional.institution
     affiliations = [
         affiliation
@@ -301,7 +395,6 @@ def _professional_search_payload(professional):
 
 
 def professionals_api(request):
-    """Return active professionals matching name, institution, or location."""
     if not request.session.get('user_id'):
         return JsonResponse({'results': []}, status=401)
 
@@ -316,6 +409,7 @@ def professionals_api(request):
         professionals,
         request.GET.get('q'),
         request.GET.get('specialization'),
+        request.GET.get('region')
     ).order_by('professional_name')
 
     return JsonResponse(
