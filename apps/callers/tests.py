@@ -93,10 +93,13 @@ class RuleExtractionTests(SimpleTestCase):
 
         result = analyze(text)
 
-        self.assertEqual(result["fields"]["intervention"], "- Given Referrals")
+        self.assertEqual(
+            result["fields"]["intervention"],
+            "- Given Referrals\n- Psychoeducation",
+        )
         self.assertEqual(
             result["field_meta"]["intervention"]["categories"],
-            ["Given Referrals"],
+            ["Given Referrals", "Psychoeducation"],
         )
 
     def test_classifies_refused_referral_from_caller_turn(self):
@@ -697,6 +700,525 @@ class SummaryTemplateTests(SimpleTestCase):
             "Psychoeducation",
             result["field_meta"]["intervention"]["categories"],
         )
+
+    def test_caregiver_conflict_is_family_problem_not_burnout(self):
+        text = (
+            "Caller:\n"
+            "Marco lang sir. 31 na ko, minyo na. Puno na kaayo akong ulo karon. "
+            "Ang among mama bedridden. Upat mi ka magsuon pero ako ra ug akong "
+            "asawa ang nag-atiman niya. Sila magpadala lang og gamay nga kwarta. "
+            "Karon nag-away mi kay gusto nako mag-amot-amot. Suko sila, "
+            "nangumbat pa. Grabe akong acid reflux, di ko katarong og kaon. "
+            "Dili ko maka-focus sa trabaho. Sige lag labad akong ulo, unya "
+            "kalit lang kong maglagot, murag gusto nako manumbag og bungbong. "
+            "Sige kog overthink sa mga utang.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Mag-breathing exercise ta. Pwede nimo sila "
+            "ipa-barangay.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+
+        self.assertEqual(result["fields"]["callerName"], "Marco")
+        self.assertEqual(result["fields"]["callerAge"], 31)
+        self.assertEqual(result["fields"]["callerStatus"], "Married")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Family Problem."
+        )
+        self.assertNotIn("Burnout", result["summary"])
+        self.assertIn("grabeng kasuko", lines[1])
+        categories = result["field_meta"]["intervention"]["categories"]
+        self.assertIn("Psychoeducation", categories)
+
+    def test_trauma_and_panic_keeps_referral_and_psychoeducation(self):
+        text = (
+            "Caller:\n"
+            "Tawga lang ko og Jason. 21 pa ko, single. Na-trauma ko sa aksidente "
+            "last year. Bisan makadungog og kusog nga brake, mag-panic attack ko. "
+            "Dili na ko ganahan mogawas. Mukusog og pitik akong kasingkasing, "
+            "manghagdaw akong singot, murag dili ko makaginhawa. Magkurog akong "
+            "kamot. Naay time nga lami i-give up pero dili nako kaya pasakitan "
+            "akong kaugalingon.\n\n"
+            "Responder:\n"
+            "Dili nimo to sala. Normal nga response ang trauma. Mag-breathing "
+            "exercise ta. Gikinahanglan nimo ang clinical psychologist. Naa tay "
+            "referral sa Vicente Sotto Behavioral Sciences.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+
+        self.assertEqual(result["fields"]["callerName"], "Jason")
+        self.assertEqual(result["fields"]["callerAge"], 21)
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "N/A")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Trauma.")
+        self.assertNotIn("pagpasakit sa kaugalingon", lines[1])
+        categories = result["field_meta"]["intervention"]["categories"]
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_family_conflict_summary_includes_sadness_and_focus(self):
+        text = (
+            "Caller:\n"
+            "Jessa.\nFemale ko. Naa ko sa Cebu City. Naa koy problema sa among "
+            "pamilya. Pirme mi mag-away sa akong mama. Sad ko. Lisod ko "
+            "maka-focus sa work. Mohilak ko usahay. Kapoy na ko. Wala ko ana "
+            "nga thoughts nga pasakitan akong kaugalingon.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Dili nimo pugson ang conversation. Isulti nimo "
+            "imong gibati. Hatagan nimo siya ug time. Naa tay referral sa "
+            "counselor. Communication ang importante.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+
+        self.assertEqual(result["fields"]["callerName"], "Jessa")
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerLocation"], "Cebu City")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Family Problem."
+        )
+        self.assertIn("nagul-an", lines[1])
+        self.assertIn("dili maka-focus", lines[1])
+        self.assertNotIn("pagpasakit sa kaugalingon", lines[1])
+        categories = result["field_meta"]["intervention"]["categories"]
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_breakup_is_relationship_problem_without_separated_status(self):
+        text = (
+            "Caller:\n"
+            "Mae na lang sir. Diri ko sa Consolacion nag-rent. Nagbulag mi sa "
+            "akong boyfriend kay naa siyay lain. Sige kog hilak. Wala koy kaon. "
+            "Mag-hyperventilate ko. Nangurog akong lawas. Naa koy moments nga "
+            "nakaingon ko 'unsay pulos nga mabuhi pa ko.' Pero dili nako mabuhat "
+            "nga maghikog kay maluoy ko sa akong mama.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Dili nimo sala. Breathing exercise ta. Naa kay "
+            "support system.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+
+        self.assertEqual(result["fields"]["callerName"], "Mae")
+        self.assertEqual(result["fields"]["callerStatus"], "N/A")
+        self.assertEqual(result["fields"]["callerLocation"], "Consolacion")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Relationship Problem."
+        )
+        self.assertIn("wala nay pulos mabuhi", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn(
+            "Psychoeducation",
+            result["field_meta"]["intervention"]["categories"],
+        )
+
+    def test_workplace_sexual_harassment_is_specific_reason(self):
+        text = (
+            "Caller:\n"
+            "Naa koy nahitabo sa work. Naay kauban nako nga sige kog ingnan "
+            "ug comments about my body. Ni-duol siya nako unya iyang kamot "
+            "ni-touch sa akong abaga. Niingon ko nga ayaw ko hilabti. Karon "
+            "ma-tense ko kung makita nako siya. Sige kog kabalaka. Dili ko "
+            "ganahan moadto sa office. Usahay lisod ko katulog. Dili na ko "
+            "ka-focus tarong. Nahadlok ko nga mosamot. Wala man koy immediate "
+            "danger. Single ko, 23, Female, naa ko sa Mandaue.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. I-document ang incidents. Breathing exercise "
+            "ta. Pwede ka makigsulti sa office personnel.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+
+        self.assertEqual(result["fields"]["callerName"], "N/A")
+        self.assertEqual(result["fields"]["callerAge"], 23)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Mandaue City")
+        self.assertEqual(
+            lines[0],
+            "Nitawag ang caller tungod sa Sexual Harassment and Sexual Abuse.",
+        )
+        self.assertIn("gikulbaan", lines[1])
+        self.assertIn("dili maka-focus", lines[1])
+        self.assertIn(
+            "Psychoeducation",
+            result["field_meta"]["intervention"]["categories"],
+        )
+
+    def test_active_suicidal_crisis_with_plan_and_means(self):
+        text = (
+            "Caller:\n"
+            "Gaplano na ko buhaton karon. Gusto na nako tapuson tanan. "
+            "Robert akong ngalan, 35 anyos. Naa ko sa Minglanilla. Nagbulag mi "
+            "sa akong asawa. Wala na koy tulog. Sige kog hilak. Naa koy pisi "
+            "diri sa akong tapad, ako na untang ihigot sa sagbayan.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Pwede ba nimo ibutang sa layo ang pisi? "
+            "Mag-breathing exercise ta. Pwede ka moadto sa ER sa Vicente Sotto. "
+            "Naa tay referral sa psychiatrist didto.\n"
+        )
+
+        result = analyze(text, risk_assessment="High Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Robert")
+        self.assertEqual(result["fields"]["callerAge"], 35)
+        self.assertEqual(result["fields"]["callerGender"], "Male")
+        self.assertEqual(result["fields"]["callerStatus"], "Separated")
+        self.assertEqual(result["fields"]["callerLocation"], "Minglanilla")
+        self.assertEqual(
+            lines[0],
+            "Nitawag ang caller tungod sa Self-harming and Suicidal "
+            "Attempt/Crisis.",
+        )
+        self.assertIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertIn("Referred to Emergency Room", categories)
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_openness_to_referral_is_not_refused_referral(self):
+        text = (
+            "Caller:\n"
+            "Female ko. Dili ko okay sa akong relationship. Pirme mi mag-away "
+            "sa akong boyfriend. Nawala akong "
+            "trust kay sige siyag chat sa iyang ex. Sige kog overthink. "
+            "Maghilak ko before matulog. Dili ko makatulog. Dili ko "
+            "maka-focus sa work. Wala koy hunahuna nga pasakitan akong "
+            "kaugalingon. Open ko makigstorya sa counselor or psychologist.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Pwede ka mangayo ug support sa counselor or "
+            "psychologist. Mag-breathing exercise ta. Boundaries.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "N/A")
+        self.assertEqual(result["fields"]["callerAge"], "N/A")
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "N/A")
+        self.assertEqual(result["fields"]["callerLocation"], "N/A")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Relationship Problem."
+        )
+        self.assertIn("sige og overthink", lines[1])
+        self.assertNotIn("pagpasakit sa kaugalingon", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertNotIn("Refused Referrals", categories)
+
+    def test_breakdown_with_passive_death_wish_but_no_active_plan(self):
+        text = (
+            "Caller:\n"
+            "Chloe na lang. 27 ko. Naa ko sa Lahug. Kapoy sa trabaho, "
+            "ni-pile up tanan, nikalit kog breakdown. Nangurog akong kamot, "
+            "nag-hyperventilate ko. Nawad-an kog paglaom, empty ang tanan, "
+            "wala nakoy kalipay. Wala koy planong maghikog. Pero ganiha "
+            "naka-think ko nga lami mawala, matulog lang unya dili na momata. "
+            "Wala ko nikuha sa bildo, nagpalayo ko.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Grounding exercise ta. Naa tay referral sa "
+            "psychologist sa Vicente Sotto. Breathing exercise.\n"
+        )
+
+        result = analyze(text, risk_assessment="Medium Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Chloe")
+        self.assertEqual(result["fields"]["callerAge"], 27)
+        self.assertEqual(result["fields"]["callerGender"], "N/A")
+        self.assertEqual(result["fields"]["callerStatus"], "N/A")
+        self.assertEqual(result["fields"]["callerLocation"], "Lahug")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Burnout.")
+        self.assertIn("naglaom nga dili na momata", lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_work_pressure_with_overthinking_and_no_active_si(self):
+        text = (
+            "Caller:\n"
+            "Mark lang, 27, male, single, naa ko sa Lapu-Lapu. Na-promote ko "
+            "sa trabaho pero daghan responsibility, pressure kaayo. "
+            "Mag-overthink ko, dili ko katulog, dili ko ka-focus. Anxious ko, "
+            "paspas akong heartbeat, kapoy ko. Naa koy times nga makahuna-huna "
+            "'pwede ba mawala lang sa ko kadali?' Pero wala koy plano pasakitan "
+            "akong kaugalingon.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Naa tay referral sa psychologist. Breathing "
+            "exercise. Mag-focus sa usa ka butang.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Mark")
+        self.assertEqual(result["fields"]["callerAge"], 27)
+        self.assertEqual(result["fields"]["callerGender"], "Male")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Lapu-Lapu City")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Work/Employment Problem."
+        )
+        self.assertIn("sige og overthink", lines[1])
+        self.assertNotIn("pagpasakit sa kaugalingon", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_panic_attack_with_passive_disappear_wish(self):
+        text = (
+            "Caller:\n"
+            "Tin-tin.\n"
+            "24, single nga babaye, naa ko sa Consolacion. Ug kalit lang "
+            "ko nag-panic, naghilak, mobuto akong kasingkasing, nagkurog akong "
+            "kamot, naay nagbara sa tutunlan. Wala ko nag-plan maghikog, pero "
+            "gusto ko mo-disappear or matulog nga dili momata og pipila ka adlaw.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Grounding exercise, breathing exercise. Naa tay "
+            "referral sa psychologist, online counseling.\n"
+        )
+
+        result = analyze(text, risk_assessment="Medium Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Tin-tin")
+        self.assertEqual(result["fields"]["callerAge"], 24)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Consolacion")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Panic Attack.")
+        self.assertIn("mobuto ang dughan", lines[1])
+        self.assertIn("nagkurog ang kamot", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_overwhelm_with_emotional_swings_is_burnout_not_anger(self):
+        text = (
+            "Caller:\n"
+            "Elaine.\n"
+            "Twenty-nine, female, single, taga-Talisay. Kapoy, kasuko, kasubo, "
+            "tanan nagtapok. Problema sa work, naay mistake sa report, sige kog "
+            "overthink. Nagkasakit akong mama, ako ang nag-atiman, naa koy "
+            "bills. Dili ko katulog tarong, maghilak ko. Hadlok ko ma-breakdown. "
+            "Wala ko naghunahuna nga pasakitan akong kaugalingon. Safe ra ko.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Breathing exercise. Referral sa psychologist.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Elaine")
+        self.assertEqual(result["fields"]["callerAge"], 29)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Talisay City")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Burnout.")
+        self.assertIn("grabeng kasuko", lines[1])
+        self.assertIn("sige og overthink", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_relationship_anxiety_without_si_or_refused_referral(self):
+        text = (
+            "Caller:\n"
+            "Christine.\n"
+            "Twenty-three, female, single, taga-Minglanilla. Naa koy problema sa "
+            "akong uyab, pirmi mi mag-away, distant siya. Mabalaka ko, "
+            "mag-overthink, dili ko katulog, dili ko maka-focus. Usahay masuko "
+            "ko unya makahilak. Naka-feel kog hopeless pero wala ko naghunahuna "
+            "pasakitan akong kaugalingon. Safe ra ko. Dili sa ko makig-away "
+            "niya karon.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Breathing exercise. Referral sa psychologist.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Christine")
+        self.assertEqual(result["fields"]["callerAge"], 23)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Minglanilla")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Relationship Problem.")
+        self.assertIn("wala na siyay paglaom", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertNotIn("Refused Referrals", categories)
+
+    def test_stress_with_negated_disappear_wish_and_no_false_guidance(self):
+        text = (
+            "Caller:\n"
+            "Loraine.\n"
+            "27 na ko, babaye, married, taga-Mandaue City. Mas dali ko "
+            "ma-stress, sige kog overthink, dili ko katulog, dili ko maka-focus. "
+            "Naa koy problema sa work ug family, deadlines, nagkasabay. "
+            "Nakaingon ko 'kapoy na gyud ko,' pero dili siya kanang gusto ko "
+            "mawala gyud. Wala ko naghunahuna nga pasakitan akong kaugalingon. "
+            "Safe ra ko. Nangutana ko kung psychologist ba o guidance counselor "
+            "akong pangitaon.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Breathing exercise. Referral sa psychologist.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Loraine")
+        self.assertEqual(result["fields"]["callerAge"], 27)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Married")
+        self.assertEqual(result["fields"]["callerLocation"], "Mandaue City")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Burnout.")
+        self.assertIn("sige og overthink", lines[1])
+        self.assertNotIn("gusto lang nga mawala", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertNotIn("Referred to Guidance Counselors", categories)
+
+    def test_anger_with_inquiry_opening_is_not_inquiry_reason(self):
+        text = (
+            "Caller:\n"
+            "Ramon.\n"
+            "Thirty-nine, male, married, taga-Lapu-Lapu City. Naa koy pangutana "
+            "kung asa ko magpa-consult. Dali ko masuko, grabe akong kasuko, "
+            "unya guilty ko. Sa work "
+            "ug balay, dali ko ma-irritate; napataas akong tingog sa akong wife. "
+            "Lisod ko katulog ug maka-focus. Wala ko naghunahuna pasakitan akong "
+            "kaugalingon. Safe ra ko.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Breathing exercise. Referral sa psychologist. "
+            "Health center.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Ramon")
+        self.assertEqual(result["fields"]["callerAge"], 39)
+        self.assertEqual(result["fields"]["callerGender"], "Male")
+        self.assertEqual(result["fields"]["callerStatus"], "Married")
+        self.assertEqual(result["fields"]["callerLocation"], "Lapu-Lapu City")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Anger Management Issue."
+        )
+        self.assertIn("dili makatulog og tarong", lines[1])
+        self.assertIn("grabeng kasuko", lines[1])
+        self.assertIn("makonsensya", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_help_seeking_inquiry_not_work_problem(self):
+        text = (
+            "Caller:\n"
+            "Anne.\n"
+            "Twenty-six, female, single, taga-Cebu City. Nitawag ko kay gusto "
+            "unta ko mangutana kung asa ko pwede makakuha og professional help. "
+            "Dili ko ganahan makig-socialize, dali ko kapoyon, lisod ko "
+            "katulog, dili ko ka-focus. Mahadlok ko basin sayop akong adtoan. "
+            "Wala ko naghunahuna pasakitan akong kaugalingon. Safe ra ko.\n\n"
+            "Responder:\n"
+            "Valid imong gibati. Referral sa psychologist. Psychoeducation.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Anne")
+        self.assertEqual(result["fields"]["callerAge"], 26)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Cebu City")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Inquiry.")
+        self.assertIn("dili makatulog og tarong", lines[1])
+        self.assertIn("dili ganahan mogawas", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+
+    def test_family_information_call_not_er_referral(self):
+        text = (
+            "Caller:\n"
+            "Rica.\n"
+            "Twenty-two, female, single, taga-Cebu City. Naa koy pangutana "
+            "about mental health services. Naa koy family member nga naglisod "
+            "lately, pirme mag-inusara, dili na ganahan mogawas. Nangutana ko "
+            "unsa among buhaton. Wala koy nakita nga immediate danger; naa ra "
+            "siya sa balay. Wala siya nagsulti nga gusto niyang pasakitan iyang "
+            "kaugalingon.\n\n"
+            "Responder:\n"
+            "Pwede ka mangutana sa local health center kung asa sila "
+            "makarefer. Psychoeducation. Kung ang situation mahimong urgent or "
+            "dili na siya safe, emergency services ang angay.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Rica")
+        self.assertEqual(result["fields"]["callerAge"], 22)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "Cebu City")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Family Problem.")
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
+        self.assertNotIn("Referred to Emergency Room", categories)
+
+    def test_grief_with_negated_self_harm_and_daily_impact(self):
+        text = (
+            "Caller:\n"
+            "Mariel.\n"
+            "34 na ko, taga-Consolacion. Namatay akong mama last year. Karon pa "
+            "nako na-feel ang kasakit. Sige kog hilak. Magdugay ko ug tulog. "
+            "Makalimot ko mokaon. Lisod na ko mag-focus. Dili ko ganahan "
+            "mogawas. Wala man ko naghuna-huna nga pasakitan akong kaugalingon. "
+            "Naa koy times nga moingon ko nga kapoy na kaayo, emotional "
+            "exhaustion lang. Safe ra ko.\n\n"
+            "Responder:\n"
+            "Grief is not linear. Psychologist referral. Psychoeducation.\n"
+        )
+
+        result = analyze(text, risk_assessment="Low Risk")
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Mariel")
+        self.assertEqual(result["fields"]["callerAge"], 34)
+        self.assertEqual(result["fields"]["callerGender"], "N/A")
+        self.assertEqual(result["fields"]["callerStatus"], "N/A")
+        self.assertEqual(result["fields"]["callerLocation"], "Consolacion")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Grief.")
+        self.assertIn("dili makatulog og tarong", lines[1])
+        self.assertIn("nagsige og hilak", lines[1])
+        self.assertIn("nawad-an og gana mokaon", lines[1])
+        self.assertNotIn("pagpasakit sa kaugalingon", lines[1])
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertIn("Given Referrals", categories)
+        self.assertIn("Psychoeducation", categories)
 
     def test_medicine_intake_is_not_alcohol_dependence(self):
         result = analyze(

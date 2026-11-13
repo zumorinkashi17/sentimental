@@ -277,6 +277,9 @@ _NON_NAMES = {
     "nagpabilin",
     "niingon",
     "ganahan",
+    "safe",
+    "yes",
+    "no",
 }
 
 
@@ -624,6 +627,14 @@ _NEGATED_STATUS = re.compile(
     r"\b(?:wala|dili|di)\s+(?:pa\s+)?(?:mi|ko|kami|sila|siya)?\s*$",
     re.IGNORECASE,
 )
+_ROMANTIC_PARTNER = re.compile(
+    r"\b(?:uyab|boyfriend|girlfriend|partner)\b",
+    re.IGNORECASE,
+)
+_SPOUSE_STATUS = re.compile(
+    r"\b(?:bana|asawa|husband|wife)\b",
+    re.IGNORECASE,
+)
 
 
 def _extract_terms(text: str, rules, label: str, confidence: float) -> list[dict]:
@@ -633,6 +644,16 @@ def _extract_terms(text: str, rules, label: str, confidence: float) -> list[dict
             if label == "CIVIL_STATUS":
                 before = text[max(0, match.start() - 24) : match.start()]
                 if _NEGATED_STATUS.search(before):
+                    continue
+                context = text[
+                    max(0, match.start() - 80) : min(len(text), match.end() + 80)
+                ]
+                status_text = _clean_term(match.group(0)).lower()
+                if (
+                    status_text.startswith(("nagbulag", "bulag"))
+                    and _ROMANTIC_PARTNER.search(context)
+                    and not _SPOUSE_STATUS.search(text)
+                ):
                     continue
             if label == "LOCATION":
                 if is_workplace_location(text, match.start(), match.end()):
@@ -838,7 +859,8 @@ _RESPONDER_SECOND_PERSON = re.compile(
 _CALLER_CONTEXT = re.compile(
     r"\b(?:kapoy|hilak|sakit|guol|kamingaw|hadlok|naulaw|maulaw|nanganak|"
     r"bana|anak|pamilya|trabaho|gikapoy|mabuang|nabuang|overthink|single|"
-    r"minyo|babaye|lalaki|wala koy|dili ko|di ko|mao lagi|oo|basin)\b",
+    r"minyo|babaye|lalaki|wala koy|wala ko kabalo|akong pangitaon|"
+    r"dili ko|di ko|mao lagi|oo|basin)\b",
     re.IGNORECASE,
 )
 _RESPONDER_CONTEXT = re.compile(

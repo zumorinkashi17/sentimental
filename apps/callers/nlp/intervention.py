@@ -23,7 +23,9 @@ _ER_AVOIDANCE = re.compile(
     r"[^.!?]{0,40}\b(?:er|emergency room|emergency department)\b"
     r"|\b(?:if\s+ever|kung\s+ever|kung\s+moabot|if\s+it\s+gets|"
     r"kung\s+dili\s+na\s+safe|if\s+you\s+feel\s+unsafe)\b"
-    r"[^.!?]{0,220}\b(?:er|emergency room|emergency department|emergency service)\b",
+    r"[^.!?]{0,220}\b(?:er|emergency room|emergency department|emergency service)\b"
+    r"|\bkung\b[^.!?]{0,120}\b(?:urgent|dili\s+na\s+(?:siya\s+)?safe)\b"
+    r"[^.!?]{0,180}\b(?:er|emergency room|emergency department|emergency services?)\b",
     re.IGNORECASE,
 )
 
@@ -156,8 +158,6 @@ _RULES: dict[str, dict[str, float]] = {
         "ayaw lang sa ron": 3,
         "dili ko gusto mogawas": 3,
         "di ko gusto mogawas": 3,
-        "dili sa": 2,
-        "di sa": 2,
         "no thanks": 2,
         "not now": 2,
         "maybe next time": 2,
@@ -273,6 +273,12 @@ _RULES: dict[str, dict[str, float]] = {
         "angay seryosohon": 3,
         "maistoryahan sa professional": 3,
         "dili kinahanglan nga ikaw ra": 2,
+        "dili nimo pugson": 3,
+        "isulti nimo imong gibati": 2,
+        "imong gibati": 2,
+        "hatagan nimo siya ug time": 2,
+        "atimanon imong kaugalingon": 2,
+        "communication": 2,
     },
     "Others": {
         "barangay": 2,
@@ -409,7 +415,7 @@ def _score(text: str, rules: dict[str, float]) -> float:
                 score += weight
         elif phrase in tokens:
             score += weight
-    return score
+    return min(score, 10.0)
 
 
 @lru_cache(maxsize=1)
