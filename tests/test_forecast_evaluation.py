@@ -269,16 +269,18 @@ class BusiestShiftTests(SimpleTestCase):
         self.assertFalse(results[0].uncertain)
         self.assertEqual(results[0].runner_up, "afternoon")
 
-    def test_overlapping_intervals_flagged_uncertain(self):
+    def test_overlapping_intervals_alone_do_not_flag_uncertain(self):
+        # The ranges overlap, but the best estimate clearly favours morning.
         forecasts = {
-            "morning": self._forecast("morning", [60, 60], [40, 40], [80, 80]),
-            "afternoon": self._forecast("afternoon", [58, 58], [38, 38], [78, 78]),
+            "morning": self._forecast("morning", [100, 100], [50, 50], [150, 150]),
+            "afternoon": self._forecast("afternoon", [40, 40], [20, 20], [80, 80]),
             "night": self._forecast("night", [10, 10], [5, 5], [15, 15]),
         }
         results = busiest.identify_busiest_shift(forecasts)
         self.assertEqual(results[0].shift, "morning")
-        self.assertTrue(results[0].uncertain)
-        self.assertIn("overlap", results[0].reason)
+        self.assertTrue(results[0].intervals_overlap)
+        self.assertFalse(results[0].uncertain)
+        self.assertIsNone(results[0].reason)
 
     def test_close_margin_flagged_uncertain(self):
         forecasts = {
@@ -287,6 +289,7 @@ class BusiestShiftTests(SimpleTestCase):
         }
         results = busiest.identify_busiest_shift(forecasts)
         self.assertTrue(results[0].uncertain)
+        self.assertIn("margin", results[0].reason)
 
     def test_requires_two_shifts(self):
         forecasts = {"morning": self._forecast("morning", [10, 10], [5, 5], [15, 15])}

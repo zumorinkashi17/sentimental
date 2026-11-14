@@ -1060,7 +1060,7 @@ function initCharts() {
         chartsInstance.push(new Chart(ctxReasons.getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['Relationships', 'Suicidal Crisis', 'Career', 'Others'],
+                labels: ['Relationship Problem', 'Emotional Crisis', 'Suicidal Ideation', 'Others'],
                 datasets: [{
                     data: chartValues(ctxReasons, [25, 25, 25, 25]),
                     backgroundColor: ['#00a67e', '#fbbf24', '#34d399', '#047857'],

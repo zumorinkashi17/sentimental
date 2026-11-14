@@ -115,7 +115,7 @@ class DisplayedTimestampTests(TestCase):
             )
         )
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "Forecast generated")
+        self.assertContains(response, "Forecast Generated")
         self.assertContains(response, "October 22, 2026, 4:20 AM PHT")
         # The raw stored timestamp is not shown to the user.
         self.assertNotContains(response, "2026-10-21T20:20:00")
@@ -221,8 +221,8 @@ class PlainLanguageContentTests(TestCase):
         response = self.client.get(reverse("forecast:prediction"))
         self.assertContains(response, "Expected Call Volume")
         self.assertContains(response, "Forecast Period")
-        self.assertContains(response, "Historical Data Available Through")
-        self.assertContains(response, "Historical Data Used")
+        self.assertContains(response, "Total Predicted Calls")
+        self.assertContains(response, "Busiest Month")
         self.assertContains(response, "Expected Busiest Shift")
         self.assertContains(response, "Expected Monthly Call Volume")
         self.assertContains(response, "Expected Calls by Month and Shift")
@@ -246,7 +246,7 @@ class PlainLanguageContentTests(TestCase):
         response = self.client.get(reverse("forecast:prediction"))
         html = unescape(response.content.decode())
         self.assertIn("200 calls", html)
-        self.assertIn("Estimated range: 195–205 calls", html)
+        self.assertIn("Likely range: 195–205 calls", html)
         # The old bracket notation is gone.
         self.assertNotIn("[195, 205]", html)
 
@@ -256,10 +256,11 @@ class PlainLanguageContentTests(TestCase):
         self.assertContains(response, "calculated separately")
         self.assertContains(response, "not add up exactly")
 
-    def test_explains_the_estimated_range_is_not_a_guarantee(self):
+    def test_explains_the_likely_range(self):
         persist()
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "may fall outside this range")
+        self.assertContains(response, "likely range")
+        self.assertContains(response, "actual calls can fall above or below it")
 
     def test_staffing_card_does_not_claim_exact_requirements(self):
         persist()
@@ -273,7 +274,8 @@ class PlainLanguageContentTests(TestCase):
         persist()
         response = self.client.get(reverse("forecast:prediction"))
         self.assertContains(response, "Forecasts are estimates, not guaranteed results.")
-        self.assertContains(response, "Missing historical data may reduce accuracy.")
+        self.assertContains(response, "based on recorded call history")
+        self.assertContains(response, "future months can differ")
         self.assertContains(
             response, "Total and shift-level forecasts are calculated separately"
         )
@@ -286,11 +288,10 @@ class MissingHistoryMessageTests(TestCase):
         self.admin = make_user(email="admin@example.com", role=User.RoleChoices.ADMIN)
         login(self.client, self.admin)
 
-    def test_missing_months_are_described_in_plain_language(self):
+    def test_page_does_not_flag_missing_history(self):
         persist()  # trained through 2026-04, so the recent months have no data
         response = self.client.get(reverse("forecast:prediction"))
-        self.assertContains(response, "Historical Data Available Through")
-        self.assertContains(response, "April 2026")
+        self.assertContains(response, "Forecast Period")
         self.assertNotContains(response, "missing or unverified")
         self.assertNotContains(response, "preliminary")
 

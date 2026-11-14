@@ -204,7 +204,7 @@ class HonestyAndSafetyTests(TestCase):
         self.assertContains(response, "not a guarantee")
 
     def test_review_flag_is_uncertainty_driven_wording(self):
-        # Overlapping intervals -> all months uncertain -> review is a
+        # The point forecasts are close -> all months uncertain -> review is a
         # precaution, never a confirmed shortage.
         persist(make_result(values={
             "total": [200.0, 220.0],

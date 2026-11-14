@@ -55,7 +55,7 @@
         </div>
 
         <!-- Top 3 Charts Grid -->
-        {% include 'components/dashboard_analytics.html' with show_year_selector=True %}
+        {% include 'components/dashboard_analytics.html' %}
 
         <!-- Middle Section: Call Volume & Referrals -->
         <div class="flex flex-col md:flex-row gap-4">
@@ -183,13 +183,6 @@
         if (clear) {
             clear.addEventListener('click', function () {
                 apply({ period: 'week' }, ['start', 'end']);
-            });
-        }
-
-        var yearSelect = document.getElementById('dashYear');
-        if (yearSelect) {
-            yearSelect.addEventListener('change', function () {
-                apply({ year: this.value });
             });
         }
 

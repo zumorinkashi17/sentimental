@@ -174,8 +174,8 @@ class ReadPathTests(TestCase):
         self.assertEqual(set(data), {"total", "morning", "afternoon", "night"})
         self.assertEqual(data["total"][MONTHS[1]]["yhat"], 220.0)
 
-    def test_busiest_shifts_flags_uncertain_when_intervals_overlap(self):
-        # Top two shifts sit close together -> overlapping intervals -> provisional.
+    def test_busiest_shifts_flags_uncertain_when_point_forecasts_are_close(self):
+        # Top two shifts sit close together -> close call -> provisional.
         values = {
             "total": [200.0, 220.0],
             "morning": [100.0, 105.0],

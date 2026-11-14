@@ -1,8 +1,8 @@
 """Unit tests for the staffing calculation service.
 
 AHT values and staffing assumptions are maintained in backend code
-(apps/staffing/services.py STAFFING CONFIGURATION section). Tests verify
-the calculation logic uses those code constants.
+(apps/schedules/staffing_service.py STAFFING CONFIGURATION section). Tests
+verify the calculation logic uses those code constants.
 """
 
 from datetime import date
@@ -32,20 +32,18 @@ class StaffingCalculationTests(TestCase):
         self.assertFalse(result.available)
         self.assertIn("No forecast run", result.reason)
 
-    def test_default_aht_applied_to_all_shifts(self):
-        # Default AHT is 20 minutes; morning/afternoon/night all have explicit
-        # overrides (25/25/30) that differ from the default, so none use global.
+    def test_client_aht_applied_to_all_shifts(self):
+        # Client-provided AHT is 25 minutes and applies to every shift.
         run = persist()
         result = calculate_staffing(run)
 
         self.assertTrue(result.available)
-        expected = {"morning": 25.0, "afternoon": 25.0, "night": 30.0}
         for month in result.months:
             for shift in month["shifts"]:
-                self.assertEqual(shift["aht_minutes"], expected[shift["series"]])
-                self.assertFalse(shift["aht_used_global"])  # explicit override, differs from default 20
-                self.assertEqual(shift["aht_status"], "sample_default")
-                self.assertTrue(shift["aht_is_sample"])
+                self.assertEqual(shift["aht_minutes"], 25.0)
+                self.assertTrue(shift["aht_used_global"])
+                self.assertEqual(shift["aht_status"], "client_provided")
+                self.assertFalse(shift["aht_is_sample"])
 
     def test_workload_calculation(self):
         # 120 calls * 25 min / 60 = 50 workload hours
@@ -63,13 +61,13 @@ class StaffingCalculationTests(TestCase):
         self.assertEqual(morning["workload_hours"], 50.0)
 
     def test_effective_available_hours(self):
-        # 8 hrs * 22 days * (1 - 0.15) * 0.85 = 127.16
+        # 8 hrs * 22 days * (1 - 0.10) * 1.00 = 158.40
         run = persist()
         result = calculate_staffing(run)
 
         for month in result.months:
             for shift in month["shifts"]:
-                self.assertAlmostEqual(shift["effective_available_hours"], 127.16, places=2)
+                self.assertAlmostEqual(shift["effective_available_hours"], 158.40, places=2)
 
     def test_minimum_staffing_applied(self):
         # Very low call volume -> workload-based staff < min -> min applied
@@ -88,8 +86,8 @@ class StaffingCalculationTests(TestCase):
 
     def test_workload_based_exceeds_minimum(self):
         # High call volume -> workload-based staff > min -> workload applied
-        # Default AHT=25: 200 calls * 25 min / 60 = 83.33 workload hours
-        # eff avail = 127.16 -> 0.66 staff -> ceil(1) but min=2 -> 2
+        # AHT=25: 200 calls * 25 min / 60 = 83.33 workload hours
+        # eff avail = 158.40 -> 0.53 staff -> ceil(1) but min=2 -> 2
         run = persist(
             make_result(
                 months=[date(2026, 5, 1)],
@@ -100,8 +98,8 @@ class StaffingCalculationTests(TestCase):
 
         month = result.months[0]
         morning = month["shifts"][0]
-        # Workload-based = 83.33 / 127.16 = 0.66, min=2, recommended=2
-        self.assertAlmostEqual(morning["workload_based_staff"], 0.6553, places=4)
+        # Workload-based = 83.33 / 158.40 = 0.53, min=2, recommended=2
+        self.assertAlmostEqual(morning["workload_based_staff"], 0.5261, places=4)
         self.assertEqual(morning["recommended_staff"], 2)
 
     def test_rounding_preserves_fractional_internally(self):
@@ -115,8 +113,8 @@ class StaffingCalculationTests(TestCase):
 
         month = result.months[0]
         morning = month["shifts"][0]
-        # 10 * 25 / 60 = 4.17 workload hours; / 127.16 = 0.0328 staff
-        self.assertAlmostEqual(morning["workload_based_staff"], 0.0328, places=4)
+        # 10 * 25 / 60 = 4.17 workload hours; / 158.40 = 0.0263 staff
+        self.assertAlmostEqual(morning["workload_based_staff"], 0.0263, places=4)
         # recommended is ceiling of max(0.0328, 2) = 2
         self.assertEqual(morning["recommended_staff"], 2)
 
@@ -149,8 +147,8 @@ class StaffingCalculationTests(TestCase):
         result = calculate_staffing(run)
 
         self.assertEqual(result.assumptions_used["working_days_per_month"], 22)
-        self.assertEqual(float(result.assumptions_used["shrinkage_rate"]), 0.15)
-        self.assertEqual(float(result.assumptions_used["occupancy_factor"]), 0.85)
+        self.assertEqual(float(result.assumptions_used["shrinkage_rate"]), 0.10)
+        self.assertEqual(float(result.assumptions_used["occupancy_factor"]), 1.00)
         self.assertEqual(result.assumptions_used["min_staff_morning"], 2)
         self.assertEqual(result.assumptions_used["min_staff_afternoon"], 2)
         self.assertEqual(result.assumptions_used["min_staff_night"], 2)
@@ -174,11 +172,9 @@ class StaffingCalculationTests(TestCase):
         run = persist()
         result = calculate_staffing(run)
 
-        for series in ["morning", "afternoon"]:
-            self.assertEqual(result.aht_used[series]["minutes"], 25.0)
-        self.assertEqual(result.aht_used["night"]["minutes"], 30.0)
         for series in ["morning", "afternoon", "night"]:
-            self.assertEqual(result.aht_used[series]["status"], "sample_default")
+            self.assertEqual(result.aht_used[series]["minutes"], 25.0)
+            self.assertEqual(result.aht_used[series]["status"], "client_provided")
 
     def test_config_version_recorded(self):
         run = persist()
