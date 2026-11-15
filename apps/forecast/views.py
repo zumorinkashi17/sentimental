@@ -44,6 +44,7 @@ from apps.forecast.services.generation import (
     reusable_evaluation_snapshot,
     validate_horizon,
 )
+from apps.forecast.services.display import month_name
 from apps.forecast.services.pipeline import ForecastDataError
 
 logger = logging.getLogger(__name__)
@@ -128,6 +129,21 @@ def build_forecast_page_context(run) -> dict:
     months = sorted(data["total"])
     shift_labels = payload.get("shift_labels") or {}
 
+    # Forecast summary details shown alongside the run metadata.
+    total_points = data.get("total", {})
+    forecast_total = sum(point["yhat"] for point in total_points.values())
+    forecast_total_calls = round(forecast_total)
+    forecast_avg_month = round(forecast_total / len(months)) if months else None
+
+    # Busiest month in the forecast period, for the summary card.
+    if months:
+        busiest_month = max(months, key=lambda month: total_points[month]["yhat"])
+        forecast_busiest_month = month_name(busiest_month)
+        forecast_busiest_calls = round(total_points[busiest_month]["yhat"])
+    else:
+        forecast_busiest_month = None
+        forecast_busiest_calls = None
+
     # Aligned matrix: one row per series, one cell per month, in the same order
     # as ``month_labels`` so the template renders without dynamic dict lookups.
     month_labels = [_month_label(m) for m in months]
@@ -178,12 +194,28 @@ def build_forecast_page_context(run) -> dict:
         busiest_by_month.get(month.isoformat()) for month in months
     ]
 
+    # The headline card describes the first forecast month. Enrich it with
+    # display-only fields so the template stays simple and never leaks an
+    # internal shift id.
+    lead_shift = None
+    if payload["busiest_shifts"]:
+        item = dict(payload["busiest_shifts"][0])
+        item["month_label"] = _month_label(date.fromisoformat(item["month"]))
+        runner_info = shift_labels.get(item.get("runner_up")) or {}
+        item["runner_up_shift_name"] = (
+            runner_info.get("name")
+            or SERIES_LABELS.get(item.get("runner_up"), item.get("runner_up"))
+        )
+        item["relative_pct"] = round((item.get("relative_margin") or 0) * 100)
+        lead_shift = item
+
     return {
         "forecast": payload,
         "forecast_available": True,
         "display_rows": display_rows,
         "month_labels": month_labels,
         "busiest_row": busiest_row,
+        "lead_shift": lead_shift,
         "any_busiest_uncertain": any(
             item and item.get("uncertain") for item in busiest_row
         ),
@@ -195,6 +227,10 @@ def build_forecast_page_context(run) -> dict:
         },
         "uncertain_months": uncertain_months,
         "total_months": len(months),
+        "forecast_total_calls": forecast_total_calls,
+        "forecast_avg_month": forecast_avg_month,
+        "forecast_busiest_month": forecast_busiest_month,
+        "forecast_busiest_calls": forecast_busiest_calls,
         "horizon_months": payload["horizon_months"],
         "horizon_options": SUPPORTED_HORIZONS,
         # The selector keeps showing the published run's horizon when it is one
@@ -218,8 +254,7 @@ def build_forecast_page_context(run) -> dict:
         "forecast_method": payload["forecast_method"],
         "missing_data_action": (payload.get("freshness") or {}).get("action"),
         "missing_range_label": (payload.get("freshness") or {}).get("missing_range_label"),
-        "notes": list(payload.get("caveats") or [])
-        + ([payload["evaluation"]["note"]] if payload.get("evaluation") else []),
+        "notes": list(payload.get("caveats") or []),
     }
 
 

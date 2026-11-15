@@ -70,7 +70,7 @@ class StaffingReviewContextTests(TestCase):
             # 80% interval from the persisted total row.
             self.assertEqual(month["total_lower"], month["total"] - 5.0)
 
-    def test_uncertainty_flagged_when_intervals_overlap(self):
+    def test_uncertainty_flagged_when_point_forecasts_are_close(self):
         persist(make_result(values=UNCERTAIN_VALUES))
         context = staffing_review_context()
         self.assertTrue(context["any_uncertain"])

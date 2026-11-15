@@ -72,16 +72,18 @@
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase">Forecast generated</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Forecast Generated</p>
                     <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast.generated_display|default:"-" }}</p>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase">Historical Data Available Through</p>
-                    <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_available_through|default:"-" }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Total Predicted Calls</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{% if forecast_total_calls %}{{ forecast_total_calls }} calls{% else %}&mdash;{% endif %}</p>
+                    {% if forecast_avg_month %}<p class="text-[10px] text-gray-500 mt-0.5">about {{ forecast_avg_month }} per month</p>{% endif %}
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-gray-500 uppercase">Historical Data Used</p>
-                    <p class="text-sm font-bold text-gray-800 mt-1">{{ historical_data_used|default:"-" }}</p>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Busiest Month</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ forecast_busiest_month|default:"-" }}</p>
+                    {% if forecast_busiest_calls %}<p class="text-[10px] text-gray-500 mt-0.5">about {{ forecast_busiest_calls }} calls</p>{% endif %}
                 </div>
                 <div>
                     <p class="text-[10px] font-bold text-gray-500 uppercase">Forecast Period</p>
@@ -90,7 +92,7 @@
             </div>
             <p class="text-[11px] text-gray-500 mt-4 pt-3 border-t border-gray-100">
                 Forecast method: {{ forecast_method }}.
-                The forecast period covers the months that are being predicted; the historical data is the past records the estimate was built from.
+                Total predicted calls is the sum of the monthly estimates; the busiest month is the month with the highest predicted call volume.
             </p>
         </div>
 
@@ -98,7 +100,7 @@
         <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm h-[420px] sm:h-[500px] flex flex-col">
             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4 sm:mb-6">
                 <h2 class="text-sm font-bold text-gray-700 uppercase">Expected Monthly Call Volume</h2>
-                <p class="text-xs text-gray-500 font-medium">The shaded band shows the estimated range around the predicted call volume.</p>
+                <p class="text-xs text-gray-500 font-medium">The shaded band shows the likely range around the predicted call volume.</p>
             </div>
             <div class="relative flex-1 w-full min-h-0">
                 <canvas id="chartAdminForecast"
@@ -116,21 +118,26 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
                 <p class="text-[10px] font-bold text-gray-500 uppercase">Expected Busiest Shift</p>
-                {% with lead=forecast.busiest_shifts.0 %}
-                {% if lead %}
-                <h4 class="text-base font-bold text-gray-800 leading-snug">Expected busiest shift: {{ lead.display_label }}</h4>
+                {% if lead_shift %}
+                <h4 class="text-base font-bold text-gray-800 leading-snug">Expected busiest shift: {{ lead_shift.display_label }}</h4>
                 <p class="text-xs text-gray-500 mt-1">
-                    For {{ lead.month }}. {% if lead.uncertain %}<span class="text-amber-600 font-bold">The model cannot confidently identify one shift as busiest, because the estimated ranges overlap.</span>{% else %}Clear gap between this shift and the next one.{% endif %}
+                    In {{ lead_shift.month_label }}, about {{ lead_shift.predicted|floatformat:0 }} calls are predicted &mdash; roughly {{ lead_shift.relative_pct }}% more than {{ lead_shift.runner_up_shift_name }} ({{ lead_shift.runner_up_predicted|floatformat:0 }}).
+                    {% if lead_shift.uncertain %}
+                    <span class="text-amber-600 font-bold">The top two shifts are very close, so treat this ranking as a guide.</span>
+                    {% elif lead_shift.intervals_overlap %}
+                    The estimated ranges overlap, but this shift is still ahead on the best estimate.
+                    {% else %}
+                    There is a clear gap to the next shift.
+                    {% endif %}
                 </p>
                 {% else %}
                 <h4 class="text-base font-bold text-gray-800">&mdash;</h4>
                 {% endif %}
-                {% endwith %}
             </div>
             <div class="{% if uncertain_months %}bg-amber-50 border-amber-200{% else %}bg-green-50 border-green-200{% endif %} border p-4 rounded-xl">
                 <p class="text-[10px] font-bold {% if uncertain_months %}text-amber-600{% else %}text-green-600{% endif %} uppercase">Busiest Shift Confidence</p>
-                <h4 class="text-base font-bold text-gray-800">{{ uncertain_months }} of {{ total_months }} months are uncertain</h4>
-                <p class="text-xs text-gray-600 mt-1">A month is marked uncertain when the top shifts' estimated ranges overlap or the difference between them is very small. Treat those months as a guide, not a confirmed ranking.</p>
+                <h4 class="text-base font-bold text-gray-800">{% if uncertain_months %}{{ uncertain_months }} of {{ total_months }} months are uncertain{% else %}Every month has a clearly leading shift{% endif %}</h4>
+                <p class="text-xs text-gray-600 mt-1">A ranking is treated as a close call only when the top two shifts' best estimates are within 10% of each other. Overlapping estimated ranges are shown for context, but they do not change the ranking.</p>
             </div>
             <div class="bg-brand-light/30 border border-brand/20 p-4 rounded-xl">
                 <p class="text-[10px] font-bold text-brand uppercase">Staffing Review</p>
@@ -144,8 +151,7 @@
             <div class="p-5 border-b border-gray-100">
                 <h2 class="text-sm font-bold text-gray-700 uppercase">Expected Calls by Month and Shift</h2>
                 <p class="text-xs text-gray-500 mt-1">
-                    Expected number of calls for every month in the forecast period, for all calls together and for each shift.
-                    The estimated range shows the uncertainty around the estimate; actual call volume may fall outside this range.
+                    Predicted calls for each month and shift. The bold number is the best estimate; the smaller line is the likely range &mdash; actual calls can fall above or below it.
                 </p>
             </div>
             <div class="table-scroll">
@@ -167,7 +173,7 @@
                                 {% if cell %}
                                 <span class="font-bold text-gray-800">{{ cell.yhat|floatformat:0 }} calls</span>
                                 {% if cell.yhat_lower is not None and cell.yhat_upper is not None %}
-                                <span class="block text-[10px] text-gray-400">Estimated range: {{ cell.yhat_lower|floatformat:0 }}&ndash;{{ cell.yhat_upper|floatformat:0 }} calls</span>
+                                <span class="block text-[10px] text-gray-400">Likely range: {{ cell.yhat_lower|floatformat:0 }}&ndash;{{ cell.yhat_upper|floatformat:0 }} calls</span>
                                 {% endif %}
                                 {% else %}&mdash;{% endif %}
                             </td>
@@ -190,15 +196,11 @@
             <div class="px-5 py-4 border-t border-gray-100 bg-gray-50/60 space-y-2">
                 <p class="text-xs text-gray-600">
                     <span class="font-bold text-gray-700">How to read this table:</span>
-                    the total and the three shifts are calculated separately, so they may not add up exactly. A small difference between them is expected and is not missing calls.
+                    the total and the three shifts are calculated separately, so they may not add up exactly. A small difference is expected and does not mean calls are missing.
                 </p>
                 <p class="text-xs text-gray-600">
                     <span class="font-bold text-gray-700">About the shifts:</span>
-                    shift estimates depend on the shift recorded on each call, which does not always match the clock time the call came in.
-                </p>
-                <p class="text-xs text-gray-600">
-                    <span class="font-bold text-gray-700">About the estimated range:</span>
-                    the estimated range shows the uncertainty around the predicted call volume. Actual call volume may fall outside this range, so it is not a guarantee.
+                    shift estimates use the shift recorded on each call, which may differ from the actual clock time. Use them to compare shifts, not as an exact time-of-day breakdown.
                 </p>
             </div>
         </div>

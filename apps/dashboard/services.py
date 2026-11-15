@@ -1,5 +1,6 @@
 import calendar
 import json
+import re
 from collections import Counter
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -20,9 +21,9 @@ DEFAULT_PERIOD = "week"
 CONTACT_ORDER = {"Email": 0, "Mobile": 1, "Landline": 2}
 
 REASON_CATEGORIES = (
-    ("Relationships", "#00a67e"),
-    ("Suicidal Crisis", "#fbbf24"),
-    ("Career", "#34d399"),
+    ("Relationship Problem", "#00a67e"),
+    ("Emotional Crisis", "#fbbf24"),
+    ("Suicidal Ideation", "#34d399"),
     ("Others", "#047857"),
 )
 GENDER_CATEGORIES = (
@@ -30,9 +31,14 @@ GENDER_CATEGORIES = (
     ("Women", "#34d399"),
     ("LGBTQIA", "#a7f3d0"),
 )
-REASON_MAP = {"relationship": "Relationships", "academic": "Career", "financial": "Career"}
+_FEATURED_REASONS = {
+    label.casefold(): label
+    for label, _ in REASON_CATEGORIES
+    if label != "Others"
+}
 SPEC_LABELS = {"Psychiatry": "Psychiatrists", "Psychology": "Psychologists"}
 MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"]
+FIXED_AVG_CALL_MINUTES = 25
 
 
 def _today():
@@ -69,25 +75,6 @@ def _parse_date(value):
         return None
 
 
-def available_years():
-    years = sorted({d.year for d in CallSession.objects.values_list("session_call_date", flat=True)}, reverse=True)
-    current = _today().year
-    if current not in years:
-        years.insert(0, current)
-    return years
-
-
-def _resolve_year(raw, years):
-    try:
-        year = int(raw)
-    except (TypeError, ValueError):
-        year = None
-    if year in years:
-        return year
-    current = _today().year
-    return current if current in years else years[0]
-
-
 def percentages(counts):
     """Whole-number percentages that always sum to 100 (0 when empty)."""
     total = sum(counts)
@@ -101,12 +88,13 @@ def percentages(counts):
 
 
 def reason_category(value):
-    if not value:
-        return "Others"
-    reason = value.strip().lower()
-    if "suicid" in reason:
-        return "Suicidal Crisis"
-    return REASON_MAP.get(reason, "Others")
+    """Bucket a saved reason into one of the three featured slices or Others.
+
+    Only the three reasons shown on the dashboard keep their own slice; every
+    other catalogue entry, blank, or unknown free-text rolls up into "Others".
+    """
+    reason = (value or "").strip().casefold()
+    return _FEATURED_REASONS.get(reason, "Others")
 
 
 def gender_bucket(value):
@@ -141,13 +129,6 @@ def _gauge_for(queryset):
     high = stats["high"] or 0
     pct = round(high * 100 / total) if total else 0
     return {"pct": pct, "high": high, "total": total, "chart": json.dumps([pct, 100 - pct])}
-
-
-def _gauge(year, user=None):
-    qs = CallSession.objects.filter(session_call_date__year=year)
-    if user:
-        qs = qs.filter(user=user)
-    return _gauge_for(qs)
 
 
 def _month_delta(counts):
@@ -196,7 +177,7 @@ def _referrals():
     return items
 
 
-def _contacts(limit=6):
+def _contacts(limit=5):
     professionals = (
         Professional.objects.filter(professional_status=Professional.StatusChoices.ACTIVE)
         .select_related("institution")
@@ -242,9 +223,6 @@ def responder_context(request, user):
     range_start = _parse_date(request.GET.get("start"))
     range_end = _parse_date(request.GET.get("end"))
 
-    years = available_years()
-    year = _resolve_year(request.GET.get("year"), years)
-
     start, end = period_bounds(period, range_start, range_end)
     in_period = CallSession.objects.filter(
         session_call_date__gte=start,
@@ -264,16 +242,14 @@ def responder_context(request, user):
         "range_start": start.isoformat(),
         "range_end": end.isoformat(),
         "range_label": range_label,
-        "years": years,
-        "year": year,
         "reasons": reasons,
         "reasons_total": sum(item["count"] for item in reasons),
         "reasons_chart": json.dumps([item["count"] for item in reasons]),
         "callers": callers,
         "callers_total": sum(item["count"] for item in callers),
         "callers_chart": json.dumps([item["count"] for item in callers]),
-        "gauge": _gauge(year, user=user),
-        "volume": _volume(year, user=user),
+        "gauge": _gauge_for(in_period),
+        "volume": _volume(start.year, user=user),
         "referrals": _referrals(),
         "contacts": _contacts(),
     }
@@ -328,20 +304,6 @@ def _trend(current, previous):
         "color": "text-brand" if rising else "text-red-500",
         "note": None,
     }
-
-
-def _avg_duration(sessions):
-    total_seconds = 0
-    count = 0
-    for called, ended in sessions.values_list("session_time_called", "session_time_ended"):
-        if not called or not ended:
-            continue
-        seconds = (datetime.combine(date.min, ended) - datetime.combine(date.min, called)).total_seconds()
-        if seconds < 0:
-            seconds += 24 * 3600
-        total_seconds += seconds
-        count += 1
-    return count, round(total_seconds / count) if count else 0
 
 
 def _risk_badge(value):
@@ -421,6 +383,19 @@ def _generated_label(value):
     return f"Forecast generated: {label}" if label else None
 
 
+_FORECAST_PERIOD_MESSAGE_RE = re.compile(
+    r"^(?P<lead>.*?\b\d{4})\.\s+(?P<rest>.+)$"
+)
+
+
+def _split_forecast_message(message):
+    """Show only the period line on the card, keep the caveat as a tooltip."""
+    match = _FORECAST_PERIOD_MESSAGE_RE.match(message or "")
+    if not match:
+        return message, ""
+    return match.group("lead").strip(), match.group("rest").strip()
+
+
 def _ai_forecast():
     """Build the AI Volume Prediction card from the shared persisted run.
 
@@ -442,6 +417,11 @@ def _ai_forecast():
                 "No forecast run has been generated yet. Predictions appear "
                 "here once one is persisted."
             ),
+            "message_short": (
+                "No forecast run has been generated yet. Predictions appear "
+                "here once one is persisted."
+            ),
+            "message_tooltip": "",
             "period": None,
             "predicted": None,
             "generated_label": None,
@@ -463,6 +443,8 @@ def _ai_forecast():
             "run_id": payload.get("run_id"),
             "status": "No Monthly Data",
             "message": "The current forecast run contains no monthly figures.",
+            "message_short": "The current forecast run contains no monthly figures.",
+            "message_tooltip": "",
             "period": None,
             "predicted": None,
             "generated_label": _generated_label(payload.get("generated_at")),
@@ -478,21 +460,26 @@ def _ai_forecast():
     uncertain = bool(leading.get("uncertain")) if leading else False
     freshness = payload.get("freshness") or {}
     freshness_notes = freshness.get("notes") or []
+    message = (
+        f"Expected calls in {period}. This is a forecast based on past "
+        "records, not a count of calls already received."
+    )
+    message_short, message_tooltip = _split_forecast_message(message)
     return {
         "available": True,
         "run_id": payload.get("run_id"),
         "status": f"{predicted:,} calls",
-        "message": (
-            f"Expected calls in {period}. This is a forecast based on past "
-            "records, not a count of calls already received."
-        ),
+        "message": message,
+        "message_short": message_short,
+        "message_tooltip": message_tooltip,
         "period": period,
         "predicted": predicted,
         "generated_label": _generated_label(payload.get("generated_at")),
         "leading_shift": (leading.get("display_label") or leading.get("label")) if leading else None,
         "uncertain": uncertain,
         "uncertainty_note": (
-            (leading.get("reason") if leading else None) or "intervals overlap"
+            (leading.get("reason") if leading else None)
+            or "top shifts are within 10% of each other"
         ) if uncertain else None,
         # A run whose window has already elapsed must not read as a current
         # future forecast, so the card says so explicitly.
@@ -537,9 +524,9 @@ def admin_context(request, user=None):
 
     escalation = round(high * 100 / total) if total else 0
 
-    duration_count, avg_seconds = _avg_duration(in_period)
-    duration_label = "—" if not duration_count else f"{avg_seconds // 60} Mins"
-    duration_pct = 0 if not duration_count else min(round(avg_seconds * 100 / 3600), 100)
+    # Client-provided real-world figure; not derived from session records.
+    duration_label = f"{FIXED_AVG_CALL_MINUTES} Mins"
+    duration_pct = min(round(FIXED_AVG_CALL_MINUTES * 100 / 60), 100)
 
     referral_qs = SessionReferral.objects.filter(
         session__session_call_date__gte=start, session__session_call_date__lte=end

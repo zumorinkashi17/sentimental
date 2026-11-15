@@ -1,9 +1,14 @@
 """Identify the predicted busiest recorded shift per forecast month.
 
-Two shifts are only considered *distinguishable* when their 80% prediction
-intervals do not overlap **and** the relative gap between their point forecasts
-exceeds a small threshold. Otherwise the month is flagged ``uncertain`` so that
-downstream UI never presents a close call as a confident result.
+Ranking is based on the **point forecasts** (``yhat``): the shift with the
+highest predicted calls is the expected busiest shift. A month is flagged
+``uncertain`` only when the top two point forecasts are within a small relative
+margin of each other, because then the ranking is effectively a tie.
+
+Prediction intervals are still recorded via ``intervals_overlap`` for
+transparency, but overlapping ranges alone do not hide the ranking: the best
+estimate still shows which shift is ahead, so it remains the expected busiest
+shift.
 """
 
 from __future__ import annotations
@@ -99,15 +104,13 @@ def identify_busiest_shift(
             (top["lower"], top["upper"]),
             (second["lower"], second["upper"]),
         )
-        uncertain = overlap or (relative is not None and relative < relative_margin)
+        # Overlapping intervals are informational only. The month is uncertain
+        # when the point forecasts themselves are too close to separate, so a
+        # clearly higher best estimate is still reported as the busiest shift.
+        uncertain = relative is not None and relative < relative_margin
         reason = None
         if uncertain:
-            parts = []
-            if overlap:
-                parts.append("80% intervals overlap")
-            if relative is not None and relative < relative_margin:
-                parts.append(f"relative margin < {relative_margin:.0%}")
-            reason = "; ".join(parts)
+            reason = f"relative margin < {relative_margin:.0%}"
 
         results.append(
             BusiestShift(

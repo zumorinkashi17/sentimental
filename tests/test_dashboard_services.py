@@ -22,9 +22,10 @@ class HelperFunctionTests(TestCase):
         self.assertEqual(services.percentages([0, 0, 0]), [0, 0, 0])
 
     def test_reason_category(self):
-        self.assertEqual(services.reason_category("Suicidal thoughts"), "Suicidal Crisis")
-        self.assertEqual(services.reason_category("relationship"), "Relationships")
-        self.assertEqual(services.reason_category("financial"), "Career")
+        self.assertEqual(services.reason_category("Relationship Problem"), "Relationship Problem")
+        self.assertEqual(services.reason_category("emotional crisis"), "Emotional Crisis")
+        self.assertEqual(services.reason_category("Suicidal Ideation"), "Suicidal Ideation")
+        self.assertEqual(services.reason_category("Family Problem"), "Others")
         self.assertEqual(services.reason_category(""), "Others")
         self.assertEqual(services.reason_category(None), "Others")
 
@@ -167,7 +168,7 @@ class AdminAiCardTests(TestCase):
         self.assertTrue(ai["generated_label"].endswith("PHT"))
 
     def test_card_flags_leading_shift_uncertainty(self):
-        # Morning and Afternoon 80% intervals overlap -> provisional.
+        # Morning and Afternoon point forecasts are close -> provisional.
         self._persist(values={
             "total": [200.0, 220.0],
             "morning": [100.0, 105.0],

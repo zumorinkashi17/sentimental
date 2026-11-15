@@ -89,7 +89,7 @@
                 <i class="ph-fill ph-sparkle text-white/10 text-6xl absolute -right-2 -bottom-2"></i>
                 <p class="text-xs text-brand-light font-bold uppercase mb-1">Expected Call Volume</p>
                 <h3 class="text-2xl font-bold mb-2">{{ ai.status }}</h3>
-                <p class="text-xs font-medium text-brand-light">{{ ai.message }}</p>
+                <p class="text-xs font-medium text-brand-light cursor-help"{% if ai.message_tooltip %} title="{{ ai.message_tooltip }}"{% endif %}>{{ ai.message_short }}</p>
             </div>
         </div>
 
@@ -131,7 +131,7 @@
                         <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-brand rounded-full" style="width: {{ duration_pct }}%"></div></div>
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">High-Risk Escalation Rate</span><span class="text-red-500">{{ escalation }}%</span></div>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span class="text-gray-600">High-Risk Calls</span><span class="text-red-500">{{ high }}</span></div>
                         <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-400 rounded-full" style="width: {{ escalation }}%"></div></div>
                     </div>
                     <div>

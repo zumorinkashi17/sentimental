@@ -183,8 +183,9 @@ def month_totals(run: ForecastRun) -> list[dict]:
 def busiest_shifts(run: ForecastRun) -> list[dict]:
     """Predicted busiest shift per month, with the documented uncertainty flag.
 
-    A month is uncertain when the top two 80% intervals overlap or the
-    relative point margin is below 10% - see
+    A month is uncertain when the top two shifts' point forecasts are within
+    10% of each other. Overlapping prediction intervals are recorded separately
+    and do not by themselves hide the ranking - see
     :func:`apps.forecast.services.busiest_shift.identify_busiest_shift`.
     """
     from .busiest_shift import identify_busiest_shift
@@ -336,12 +337,12 @@ def forecast_run_payload(run: Optional[ForecastRun]) -> dict:
         },
         "caveats": [
             "Forecasts are estimates, not guaranteed results.",
-            "Missing historical data may reduce accuracy.",
-            "The busiest shift may be uncertain when the estimated ranges overlap.",
+            "Forecasts are based on recorded call history; unusual events or sudden "
+            "changes in demand may not be reflected.",
+            "The busiest shift may be a close call when the top two shifts differ by less than 10%.",
             "Total and shift-level forecasts are calculated separately, so they may "
             "not add up exactly.",
-            "Historical model performance may not reflect future performance.",
-            "Shift estimates depend on the shift recorded on each call, which may "
-            "not match the clock time of the call.",
+            "Accuracy was measured on past months only; future months can differ, so "
+            "refresh the forecast as new data arrives.",
         ],
     }

@@ -56,9 +56,8 @@ class ForecastPageContentTests(TestCase):
         self.assertTrue(response.context["forecast_available"])
         html = unescape(response.content.decode())
         # The run metadata is shown in plain language.
-        self.assertIn("Historical Data Used", html)
-        self.assertIn("January 2020 – April 2026", html)
-        self.assertIn("Historical Data Available Through", html)
+        self.assertIn("Total Predicted Calls", html)
+        self.assertIn("Busiest Month", html)
         self.assertIn("Forecast Period", html)
         # The machine-readable values stay available in the context.
         self.assertEqual(response.context["model_config_name"], "yearly_off")

@@ -35,25 +35,26 @@ from apps.forecast.services.display import shift_catalog_hours
 # ============================================================
 # AHT VALUES ARE IN MINUTES.
 #
-# These are SAMPLE values. They are assumptions, not measured performance.
-# Replace them with actual measured AHT values when real call-handling data
-# becomes available. No database migration, model retraining, or forecast
-# regeneration is required when these values change.
+# The client provided a measured average handling time (AHT) of 25 minutes, so
+# the same value is used for every shift. No database migration, model
+# retraining, or forecast regeneration is required when these values change.
 #
 # DEFAULT_AHT_MINUTES applies to all shifts unless a shift-specific override
 # is set. A shift override of None means "use DEFAULT_AHT_MINUTES".
 # ============================================================
 
-DEFAULT_AHT_MINUTES = Decimal("20.00")
+DEFAULT_AHT_MINUTES = Decimal("25.00")
 
-MORNING_AHT_MINUTES = Decimal("25.00")      # None -> use DEFAULT_AHT_MINUTES
-AFTERNOON_AHT_MINUTES = Decimal("25.00")    # None -> use DEFAULT_AHT_MINUTES
-NIGHT_AHT_MINUTES = Decimal("30.00")        # None -> use DEFAULT_AHT_MINUTES
+MORNING_AHT_MINUTES = None      # None -> use DEFAULT_AHT_MINUTES
+AFTERNOON_AHT_MINUTES = None    # None -> use DEFAULT_AHT_MINUTES
+NIGHT_AHT_MINUTES = None        # None -> use DEFAULT_AHT_MINUTES
 
 # Staffing assumptions (editable here, no admin UI required).
 WORKING_DAYS_PER_MONTH = 22
-SHRINKAGE_RATE = Decimal("0.15")      # 15% of working time lost to shrinkage
-OCCUPANCY_FACTOR = Decimal("0.85")    # 85% of scheduled time productively handling calls
+SHRINKAGE_RATE = Decimal("0.10")      # 10% of working time is non-productive
+# Occupancy is intentionally 100%: the client's 10% non-productive allowance is
+# the only reduction from paid hours, so no extra utilization haircut is applied.
+OCCUPANCY_FACTOR = Decimal("1.00")
 MIN_STAFF_MORNING = 2
 MIN_STAFF_AFTERNOON = 2
 MIN_STAFF_NIGHT = 2
@@ -169,9 +170,9 @@ def calculate_staffing(run=None) -> StaffingResult:
         aht_val = _aht_for_series(series)
         aht_used[series] = {
             "minutes": aht_val,
-            "status": "sample_default",
-            "source": "Backend code default (sample value - not measured)",
-            "is_sample": True,
+            "status": "client_provided",
+            "source": f"Client-provided average handling time ({aht_val:.0f} minutes)",
+            "is_sample": False,
             "used_global": aht_val == DEFAULT_AHT_MINUTES,
         }
 
