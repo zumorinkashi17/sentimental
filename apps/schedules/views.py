@@ -49,7 +49,6 @@ def admin_calendar_view(request):
     shifts = ShiftCatalog.objects.all().order_by('shift_start_time')
     
     responders = User.objects.filter(
-        user_role=User.RoleChoices.RESPONDER,
         user_status=User.StatusChoices.ACTIVE 
     ).order_by('user_first_name')
     

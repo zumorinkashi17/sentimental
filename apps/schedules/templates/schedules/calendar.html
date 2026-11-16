@@ -215,20 +215,31 @@
         return cookieValue;
     }
 
-   async function submitDayOffRequest() {
+    async function submitDayOffRequest() {
         const btn = document.getElementById('submit-request-btn');
         const reqStartDate = document.getElementById('requestStartDate').value;
         const reqEndDate = document.getElementById('requestEndDate').value;
         const reqReason = document.getElementById('requestReason').value;
         const reqNotes = document.getElementById('requestNotes').value;
 
+        // Validation using Swal instead of alert()
         if (!reqStartDate || !reqEndDate || !reqReason) {
-            alert('Please select a start date, end date, and reason.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Fields',
+                text: 'Please select a start date, end date, and reason.',
+                confirmButtonColor: '#3b82f6'
+            });
             return;
         }
 
         if (new Date(reqStartDate) > new Date(reqEndDate)) {
-            alert('Start date cannot be after end date.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Date Range',
+                text: 'Start date cannot be after end date.',
+                confirmButtonColor: '#ef4444'
+            });
             return;
         }
 
@@ -255,13 +266,29 @@
             if (response.ok) {
                 btn.innerHTML = '<i class="ph-bold ph-check"></i> Success!';
                 btn.classList.add('bg-green-600');
-                setTimeout(() => { window.location.reload(); }, 1000);
+                
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: result.message || 'Your day-off request has been submitted successfully.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                window.location.reload();
             } else {
-                throw new Error(result.message);
+                throw new Error(result.message || 'Failed to submit request.');
             }
         } catch (error) {
             console.error('Error submitting request:', error);
-            alert(error.message || 'An error occurred.');
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Submission Failed',
+                text: error.message || 'An error occurred while submitting your request.',
+                confirmButtonColor: '#ef4444'
+            });
+
             btn.innerHTML = '<i class="ph-bold ph-paper-plane-tilt"></i> Submit Request';
             btn.classList.remove('opacity-70', 'pointer-events-none');
         }
