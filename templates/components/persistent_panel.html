@@ -31,8 +31,8 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="form-label" for="timeCalled">Time Called:</label><input id="timeCalled" type="text" class="form-input font-mono" placeholder="--:-- --" value=""></div>
-                    <div><label class="form-label" for="timeEnded">Time Ended:</label><input id="timeEnded" type="text" class="form-input font-mono" placeholder="--:-- --" value=""></div>
+                    <div><label class="form-label" for="timeCalled">Time Called:</label><input id="timeCalled" type="time" step="60" class="form-input font-mono" value=""></div>
+                    <div><label class="form-label" for="timeEnded">Time Ended:</label><input id="timeEnded" type="time" step="60" class="form-input font-mono" value=""></div>
                 </div>
             </div>
         </div>
@@ -172,13 +172,19 @@
         <textarea id="manual-script-textarea" class="form-input flex-1 resize-none bg-white text-sm p-4 leading-relaxed shadow-sm border-gray-200 focus:ring-brand focus:border-brand font-mono" placeholder="Start typing manual script notes here..."></textarea>
     </div>
 
-    <!-- Action Button (Pinned to bottom) -->
+    <!-- Action Buttons (Pinned to bottom) -->
     <div class="p-4 border-t border-gray-100 shrink-0 bg-white sticky bottom-0 z-30">
-        <!-- Changed ID to ai-action-btn and onclick to triggerAI() -->
-        <button type="button" id="ai-action-btn" onclick="triggerAI()" class="w-full bg-brand text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-all active:scale-[0.98] shadow-md group">
-            <i class="ph-fill ph-sparkle text-xl group-hover:animate-pulse"></i>
-            <span id="ai-btn-text">AUTO-FILL FORM</span>
-        </button>
+        <div class="flex items-stretch gap-2">
+            <!-- Changed ID to ai-action-btn and onclick to triggerAI() -->
+            <button type="button" id="ai-action-btn" onclick="triggerAI()" class="flex-1 min-w-0 bg-brand text-white font-bold text-sm py-3.5 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-dark transition-all active:scale-[0.98] shadow-md group">
+                <i class="ph-fill ph-sparkle text-lg group-hover:animate-pulse"></i>
+                <span id="ai-btn-text">AUTO-FILL FORM</span>
+            </button>
+            <button type="button" id="ai-summarize-btn" onclick="summarizeManually()" class="flex-1 min-w-0 inline-flex items-center justify-center gap-2 rounded-lg border border-brand/40 bg-white py-3.5 text-sm font-bold text-brand transition-all hover:bg-brand-light/40 active:scale-[0.98]" aria-label="Summarize without auto-filling the form" title="Summarize without auto-filling the form">
+                <i class="ph-bold ph-sparkle text-lg"></i>
+                <span id="ai-summarize-label">SUMMARIZE</span>
+            </button>
+        </div>
         <p id="ai-status" class="hidden mt-2 text-center text-[11px] font-semibold text-gray-500" role="status" aria-live="polite"></p>
     </div>
 </aside>
@@ -200,16 +206,124 @@
         return cookieValue;
     }
 
+    // 24-hour "HH:MM" value for native <input type="time"> fields.
     function manilaTimeAt(date) {
         return date.toLocaleTimeString('en-US', {
             timeZone: 'Asia/Manila',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            hourCycle: 'h23'
         });
     }
 
     function manilaTime() {
         return manilaTimeAt(new Date());
+    }
+
+    // Convert the picker's 24-hour value back to "hh:mm AM/PM" for the API.
+    function timeInputTo12Hour(value) {
+        if (!value) return '';
+        const parts = String(value).split(':');
+        const hours = Number(parts[0]);
+        const minutes = Number(parts[1]);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return value;
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const hour12 = hours % 12 || 12;
+        return String(hour12).padStart(2, '0') + ':' + String(minutes).padStart(2, '0') + ' ' + period;
+    }
+
+    // --- Panel draft persistence (survives page switches) ---
+    const PANEL_DRAFT_KEY = 'persistentPanelDraft';
+
+    const PANEL_DRAFT_FIELDS = [
+        'timeCalled', 'timeEnded', 'aiName', 'phoneNumber', 'aiGender',
+        'aiStatus', 'aiAge', 'aiLocation', 'aiRisk', 'aiIntervention',
+        'aiComments', 'aiGeneratedSummary', 'manual-script-textarea'
+    ];
+
+    function savePanelDraft() {
+        if (window.panelDraftSuppressed) return;
+        try {
+            const draft = { fields: {} };
+            PANEL_DRAFT_FIELDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) draft.fields[id] = el.value;
+            });
+            ['aiReason', 'aiReferral', 'aiReferralAffiliation'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) draft.fields[id] = el.value;
+            });
+
+            const referralLabel = document.getElementById('referralLabel');
+            draft.referralLabel = referralLabel ? referralLabel.textContent : '';
+            draft.aiStep = window.aiStep || 0;
+            draft.aiSummaryDraft = typeof aiSummaryDraft === 'string' ? aiSummaryDraft : '';
+            const summaryContainer = document.getElementById('ai-summary-container');
+            draft.summaryVisible = !!(summaryContainer && !summaryContainer.classList.contains('hidden'));
+            const manualPanel = document.getElementById('panel-doc-manual');
+            draft.docMode = manualPanel && !manualPanel.classList.contains('hidden') ? 'manual' : 'form';
+
+            sessionStorage.setItem(PANEL_DRAFT_KEY, JSON.stringify(draft));
+        } catch (error) {
+            console.warn('Unable to save panel draft:', error);
+        }
+    }
+
+    function clearPanelDraft() {
+        try {
+            sessionStorage.removeItem(PANEL_DRAFT_KEY);
+        } catch (error) {
+            console.warn('Unable to clear panel draft:', error);
+        }
+    }
+
+    function restorePanelDraft() {
+        let draft = null;
+        try {
+            draft = JSON.parse(sessionStorage.getItem(PANEL_DRAFT_KEY) || 'null');
+        } catch (error) {
+            draft = null;
+        }
+        if (!draft || !draft.fields) return;
+
+        Object.entries(draft.fields).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+
+        if (typeof window.setReasonSelectValue === 'function') {
+            window.setReasonSelectValue(draft.fields.aiReason || '');
+        }
+        if (typeof window.setReferralSelectValue === 'function') {
+            window.setReferralSelectValue(
+                draft.fields.aiReferral || '',
+                draft.referralLabel || 'Select professional',
+                draft.fields.aiReferralAffiliation || ''
+            );
+        }
+
+        window.aiStep = Number(draft.aiStep) || 0;
+        aiSummaryDraft = draft.aiSummaryDraft || '';
+
+        const summaryContainer = document.getElementById('ai-summary-container');
+        const hasSummary = !!draft.summaryVisible;
+        if (summaryContainer) summaryContainer.classList.toggle('hidden', !hasSummary);
+
+        setSummaryEditMode(false);
+        setSummaryAgainVisible(hasSummary);
+        setSummarizeButtonVisible(window.aiStep === 0);
+
+        if (draft.docMode === 'manual' && typeof toggleDocMode === 'function') {
+            toggleDocMode('manual');
+        }
+
+        if (window.aiStep >= 2) {
+            setAiButton('SAVE RECORD', 'ph-floppy-disk', false);
+        } else if (window.aiStep === 1) {
+            setAiButton('SUMMARIZE', 'ph-sparkle', false);
+        } else {
+            setAiButton('AUTO-FILL FORM', 'ph-sparkle', false);
+        }
     }
 
     function initReasonSelect() {
@@ -329,6 +443,7 @@
         window.resetReasonSelect = function () {
             setValue('');
         };
+        window.setReasonSelectValue = setValue;
 
         setValue(hidden.value);
     }
@@ -531,6 +646,7 @@
         window.resetReferralSelect = function () {
             setValue('', '', '');
         };
+        window.setReferralSelectValue = setValue;
 
         loadResults();
         setValue('', '', '');
@@ -555,6 +671,9 @@
         initReasonSelect();
         initReferralSelect();
 
+        // Restore anything the responder typed or auto-filled before navigating.
+        restorePanelDraft();
+
         // Capture recording start/stop times into the editable time fields.
         if (typeof CallRecorder !== 'undefined') {
             const timeCalled = document.getElementById('timeCalled');
@@ -563,17 +682,28 @@
             CallRecorder.on('start', function () {
                 if (timeCalled) timeCalled.value = manilaTime();
                 if (timeEnded) timeEnded.value = '';
+                savePanelDraft();
             });
             CallRecorder.on('stop', function () {
                 if (timeEnded) timeEnded.value = manilaTime();
+                savePanelDraft();
             });
 
             const state = CallRecorder.getState();
             if (state.state === 'recording' && timeCalled && !timeCalled.value) {
                 const startedAt = new Date(Date.now() - (state.elapsed * 1000));
                 timeCalled.value = manilaTimeAt(startedAt);
+                savePanelDraft();
             }
         }
+
+        const panel = document.getElementById('persistent-panel');
+        if (panel) {
+            panel.addEventListener('input', savePanelDraft);
+            panel.addEventListener('change', savePanelDraft);
+        }
+        window.addEventListener('pagehide', savePanelDraft);
+        window.addEventListener('beforeunload', savePanelDraft);
     });
 
     let aiSummaryDraft = '';
@@ -588,6 +718,19 @@
             tone === 'success' ? 'text-emerald-600' : 'text-gray-500'
         );
         el.classList.toggle('hidden', !message);
+    }
+
+    function flagInvalidField(el) {
+        if (!el) return;
+        const formPanel = el.closest('#panel-doc-form');
+        if (formPanel && formPanel.classList.contains('hidden') && typeof toggleDocMode === 'function') {
+            toggleDocMode('form');
+        }
+        el.classList.add('border-red-600', 'ring-1', 'ring-red-600');
+        el.focus();
+        setTimeout(() => {
+            el.classList.remove('border-red-600', 'ring-1', 'ring-red-600');
+        }, 3000);
     }
 
     /// TRANSCRIPT: Reads the editable transcript rows, preferring checked lines.
@@ -623,10 +766,20 @@
         btn.classList.toggle('pointer-events-none', !!busy);
     }
 
+    // Hide the secondary Summarize button once a summary exists, since the
+    // summary panel already offers "Summarize Again".
+    function setSummarizeButtonVisible(visible) {
+        const btn = document.getElementById('ai-summarize-btn');
+        if (!btn) return;
+        btn.classList.toggle('hidden', !visible);
+        btn.classList.toggle('inline-flex', visible);
+    }
+
     function summaryContext() {
         return {
             reason: document.getElementById('aiReason')?.value || '',
-            risk: document.getElementById('aiRisk')?.value || ''
+            risk: document.getElementById('aiRisk')?.value || '',
+            intervention: document.getElementById('aiIntervention')?.value || ''
         };
     }
 
@@ -666,6 +819,7 @@
         } else {
             aiSummaryDraft = textarea.value;
             aiStatus('Summary updated. Review it, then save the record.', 'success');
+            savePanelDraft();
         }
     }
 
@@ -682,9 +836,10 @@
         const label = document.getElementById('summary-again-label');
         if (!textarea || !btn) return;
 
-        const text = collectAnalysisText();
+        let text = collectAnalysisText();
+        if (!text) text = collectFormDetailsText();
         if (!text) {
-            aiStatus('Transcribe the call or type manual notes before summarizing again.', 'error');
+            aiStatus('Transcribe the call, type manual notes, or fill in the form before summarizing again.', 'error');
             return;
         }
 
@@ -698,12 +853,87 @@
             textarea.value = aiSummaryDraft || 'No summary could be generated.';
             setSummaryEditMode(false);
             aiStatus('Summary regenerated. Review it, then save the record.', 'success');
+            savePanelDraft();
         } catch (error) {
             console.error('Summarization failed:', error);
             aiStatus(error.message, 'error');
         } finally {
             btn.classList.remove('opacity-70', 'pointer-events-none');
             if (label) label.textContent = 'Summarize Again';
+        }
+    }
+
+    // Build a text fallback from the details the responder typed by hand so the
+    // summary still works when there is no transcript or manual script notes.
+    function collectFormDetailsText() {
+        const fields = [
+            ['Caller name', 'aiName'],
+            ['Gender', 'aiGender'],
+            ['Civil status', 'aiStatus'],
+            ['Age', 'aiAge'],
+            ['Location', 'aiLocation'],
+            ['Reason for calling', 'aiReason'],
+            ['Risk assessment', 'aiRisk'],
+            ['Intervention', 'aiIntervention'],
+            ['Additional comments', 'aiComments']
+        ];
+        return fields
+            .map(([label, id]) => {
+                const el = document.getElementById(id);
+                const value = el ? String(el.value || '').trim() : '';
+                if (!value || value.toLowerCase() === 'n/a') return '';
+                return label + ': ' + value;
+            })
+            .filter(Boolean)
+            .join('\n');
+    }
+
+    // Summarize directly from the transcript / manual notes without auto-filling
+    // the form, so responders who filled the details by hand keep their entries.
+    async function summarizeManually() {
+        const btn = document.getElementById('ai-summarize-btn');
+        const label = document.getElementById('ai-summarize-label');
+        if (!btn) return;
+
+        let text = collectAnalysisText();
+        if (!text) text = collectFormDetailsText();
+        if (!text) {
+            aiStatus('Transcribe the call, type manual notes, or fill in the form before summarizing.', 'error');
+            const notes = document.getElementById('manual-script-textarea');
+            if (notes) notes.focus();
+            return;
+        }
+
+        btn.classList.add('opacity-70', 'pointer-events-none');
+        if (label) label.textContent = 'Summarizing...';
+        aiStatus('');
+
+        try {
+            const result = await postAnalyze(text, summaryContext());
+            aiSummaryDraft = result.summary || aiSummaryDraft;
+
+            if (typeof toggleDocMode === 'function') toggleDocMode('form');
+            const summaryContainer = document.getElementById('ai-summary-container');
+            const summaryText = document.getElementById('aiGeneratedSummary');
+            if (summaryContainer) {
+                summaryContainer.classList.remove('hidden');
+                summaryContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            if (summaryText) summaryText.value = aiSummaryDraft || 'No summary could be generated.';
+            setSummaryEditMode(false);
+            setSummaryAgainVisible(true);
+            setSummarizeButtonVisible(false);
+
+            setAiButton('SAVE RECORD', 'ph-floppy-disk', false);
+            window.aiStep = 2;
+            aiStatus('Summary generated. Review it, then save the record.', 'success');
+            savePanelDraft();
+        } catch (error) {
+            console.error('Summarization failed:', error);
+            aiStatus(error.message, 'error');
+        } finally {
+            btn.classList.remove('opacity-70', 'pointer-events-none');
+            if (label) label.textContent = 'SUMMARIZE';
         }
     }
 
@@ -719,7 +949,8 @@
             body: JSON.stringify({
                 text: text,
                 reason: context?.reason || '',
-                risk: context?.risk || ''
+                risk: context?.risk || '',
+                intervention: context?.intervention || ''
             })
         });
         let data = null;
@@ -734,6 +965,18 @@
     function fillField(id, value) {
         const el = document.getElementById(id);
         if (el && value !== undefined && value !== null) el.value = value;
+    }
+
+    // Leave the intervention field blank when nothing was detected (no "N/A").
+    function cleanIntervention(value) {
+        const text = String(value || '').trim();
+        if (!text || text.toLowerCase() === 'n/a') return '';
+        return text;
+    }
+
+    // When saving, a blank intervention defaults to emotional support.
+    function normalizeIntervention(value) {
+        return cleanIntervention(value) || 'Emotional Support';
     }
 
     async function triggerAI() {
@@ -761,11 +1004,12 @@
                 fillField('aiStatus', fields.callerStatus);
                 fillField('aiAge', fields.callerAge);
                 fillField('aiLocation', fields.callerLocation);
-                fillField('aiIntervention', fields.intervention);
+                fillField('aiIntervention', cleanIntervention(fields.intervention));
                 // Reason for Calling and Risk Level remain manual (objective 2.2).
                 aiSummaryDraft = result.summary || '';
                 if (typeof toggleDocMode === 'function') toggleDocMode('form');
                 setAiButton('SUMMARIZE', 'ph-sparkle', false);
+                setSummarizeButtonVisible(false);
                 aiStatus(
                     result.method === 'hybrid'
                         ? 'Auto-filled using rule-based extraction + NER. Review before saving.'
@@ -773,6 +1017,7 @@
                     'success'
                 );
                 window.aiStep = 1;
+                savePanelDraft();
             } catch (error) {
                 console.error('Auto-fill failed:', error);
                 setAiButton('AUTO-FILL FORM', 'ph-sparkle', false);
@@ -797,10 +1042,12 @@
                 if (summaryText) summaryText.value = aiSummaryDraft || 'No summary could be generated.';
                 setSummaryEditMode(false);
                 setSummaryAgainVisible(true);
+                setSummarizeButtonVisible(false);
 
                 setAiButton('SAVE RECORD', 'ph-floppy-disk', false);
                 aiStatus('Review the summary, then save the record.', 'success');
                 window.aiStep = 2;
+                savePanelDraft();
             } catch (error) {
                 console.error('Summarization failed:', error);
                 setAiButton('SUMMARIZE', 'ph-sparkle', false);
@@ -813,13 +1060,20 @@
             const shiftDisplay = document.getElementById('callShiftDisplay');
             if (!shiftInput || !shiftInput.value.trim()) {
                 aiStatus('No shift is scheduled for you today. Contact your admin before saving.', 'error');
-                if (shiftDisplay) {
-                    shiftDisplay.classList.add('border-red-600', 'ring-1', 'ring-red-600');
-                    shiftDisplay.focus();
-                    setTimeout(() => {
-                        shiftDisplay.classList.remove('border-red-600', 'ring-1', 'ring-red-600');
-                    }, 3000);
-                }
+                flagInvalidField(shiftDisplay);
+                return;
+            }
+
+            const timeCalledInput = document.getElementById('timeCalled');
+            const timeEndedInput = document.getElementById('timeEnded');
+            if (!timeCalledInput || !timeCalledInput.value.trim()) {
+                aiStatus('Time Called is required before saving.', 'error');
+                flagInvalidField(timeCalledInput);
+                return;
+            }
+            if (!timeEndedInput || !timeEndedInput.value.trim()) {
+                aiStatus('Time Ended is required before saving.', 'error');
+                flagInvalidField(timeEndedInput);
                 return;
             }
 
@@ -830,8 +1084,8 @@
                 callSessionNo: document.getElementById('callSessionNo').value,
                 callDate: document.getElementById('callDate').value,
                 callShift: document.getElementById('callShift').value,
-                timeCalled: document.getElementById('timeCalled').value,
-                timeEnded: document.getElementById('timeEnded').value,
+                timeCalled: timeInputTo12Hour(document.getElementById('timeCalled').value),
+                timeEnded: timeInputTo12Hour(document.getElementById('timeEnded').value),
                 callerName: document.getElementById('aiName').value.trim() || 'Anonymous',
                 callerNumber: document.getElementById('phoneNumber').value.trim(),
                 callerGender: document.getElementById('aiGender').value,
@@ -840,7 +1094,7 @@
                 callerLocation: document.getElementById('aiLocation').value,
                 reasonForCalling: document.getElementById('aiReason').value,
                 riskAssessment: document.getElementById('aiRisk').value,
-                intervention: document.getElementById('aiIntervention').value,
+                intervention: normalizeIntervention(document.getElementById('aiIntervention').value),
                 referralProfessionalId: document.getElementById('aiReferral')?.value || '',
                 referralAffiliationId: document.getElementById('aiReferralAffiliation')?.value || '',
                 additionalComments: document.getElementById('aiComments').value,
@@ -873,6 +1127,8 @@
                     btn.classList.add('bg-blue-600');
                     
                     isSuccess = true; // Mark as success
+                    window.panelDraftSuppressed = true;
+                    clearPanelDraft();
                 } else {
                     throw new Error(result.message || 'Error saving session');
                 }
@@ -891,6 +1147,7 @@
                     window.aiStep = 0; // Reset progression
                     aiSummaryDraft = '';
                     aiStatus('');
+                    setSummarizeButtonVisible(true);
 
                     // CLEAR FIELDS ON SUCCESS
                     if (isSuccess) {
@@ -913,6 +1170,8 @@
                         if(summaryContainer) summaryContainer.classList.add('hidden');
                         setSummaryAgainVisible(false);
                         setSummaryEditMode(false);
+                        clearPanelDraft();
+                        window.panelDraftSuppressed = false;
 
                         if (typeof window.sentiRefresh === 'function') {
                             window.sentiRefresh();

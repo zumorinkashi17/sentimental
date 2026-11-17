@@ -282,6 +282,7 @@ def analyze_call_text(request):
             text,
             reason_for_calling=data.get("reason", ""),
             risk_assessment=data.get("risk", ""),
+            intervention=data.get("intervention"),
         )
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("NLP analysis failed")
@@ -305,12 +306,14 @@ def save_call_documentation(request):
         except ValueError:
             call_date = None
             
-        # Format: "06:12 PM"
+        # Accept both "06:12 PM" and the time picker's 24-hour "18:12".
         def parse_time(time_str):
-            try:
-                return datetime.strptime(time_str, '%I:%M %p').time()
-            except ValueError:
-                return None
+            for fmt in ('%I:%M %p', '%H:%M'):
+                try:
+                    return datetime.strptime(time_str, fmt).time()
+                except (TypeError, ValueError):
+                    continue
+            return None
                 
         time_called = parse_time(data.get('timeCalled', ''))
         time_ended = parse_time(data.get('timeEnded', ''))

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from . import ner
-from .intervention import extract_intervention
+from .intervention import categories_from_value, extract_intervention
 from .rules import (
     canonical_civil_status,
     canonical_gender,
@@ -143,6 +143,7 @@ def analyze(
     *,
     reason_for_calling: object = "",
     risk_assessment: object = "",
+    intervention: object = None,
 ) -> dict:
     """Extract caller fields and generate a TextRank-driven English summary.
 
@@ -198,16 +199,23 @@ def analyze(
                 "evidence": "spouse reference",
             }
 
-    intervention, intervention_categories = extract_intervention(
+    detected_intervention, intervention_categories = extract_intervention(
         caller_text, responder_text
     )
-    fields["intervention"] = intervention or "N/A"
+    fields["intervention"] = detected_intervention or "N/A"
     field_meta["intervention"] = {
-        "confidence": 0.8 if intervention else 0.0,
-        "source": "dictionary" if intervention else None,
-        "evidence": intervention,
+        "confidence": 0.8 if detected_intervention else 0.0,
+        "source": "dictionary" if detected_intervention else None,
+        "evidence": detected_intervention,
         "categories": intervention_categories,
     }
+
+    # The form's intervention field takes precedence for the summary. A blank
+    # or N/A value means "no intervention" and uses the moral-support fallback.
+    if intervention is not None:
+        manual_categories = categories_from_value(intervention)
+        if manual_categories is not None:
+            intervention_categories = manual_categories
 
     textrank_summary = summarize(
         caller_text,

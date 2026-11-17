@@ -143,5 +143,8 @@
     </script>
 
     <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        try { sessionStorage.removeItem('persistentPanelDraft'); } catch (err) {}
+    </script>
 </body>
 </html>

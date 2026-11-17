@@ -394,6 +394,29 @@ _RULES: dict[str, dict[str, float]] = {
 }
 
 
+_EMPTY_VALUES = {"", "n/a", "na", "none", "-", "select", "select intervention"}
+
+
+def categories_from_value(value: object) -> list[str] | None:
+    """Map a form intervention value to known categories.
+
+    Returns an empty list for blank/``N/A`` values (meaning the summary should
+    use the moral-support fallback), the matched categories when the value
+    contains known labels, or ``None`` when it is a custom value that should
+    keep the automatic detection.
+    """
+    text = str(value or "").strip()
+    if text.lower() in _EMPTY_VALUES:
+        return []
+    normalized = _normalize(text)
+    if "emotional support" in normalized or "moral support" in normalized:
+        return []
+    found = [
+        category for category in _CATEGORY_ORDER if _normalize(category) in normalized
+    ]
+    return found or None
+
+
 def _normalize(text: str) -> str:
     normalized = _WORD_RE.sub(" ", str(text or "").lower())
     return re.sub(r"\s+", " ", normalized).strip()
