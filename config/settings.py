@@ -175,6 +175,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Per-report cover logos uploaded by admins (not part of static assets).
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 # Free, key-less Philippine Standard Geographic Code API used by the

@@ -4,10 +4,12 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import Count, Case, When, Q
 from django.utils import timezone
 
 from .models import Report
+from .logos import LOGO_SLOTS, get_cover_logos, get_logo_slots, reset_logo, save_logo
 from apps.accounts.models import User
 from apps.callers.models import CallSession, Caller
 from apps.pagination import paginate
@@ -133,8 +135,25 @@ def generate_view(request):
                 
             report.report_type = r_type
             report.save()
-            
-            messages.success(request, 'Report updated successfully.')
+
+            # --- Per-report cover logos ---
+            logo_errors = []
+            for slot in LOGO_SLOTS:
+                try:
+                    if request.POST.get(f'reset_logo_{slot}'):
+                        reset_logo(report.report_id, slot)
+                        continue
+                    upload = request.FILES.get(f'logo_{slot}')
+                    if upload:
+                        save_logo(report.report_id, slot, upload)
+                except ValidationError as exc:
+                    logo_errors.extend(exc.messages)
+
+            if logo_errors:
+                for error in logo_errors:
+                    messages.error(request, f"Logo not saved: {error}")
+            else:
+                messages.success(request, 'Report updated successfully.')
             return redirect('reports:generate')
 
     reports = list(Report.objects.all().order_by('-report_generated_date', '-report_id'))
@@ -173,6 +192,10 @@ def generate_view(request):
 
     page_obj, querystring = paginate(request, reports)
 
+    for r in page_obj.object_list:
+        r.logo_slots = get_logo_slots(r.report_id)
+        r.logo_preview_urls = [slot['url'] or '' for slot in r.logo_slots]
+
     return render(request, 'reports/generate.html', {
         'reports': page_obj.object_list,
         'page_obj': page_obj,
@@ -180,6 +203,13 @@ def generate_view(request):
         'report_years': report_years,
         'selected_year': selected_year,
         'report_types': Report.ReportTypeChoices.choices,
+        'logo_slots': [
+            ('left', 'Left', True),
+            ('center', 'Center', True),
+            ('right', 'Right', True),
+            ('extra1', 'Extra Logo 1', False),
+            ('extra2', 'Extra Logo 2', False),
+        ],
     })
 
 
@@ -313,6 +343,7 @@ def export_pdf_view(request, report_id):
         
         monthly_data = {
             'report_title': clean_title,
+            'cover_logos': get_cover_logos(report.report_id),
             'report_month_title': f"{start_date.strftime('%B %Y')} Report",
             'period_label': display_period,
             'current_period_label': current_period_label,
@@ -342,14 +373,17 @@ def export_pdf_view(request, report_id):
         return render(request, 'reports/monthly_pdf_report.html', monthly_data)
 
     else:
-        years = [end_year - i for i in range(4, -1, -1)]
-        annual_vals = [CallSession.objects.filter(session_call_date__year=y).count() for y in years]
+        years = list(range(start_year, end_year + 1))
+        annual_vals = [sessions.filter(session_call_date__year=y).count() for y in years]
+        annual_range_label = f"({start_date.strftime('%B %Y')} - {end_date.strftime('%B %Y')})"
         
         annual_data = {
             'report_title': clean_title,
+            'cover_logos': get_cover_logos(report.report_id),
             'report_year': display_period, 
             'period_label': display_period,
             'shift_period_label': display_period,
+            'annual_range_label': annual_range_label,
             'annual_labels': json.dumps([str(y) for y in years]),
             'annual_values': json.dumps(annual_vals),
             'annual_increase': annual_increase, 
@@ -472,6 +506,7 @@ def export_forecast_actual_pdf_view(request, report_id):
 
     context = {
         'report_title': clean_title,
+        'cover_logos': get_cover_logos(report.report_id),
         'period_label': formatted_period,
         'total_actual': total_actual,
         'total_forecast': total_forecast,

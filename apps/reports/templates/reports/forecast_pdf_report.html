@@ -91,15 +91,11 @@
         </svg>
 
         <div class="relative z-10 flex items-center gap-6 mt-2 ml-4">
+            {% for logo in cover_logos %}
             <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/doh-logo.png' %}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover">
+                <img src="{{ logo.url }}" alt="{{ logo.alt }}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover {{ logo.css_class }}">
             </div>
-            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/tpcb-logo.png' %}" alt="Tawag Paglaum" class="w-full h-full object-cover scale-[1.32]">
-            </div>
-            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/vsmmc-logo.png' %}" onerror="this.style.backgroundColor='#fff'" class="w-full h-full object-cover">
-            </div>
+            {% endfor %}
         </div>
 
         <div class="relative z-10 my-auto ml-4 max-w-[78%]">

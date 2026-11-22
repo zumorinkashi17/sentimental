@@ -143,20 +143,13 @@
             <circle cx="500" cy="650" r="280" fill="url(#largeDots)" />
         </svg>
 
-        <!-- TOP LEFT LOGOS (TPCB 225x225 white border cropped out via overflow-hidden + scale) -->
+        <!-- TOP LEFT LOGOS (per-report override, falls back to defaults) -->
         <div class="relative z-10 flex items-center gap-6 mt-2 ml-4">
+            {% for logo in cover_logos %}
             <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/doh-logo.png' %}" alt="DOH" class="w-full h-full object-cover">
+                <img src="{{ logo.url }}" alt="{{ logo.alt }}" class="w-full h-full object-cover {{ logo.css_class }}">
             </div>
-            
-            <!-- TPCB Logo: scale-[1.32] zooms past the white outer padding so the yellow ring fills the 112px circle -->
-            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/tpcb-logo.png' %}" alt="Tawag Paglaum" class="w-full h-full object-cover scale-[1.32]">
-            </div>
-
-            <div class="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center drop-shadow-sm">
-                <img src="{% static 'images/vsmmc-logo.png' %}" alt="VSMMC" class="w-full h-full object-cover">
-            </div>
+            {% endfor %}
         </div>
 
         <!-- CENTER-LEFT ALIGNED TITLE BLOCK -->
@@ -307,7 +300,7 @@
     <section class="report-page page-light px-16 pt-10 pb-12">
         <div class="text-center mb-4">
             <h2 class="font-bebas text-[74px] leading-none text-[#3d5a05] uppercase">ANNUAL NUMBER OF CALLS</h2>
-            <p class="font-bebas text-[42px] leading-none text-[#3d5a05] italic">(2018-April 2026)</p>
+            <p class="font-bebas text-[42px] leading-none text-[#3d5a05] italic">{{ annual_range_label }}</p>
         </div>
         <div class="flex-1 w-full relative">
             <canvas id="chartAnnual"></canvas>
@@ -341,14 +334,15 @@
          PAGE 9: GENDER
     =========================================== -->
     <section class="report-page page-light px-16 pt-10 pb-12">
-        <div class="relative mb-2">
-            <p class="font-bebas text-[38px] text-slate-900 absolute left-0 top-2 uppercase">{{ period_label }}</p>
-            <h2 class="font-bebas text-[82px] leading-none text-[#3d5a05] text-center uppercase">GENDER</h2>
+        <div class="text-center mb-4">
+            <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">GENDER</h2>
+            <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
         </div>
-        <div class="flex-1 w-full flex items-center justify-center relative">
-            <div class="w-[540px] h-[620px]">
+        <div class="flex-1 w-full flex items-center justify-center gap-8 relative">
+            <div class="w-[500px] h-[600px]">
                 <canvas id="chartGender"></canvas>
             </div>
+            <div id="legend-gender" class="w-[340px]"></div>
         </div>
     </section>
 
@@ -360,10 +354,11 @@
             <h2 class="font-bebas text-[78px] leading-none text-[#3d5a05] uppercase">RISK ASSESSMENT</h2>
             <p class="font-bebas text-[36px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
         </div>
-        <div class="flex-1 w-full flex items-center justify-center relative">
-             <div class="w-[500px] h-[520px]">
+        <div class="flex-1 w-full flex items-center justify-center gap-8 relative">
+             <div class="w-[450px] h-[500px]">
                 <canvas id="chartRisk"></canvas>
             </div>
+            <div id="legend-risk" class="w-[340px]"></div>
         </div>
     </section>
 
@@ -401,10 +396,11 @@
             <h2 class="font-bebas text-[68px] leading-none text-[#3d5a05] uppercase">REASONS FOR CALLING (MOST OCCURRENCE)</h2>
             <p class="font-bebas text-[34px] leading-none text-[#3d5a05] uppercase">{{ period_label }}</p>
         </div>
-        <div class="flex-1 w-full flex items-center justify-center relative">
-            <div class="w-[780px] h-[520px]">
+        <div class="flex-1 w-full flex items-center justify-center gap-8 relative">
+            <div class="w-[480px] h-[500px]">
                 <canvas id="chartReasons"></canvas>
             </div>
+            <div id="legend-reasons" class="w-[400px]"></div>
         </div>
     </section>
 
@@ -484,6 +480,10 @@
         const interventionsValues = JSON.parse(dataEl.interventionsValues);
 
         // 1. Annual Calls Area Chart
+        const annualPeak = annualValues.length ? Math.max(...annualValues) : 0;
+        const annualStep = annualPeak <= 2000 ? 500 : Math.ceil(annualPeak / 5 / 500) * 500;
+        const annualMax = Math.max(2000, annualStep * Math.ceil(annualPeak / annualStep));
+        const annualTickSize = annualLabels.length > 8 ? 18 : 22;
         new Chart(document.getElementById('chartAnnual'), {
             type: 'line',
             data: {
@@ -509,18 +509,25 @@
                         align: 'top',
                         offset: 8,
                         color: '#3d5a05',
-                        font: { size: 28, weight: 'bold' }
+                        font: { size: annualLabels.length > 8 ? 18 : 28, weight: 'bold' }
                     }
                 },
                 scales: {
-                    y: { beginAtZero: true, max: 2000, ticks: { stepSize: 500, font: { size: 22 } } },
-                    x: { ticks: { font: { size: 22 } }, grid: { display: false } }
+                    y: { beginAtZero: true, max: annualMax, ticks: { stepSize: annualStep, font: { size: 22 } } },
+                    x: { ticks: { font: { size: annualTickSize } }, grid: { display: false } }
                 }
             }
         });
 
         // Reusable Horizontal Bar Config Builder
-        function createHorizontalBar(canvasId, labels, data, barColor, maxScale, stepSize) {
+        function createHorizontalBar(canvasId, labels, data, barColor, minMax, minStep) {
+            const peak = data.length ? Math.max(...data) : 0;
+            let stepSize = minStep;
+            let maxScale = minMax;
+            if (peak > minMax) {
+                stepSize = Math.ceil(peak / 5 / minStep) * minStep;
+                maxScale = stepSize * Math.ceil(peak / stepSize);
+            }
             new Chart(document.getElementById(canvasId), {
                 type: 'bar',
                 data: {
@@ -539,7 +546,20 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        datalabels: { display: false }
+                        datalabels: {
+                            display: true,
+                            anchor: 'end',
+                            align: 'end',
+                            offset: 4,
+                            clamp: true,
+                            color: '#3d5a05',
+                            font: { size: 18, weight: 'bold' },
+                            formatter: (value) => {
+                                const total = data.reduce((sum, v) => sum + v, 0);
+                                const pct = total > 0 ? (value / total) * 100 : 0;
+                                return `${value} (${pct.toFixed(1)}%)`;
+                            }
+                        }
                     },
                     scales: {
                         x: { beginAtZero: true, max: maxScale, ticks: { stepSize: stepSize, font: { size: 24 } } },
@@ -549,74 +569,78 @@
             });
         }
 
+        // Reusable HTML Legend for Pie / Doughnut Charts
+        function renderPieLegend(containerId, labels, values, colors) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const total = values.reduce((sum, v) => sum + v, 0);
+            container.innerHTML = '';
+            labels.forEach((label, i) => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 mb-2';
+                const swatch = document.createElement('span');
+                swatch.className = 'inline-block w-4 h-4 rounded-sm shrink-0';
+                swatch.style.backgroundColor = colors[i % colors.length];
+                const text = document.createElement('span');
+                text.className = 'font-bebas text-[24px] leading-tight text-[#3d5a05] uppercase';
+                const pct = total > 0 ? (values[i] / total) * 100 : 0;
+                text.textContent = `${label} — ${values[i]} (${pct.toFixed(1)}%)`;
+                row.appendChild(swatch);
+                row.appendChild(text);
+                container.appendChild(row);
+            });
+        }
+
         // 2. Age Horizontal Bar
         createHorizontalBar('chartAge', ageLabels, ageValues, '#4b830d', 500, 100);
 
         // 3. Gender Pie Chart
+        const genderColors = ['#4b830d', '#557026', '#3d5207'];
         new Chart(document.getElementById('chartGender'), {
             type: 'pie',
             data: {
                 labels: genderLabels,
                 datasets: [{
                     data: genderValues,
-                    backgroundColor: ['#4b830d', '#557026', '#3d5207'],
+                    backgroundColor: genderColors,
                     borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: 70 },
+                layout: { padding: 10 },
                 plugins: {
                     legend: { display: false },
-                    datalabels: {
-                        color: '#3d5a05',
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 10,
-                        textAlign: 'center',
-                        font: { size: 30 }, 
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ''; 
-                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
-                        }
-                    }
+                    datalabels: { display: false }
                 }
             }
         });
+        renderPieLegend('legend-gender', genderLabels, genderValues, genderColors);
 
         // 4. Risk Assessment Pie Chart
+        const riskColors = ['#4b830d', '#557026', '#3d5207'];
         new Chart(document.getElementById('chartRisk'), {
             type: 'pie',
             data: {
                 labels: riskLabels,
                 datasets: [{
                     data: riskValues,
-                    backgroundColor: ['#4b830d', '#557026', '#3d5207'],
+                    backgroundColor: riskColors,
                     borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: 75 },
+                layout: { padding: 10 },
                 plugins: {
                     legend: { display: false },
-                    datalabels: {
-                        color: '#3d5a05',
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 10,
-                        textAlign: 'center',
-                        font: { size: 30 },
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ''; 
-                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
-                        }
-                    }
+                    datalabels: { display: false }
                 }
             }
         });
+        renderPieLegend('legend-risk', riskLabels, riskValues, riskColors);
 
         // 5. Civil Status Horizontal Bar
         createHorizontalBar('chartCivil', civilLabels, civilValues, '#70c156', 2000, 500);
@@ -625,16 +649,17 @@
         createHorizontalBar('chartShift', shiftLabels, shiftValues, '#4b830d', 1200, 200);
 
         // 7. Reasons Doughnut Chart
+        const reasonsColors = [
+            '#3cb4e5', '#d80056', '#d9e05b', '#335280', '#73509d',
+            '#ff66b2', '#eeb238', '#00a878', '#337a86', '#ff9130'
+        ];
         new Chart(document.getElementById('chartReasons'), {
             type: 'doughnut',
             data: {
                 labels: reasonsLabels,
                 datasets: [{
                     data: reasonsValues,
-                    backgroundColor: [
-                        '#3cb4e5', '#d80056', '#d9e05b', '#335280', '#73509d',
-                        '#ff66b2', '#eeb238', '#00a878', '#337a86', '#ff9130'
-                    ],
+                    backgroundColor: reasonsColors,
                     borderWidth: 0,
                     cutout: '52%'
                 }]
@@ -642,24 +667,14 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: 80 },
+                layout: { padding: 10 },
                 plugins: {
                     legend: { display: false },
-                    datalabels: {
-                        color: '#3d5a05',
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 8,
-                        textAlign: 'center',
-                        font: { size: 30 }, 
-                        formatter: (value, ctx) => {
-                            if (value === 0) return ''; 
-                            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + value;
-                        }
-                    }
+                    datalabels: { display: false }
                 }
             }
         });
+        renderPieLegend('legend-reasons', reasonsLabels, reasonsValues, reasonsColors);
 
         // 8. Sources Horizontal Bar
         createHorizontalBar('chartSources', sourcesLabels, sourcesValues, '#76b82a', 2000, 500);

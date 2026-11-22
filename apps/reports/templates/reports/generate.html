@@ -65,7 +65,7 @@
                             </td>
                             <td class="p-4 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <button type="button" onclick="openEditModal('{{ report.report_id }}', '{{ report.display_title|escapejs }}', '{{ report.report_type }}')" class="bg-white text-gray-700 border border-gray-200 text-xs font-bold px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                                    <button type="button" onclick="openEditModal('{{ report.report_id }}', '{{ report.display_title|escapejs }}', '{{ report.report_type }}', '{{ report.logo_preview_urls.0|escapejs }}', '{{ report.logo_preview_urls.1|escapejs }}', '{{ report.logo_preview_urls.2|escapejs }}', '{{ report.logo_preview_urls.3|escapejs }}', '{{ report.logo_preview_urls.4|escapejs }}')" class="bg-white text-gray-700 border border-gray-200 text-xs font-bold px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                         <i class="ph-bold ph-pencil-simple text-sm"></i> Edit
                                     </button>
                                     
@@ -144,12 +144,12 @@
 
 <!-- EDIT REPORT MODAL -->
 <div id="modal-edit-report" class="hidden fixed inset-0 z-50 bg-slate-900/40 items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="font-bold text-gray-800 text-lg">Edit Report Details</h3>
             <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600"><i class="ph-bold ph-x text-lg"></i></button>
         </div>
-        <form method="POST" action="{% url 'reports:generate' %}" class="p-5 flex flex-col gap-4">
+        <form method="POST" action="{% url 'reports:generate' %}" enctype="multipart/form-data" class="p-5 flex flex-col gap-4 overflow-y-auto">
             {% csrf_token %}
             <input type="hidden" name="action" value="edit_report">
             <input type="hidden" name="report_id" id="edit_report_id">
@@ -166,6 +166,26 @@
                         <option value="{{ value }}">{{ label }}</option>
                     {% endfor %}
                 </select>
+            </div>
+
+            <div>
+                <label class="form-label text-xs font-bold text-gray-600 uppercase">Cover Logos</label>
+                <p class="text-[11px] text-gray-400 mt-0.5">The 3 left/center/right logos are required. Add up to 2 extra logos. PNG or JPG, max 2MB each.</p>
+                <div class="mt-2 flex flex-col gap-2">
+                    {% for slot, label, required in logo_slots %}
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 bg-gray-50">
+                        <img id="edit_logo_{{ slot }}_preview" src="{% static 'images/doh-logo.png' %}" alt="{{ label }} logo" class="w-12 h-12 rounded-full object-cover border border-gray-200 bg-white shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[10px] font-bold uppercase text-gray-500">{{ label }}{% if not required %} <span class="font-normal normal-case text-gray-400">(optional)</span>{% endif %}</div>
+                            <input type="file" name="logo_{{ slot }}" accept=".png,.jpg,.jpeg,image/png,image/jpeg" onchange="previewLogo(this, 'edit_logo_{{ slot }}_preview')" class="mt-1 block w-full text-[11px] text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[11px] file:font-bold file:bg-white file:text-gray-700 hover:file:bg-gray-100">
+                            <label class="inline-flex items-center gap-1.5 mt-1 text-[11px] text-gray-500 cursor-pointer">
+                                <input type="checkbox" name="reset_logo_{{ slot }}" class="rounded border-gray-300">
+                                {% if required %}Reset to default{% else %}Remove this logo{% endif %}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
 
             <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs text-gray-600 mt-2">
@@ -189,13 +209,41 @@
         document.getElementById('modal-create-report').classList.add('hidden');
     }
 
-    function openEditModal(id, title, type) {
+    const logoPreviewSlots = ['left', 'center', 'right', 'extra1', 'extra2'];
+
+    function openEditModal(id, title, type, logoLeft, logoCenter, logoRight, logoExtra1, logoExtra2) {
         document.getElementById('edit_report_id').value = id;
         document.getElementById('edit_report_title').value = title;
         document.getElementById('edit_report_type').value = type;
+
+        const previewUrls = [logoLeft, logoCenter, logoRight, logoExtra1, logoExtra2];
+        logoPreviewSlots.forEach((slot, index) => {
+            const preview = document.getElementById(`edit_logo_${slot}_preview`);
+            const url = previewUrls[index];
+            preview.src = url || "{% static 'images/doh-logo.png' %}";
+            preview.style.visibility = url ? 'visible' : 'hidden';
+        });
+
+        logoPreviewSlots.forEach(slot => {
+            const fileInput = document.querySelector(`[name="logo_${slot}"]`);
+            if (fileInput) fileInput.value = '';
+            const resetInput = document.querySelector(`[name="reset_logo_${slot}"]`);
+            if (resetInput) resetInput.checked = false;
+        });
         
         document.getElementById('modal-edit-report').classList.remove('hidden');
         document.getElementById('modal-edit-report').classList.add('flex');
+    }
+    function previewLogo(input, previewId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const preview = document.getElementById(previewId);
+                preview.src = event.target.result;
+                preview.style.visibility = 'visible';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
     function closeEditModal() {
         document.getElementById('modal-edit-report').classList.remove('flex');
