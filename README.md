@@ -170,6 +170,23 @@ python -m apps.callers.nlp.train_ner
 
 Training reads `apps/callers/nlp/data/annotations.json` and writes the model to `apps/callers/nlp/models/ner`.
 
+## Optional: Train the Risk Classifier
+
+The rule engine in `apps/callers/nlp/risk.py` remains the safety fallback. The optional spaCy text classifier learns from counselor-corrected labels and can only raise a flag, never lower one.
+
+```bash
+python -m apps.callers.nlp.train_risk
+python -m apps.callers.nlp.train_risk --epochs 40 --seed 7
+```
+
+Training reads `apps/callers/nlp/data/suicide_risk_annotations.json` and writes the model to `apps/callers/nlp/models/risk`. Add more records in this format to teach new phrasings:
+
+```json
+{"text": "moinom og daghang tambal para makatulog ug di na momata", "label": "HIGH_RISK", "category": "Method - Ingestion/Poison"}
+```
+
+Valid labels are `LOW`, `MODERATE_RISK`, and `HIGH_RISK`. Restart the server after training so the new model is loaded.
+
 ## Run NLP Tests
 
 ```bash

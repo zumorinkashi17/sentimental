@@ -139,6 +139,10 @@
                 <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Additional Comments</span>
                 <p id="modal-additional-comments" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line"></p>
             </div>
+            <div>
+                <span class="text-gray-500 block text-xs font-bold uppercase mb-1">Manual Script Notes</span>
+                <p id="modal-manual-notes" class="text-gray-800 bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm whitespace-pre-line">No manual script notes provided.</p>
+            </div>
             
             <!-- Referral provided -->
             <div class="border-t border-gray-100 pt-4 mt-2">
@@ -225,6 +229,20 @@
         }).join('');
     }
 
+    function splitTranscriptTexts(texts) {
+        const callTexts = [];
+        const manualNotes = [];
+        (texts || []).forEach(function (text) {
+            const value = String(text || '');
+            if (/^\s*\[Manual Notes\]/i.test(value)) {
+                manualNotes.push(value.replace(/^\s*\[Manual Notes\]\s*/i, ''));
+            } else {
+                callTexts.push(value);
+            }
+        });
+        return { callTexts: callTexts, manualNotes: manualNotes };
+    }
+
     function buildReferralHtml(referral) {
         if (!referral) {
             return '<p class="text-sm text-gray-400">No referral provided for this session.</p>';
@@ -278,14 +296,24 @@
         document.getElementById('modal-additional-comments').textContent = additionalComments;
 
         // 2b. Render the session's call_transcript records as chat bubbles.
+        const splitTranscripts = splitTranscriptTexts(
+            transcriptsBySession[buttonElement.getAttribute('data-session-key')]
+        );
         const transcriptContainer = document.getElementById('modal-transcript');
         if (transcriptContainer) {
             transcriptContainer.innerHTML = buildTranscriptHtml(
-                transcriptsBySession[buttonElement.getAttribute('data-session-key')],
+                splitTranscripts.callTexts,
                 buttonElement.getAttribute('data-time'),
                 responder,
                 caller
             );
+        }
+
+        const manualNotesContainer = document.getElementById('modal-manual-notes');
+        if (manualNotesContainer) {
+            manualNotesContainer.textContent = splitTranscripts.manualNotes.length
+                ? splitTranscripts.manualNotes.join('\n\n')
+                : 'No manual script notes provided.';
         }
 
         // 2c. Render the session_referral record.

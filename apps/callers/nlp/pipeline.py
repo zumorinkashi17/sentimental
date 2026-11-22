@@ -6,6 +6,7 @@ import re
 
 from . import ner
 from .intervention import categories_from_value, extract_intervention
+from .risk import evaluate_suicide_risk
 from .rules import (
     canonical_civil_status,
     canonical_gender,
@@ -217,6 +218,8 @@ def analyze(
         if manual_categories is not None:
             intervention_categories = manual_categories
 
+    risk_result = evaluate_suicide_risk(text)
+
     textrank_summary = summarize(
         caller_text,
         max_sentences=max_summary_sentences,
@@ -243,4 +246,9 @@ def analyze(
         "summary_extract": textrank_summary,
         "method": "hybrid" if ner.is_available() else "rules",
         "text_length": len(cleaned),
+        "suicide_risk": {
+            key: value
+            for key, value in risk_result.items()
+            if key not in ("normalized_text", "score")
+        },
     }

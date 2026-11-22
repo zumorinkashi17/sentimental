@@ -2960,6 +2960,19 @@ Maayong hapon pud, ma'am. Thank you.
             [("NAME", "Maricel")],
         )
 
+    def test_counselor_label_is_treated_as_responder(self):
+        text = (
+            "Counselor:\n"
+            "Inhale ta lawom... 1, 2, 3. Exhale hinay-hinay.\n\n"
+            "Caller:\n"
+            "Ako si Marie, sir. Naa ra ko sa sakyanan. Wala pa koy tulog."
+        )
+        result = analyze(text)
+
+        self.assertEqual(result["fields"]["callerName"], "Marie")
+        self.assertEqual(result["fields"]["callerAge"], "N/A")
+        self.assertNotIn("1, 2, 3", result["summary_extract"])
+
     def test_pipeline_reports_textrank_template_summary(self):
         result = analyze(
             "Caller:\nNagkurog akong kamot. Gipaningot ko. Grabe akong anxiety."

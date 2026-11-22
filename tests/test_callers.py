@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.messages.storage.fallback import FallbackStorage
 
-from apps.callers.models import CallSession, SESSION_ID_PREFIX
+from apps.callers.models import CallSession, CallTranscript, SESSION_ID_PREFIX
 from apps.callers import transcription as tr
 from apps.callers import views as cviews
 from apps.callers.audio import AudioProcessingError
@@ -262,3 +262,50 @@ class SaveSessionReferralTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(SessionReferral.objects.exists())
+
+
+class SaveSessionManualNotesTests(TestCase):
+    def setUp(self):
+        self.client = login(self.client, make_user())
+        self.shift = make_shift()
+
+    def _payload(self, **overrides):
+        payload = {
+            "callDate": "January 01, 2026",
+            "timeCalled": "09:00 AM",
+            "callShift": self.shift.pk,
+            "callerName": "Ana",
+            "riskAssessment": "Low",
+            "aiSummary": "Summary",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_manual_notes_are_saved_as_labeled_transcript_row(self):
+        response = self.client.post(
+            reverse("callers:save_session"),
+            data=json.dumps(
+                self._payload(manualScriptNotes="Called supervisor\nFollow up tomorrow")
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        session_id = response.json()["session_id"]
+        rows = list(
+            CallTranscript.objects.filter(session_id=session_id).order_by("transcript_id")
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(
+            rows[0].transcript_text,
+            "[Manual Notes] Called supervisor\nFollow up tomorrow",
+        )
+
+    def test_blank_manual_notes_do_not_create_transcript_row(self):
+        response = self.client.post(
+            reverse("callers:save_session"),
+            data=json.dumps(self._payload(manualScriptNotes="   ")),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        session_id = response.json()["session_id"]
+        self.assertFalse(CallTranscript.objects.filter(session_id=session_id).exists())

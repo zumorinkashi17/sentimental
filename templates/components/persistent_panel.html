@@ -148,13 +148,19 @@
         <div id="ai-summary-container" class="hidden border-t border-brand/20 pt-6 mt-2">
             <div class="mb-3 flex items-center justify-between gap-2">
                 <h3 class="text-brand font-bold text-sm tracking-wider uppercase flex items-center gap-2"><i class="ph-fill ph-sparkle"></i> AI Generated Summary</h3>
-                <button type="button" id="summary-edit-btn" onclick="toggleSummaryEdit()" class="inline-flex items-center gap-1 rounded-md border border-brand/30 bg-white px-2 py-1 text-[11px] font-semibold text-brand transition-colors hover:bg-brand-light/50" aria-label="Edit AI summary" title="Edit summary">
-                    <i class="ph-bold ph-pencil-simple text-sm" id="summary-edit-icon"></i>
-                    <span id="summary-edit-label">Edit</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="summary-expand-btn" onclick="toggleSummaryExpand()" class="inline-flex items-center gap-1 rounded-md border border-brand/30 bg-white px-2 py-1 text-[11px] font-semibold text-brand transition-colors hover:bg-brand-light/50" aria-label="Expand AI summary" aria-pressed="false" title="Make summary text larger">
+                        <i class="ph-bold ph-arrows-out text-sm" id="summary-expand-icon"></i>
+                        <span id="summary-expand-label">Expand</span>
+                    </button>
+                    <button type="button" id="summary-edit-btn" onclick="toggleSummaryEdit()" class="inline-flex items-center gap-1 rounded-md border border-brand/30 bg-white px-2 py-1 text-[11px] font-semibold text-brand transition-colors hover:bg-brand-light/50" aria-label="Edit AI summary" title="Edit summary">
+                        <i class="ph-bold ph-pencil-simple text-sm" id="summary-edit-icon"></i>
+                        <span id="summary-edit-label">Edit</span>
+                    </button>
+                </div>
             </div>
             <label for="aiGeneratedSummary" class="sr-only">AI Generated Summary</label>
-            <textarea id="aiGeneratedSummary" class="form-input h-32 resize-none bg-brand-light/30 border-brand/50 text-gray-800 font-mono" readonly></textarea>
+            <textarea id="aiGeneratedSummary" class="form-input h-32 min-h-[8rem] resize-y bg-brand-light/30 border-brand/50 text-gray-800 font-mono text-sm leading-relaxed transition-all" readonly></textarea>
             <button type="button" id="summary-again-btn" onclick="summarizeAgain()" class="mt-3 hidden w-full items-center justify-center gap-2 rounded-lg border border-brand/40 bg-white px-3 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand-light/40 active:scale-[0.99]">
                 <i class="ph-bold ph-arrows-clockwise text-base"></i>
                 <span id="summary-again-label">Summarize Again</span>
@@ -186,6 +192,7 @@
             </button>
         </div>
         <p id="ai-status" class="hidden mt-2 text-center text-[11px] font-semibold text-gray-500" role="status" aria-live="polite"></p>
+        <div id="suicide-risk-flag" class="hidden mt-2 rounded-lg border p-2 text-left" role="alert"></div>
     </div>
 </aside>
 
@@ -807,6 +814,34 @@
         }
     }
 
+    function setSummaryExpanded(expanded) {
+        const textarea = document.getElementById('aiGeneratedSummary');
+        const icon = document.getElementById('summary-expand-icon');
+        const label = document.getElementById('summary-expand-label');
+        const btn = document.getElementById('summary-expand-btn');
+        if (!textarea) return;
+
+        textarea.style.height = expanded ? '20rem' : '';
+        textarea.style.fontSize = expanded
+            ? (window.innerWidth >= 640 ? '1.25rem' : '1.125rem')
+            : '';
+        textarea.style.lineHeight = expanded ? '1.7' : '';
+
+        if (icon) icon.className = 'ph-bold ph-' + (expanded ? 'arrows-in' : 'arrows-out') + ' text-sm';
+        if (label) label.textContent = expanded ? 'Collapse' : 'Expand';
+        if (btn) {
+            btn.setAttribute('aria-pressed', String(expanded));
+            btn.setAttribute('aria-label', expanded ? 'Collapse AI summary' : 'Expand AI summary');
+            btn.title = expanded ? 'Restore summary text size' : 'Make summary text larger';
+        }
+    }
+
+    function toggleSummaryExpand() {
+        const textarea = document.getElementById('aiGeneratedSummary');
+        if (!textarea) return;
+        setSummaryExpanded(!textarea.style.fontSize);
+    }
+
     function toggleSummaryEdit() {
         const textarea = document.getElementById('aiGeneratedSummary');
         if (!textarea) return;
@@ -849,6 +884,7 @@
 
         try {
             const result = await postAnalyze(text, summaryContext());
+            renderSuicideRiskFlag(result.suicide_risk);
             aiSummaryDraft = result.summary || aiSummaryDraft;
             textarea.value = aiSummaryDraft || 'No summary could be generated.';
             setSummaryEditMode(false);
@@ -910,6 +946,7 @@
 
         try {
             const result = await postAnalyze(text, summaryContext());
+            renderSuicideRiskFlag(result.suicide_risk);
             aiSummaryDraft = result.summary || aiSummaryDraft;
 
             if (typeof toggleDocMode === 'function') toggleDocMode('form');
@@ -962,6 +999,38 @@
         return data;
     }
 
+    function renderSuicideRiskFlag(risk) {
+        const box = document.getElementById('suicide-risk-flag');
+        if (!box || !risk) return;
+        const level = (risk.risk_level || 'LOW').toUpperCase();
+        const riskSelect = document.getElementById('aiRisk');
+        if (riskSelect) {
+            const riskMap = {
+                HIGH_RISK: 'High Risk',
+                MODERATE_RISK: 'Medium Risk',
+                LOW: 'Low Risk'
+            };
+            const mapped = riskMap[level] || 'Low Risk';
+            if (Array.from(riskSelect.options).some(o => o.value === mapped || o.textContent === mapped)) {
+                riskSelect.value = mapped;
+            }
+        }
+        box.className = 'mt-2 rounded-lg border p-2 text-left';
+        const palette = {
+            HIGH_RISK: 'border-red-300 bg-red-50 text-red-800',
+            MODERATE_RISK: 'border-orange-300 bg-orange-50 text-orange-800',
+            LOW: 'border-gray-200 bg-gray-50 text-gray-600'
+        };
+        box.classList.add(...(palette[level] || palette.LOW).split(' '));
+        const triggerText = (risk.matched_phrases || []).slice(0, 3).join(', ') || 'none';
+        box.innerHTML = '<p class="text-[11px] font-bold uppercase">Risk Flag: ' + level.replace(/_/g, ' ') + '</p>' +
+            '<p class="text-[10px] mt-0.5">Category: ' + (risk.cssrs_category || '—') + '</p>' +
+            '<p class="text-[10px] mt-0.5">Triggers: ' + triggerText + '</p>';
+        if (level === 'HIGH_RISK') {
+            box.innerHTML += '<p class="text-[10px] font-bold mt-1">IMMEDIATE RESPONDER REVIEW REQUIRED</p>';
+        }
+    }
+
     function fillField(id, value) {
         const el = document.getElementById(id);
         if (el && value !== undefined && value !== null) el.value = value;
@@ -998,6 +1067,7 @@
 
             try {
                 const result = await postAnalyze(text, summaryContext());
+                renderSuicideRiskFlag(result.suicide_risk);
                 const fields = result.fields || {};
                 fillField('aiName', fields.callerName);
                 fillField('aiGender', fields.callerGender);
@@ -1005,7 +1075,6 @@
                 fillField('aiAge', fields.callerAge);
                 fillField('aiLocation', fields.callerLocation);
                 fillField('aiIntervention', cleanIntervention(fields.intervention));
-                // Reason for Calling and Risk Level remain manual (objective 2.2).
                 aiSummaryDraft = result.summary || '';
                 if (typeof toggleDocMode === 'function') toggleDocMode('form');
                 setAiButton('SUMMARIZE', 'ph-sparkle', false);
@@ -1033,6 +1102,7 @@
                 const text = collectAnalysisText();
                 if (text) {
                     const result = await postAnalyze(text, summaryContext());
+                    renderSuicideRiskFlag(result.suicide_risk);
                     aiSummaryDraft = result.summary || aiSummaryDraft;
                 }
 

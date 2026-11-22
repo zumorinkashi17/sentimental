@@ -826,11 +826,11 @@ _PHASE_HEADER = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 _SPEAKER_LINE = re.compile(
-    r"^\s*(?:\[)?(caller|responder|client|agent|user|assistant)(?:\])?\s*:\s*(.*)$",
+    r"^\s*(?:\[)?(caller|responder|client|agent|user|assistant|counselor|counsellor|therapist)(?:\])?\s*:\s*(.*)$",
     re.IGNORECASE,
 )
 _BRACKET_SPEAKER = re.compile(
-    r"^\s*\[(caller|responder|client|agent|user|assistant)\]\s*(.*)$",
+    r"^\s*\[(caller|responder|client|agent|user|assistant|counselor|counsellor|therapist)\]\s*(.*)$",
     re.IGNORECASE,
 )
 

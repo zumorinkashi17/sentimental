@@ -17,7 +17,7 @@ from .models import Caller, CallSession, CallTranscript
 from apps.schedules.models import ShiftCatalog
 from apps.dashboard.views import _get_session_user
 from .audio import AudioProcessingError
-from .nlp import analyze
+from .nlp import analyze, evaluate_suicide_risk
 from .transcription import (
     CALLER,
     RESPONDER,
@@ -27,6 +27,11 @@ from .transcription import (
 )
 
 logger = logging.getLogger(__name__)
+
+_SUICIDE_RISK_ASSESSMENT = {
+    'HIGH_RISK': 'High Risk',
+    'MODERATE_RISK': 'Medium Risk',
+}
 
 
 @require_http_methods(["GET"])
@@ -341,6 +346,18 @@ def save_call_documentation(request):
             caller_location=data.get('callerLocation')
         )
 
+        text_parts = [
+            data.get('rawTranscript') or '',
+            data.get('aiSummary') or '',
+            data.get('manualScriptNotes') or '',
+            data.get('reasonForCalling') or '',
+            data.get('additionalComments') or '',
+        ]
+        risk_result = evaluate_suicide_risk('\n'.join(text_parts))
+        risk_assessment = _SUICIDE_RISK_ASSESSMENT.get(
+            risk_result['risk_level'], data.get('riskAssessment')
+        )
+
         # Create the Call Session record
         session = CallSession.objects.create(
             user=current_user,
@@ -350,10 +367,10 @@ def save_call_documentation(request):
             session_time_called=time_called,
             session_time_ended=time_ended,
             session_reason_for_calling=data.get('reasonForCalling'),
-            session_risk_assessment=data.get('riskAssessment'),
+            session_risk_assessment=risk_assessment,
             session_intervention=data.get('intervention'),
             session_summarization=data.get('aiSummary'),
-            session_additional_comments=data.get('additionalComments')
+            session_additional_comments=data.get('additionalComments'),
         )
 
         # Persist the source text used for auto-fill, then any manual notes.
@@ -362,6 +379,13 @@ def save_call_documentation(request):
             CallTranscript.objects.create(
                 session=session,
                 transcript_text=raw_transcript
+            )
+
+        manual_notes = data.get('manualScriptNotes')
+        if manual_notes and manual_notes.strip():
+            CallTranscript.objects.create(
+                session=session,
+                transcript_text='[Manual Notes] ' + manual_notes.strip()
             )
 
         # Link the professional selected in the referral picker.
@@ -414,8 +438,16 @@ def save_call_documentation(request):
                     )
 
         return JsonResponse({
-            'status': 'success', 
+            'status': 'success',
             'message': 'Session saved to Supabase',
+            'session_id': session.session_id,
+            'suicide_risk': {
+                'risk_level': risk_result['risk_level'],
+                'cssrs_category': risk_result['cssrs_category'],
+                'matched_phrases': risk_result['matched_phrases'],
+                'flag_reason': risk_result['flag_reason'],
+                'risk_assessment': risk_assessment,
+            },
         })
 
     except Exception as e:

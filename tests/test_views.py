@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.core.paginator import Paginator
 
 from apps.accounts.models import User
+from apps.callers.models import CallTranscript
 from apps.reports.models import Report
 from tests.helpers import make_report, make_session, make_shift, make_user, make_caller, login
 
@@ -74,6 +75,52 @@ class DocumentationViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         page_obj = resp.context["page_obj"]
         self.assertEqual(page_obj.number, 2)
+
+    def test_master_history_exposes_manual_notes(self):
+        session = make_session(
+            user=self.user,
+            caller=make_caller(name="Marie"),
+            shift=self.shift,
+            on=date(2026, 3, 1),
+        )
+        note = "[Manual Notes] Follow up with senior nurse"
+        CallTranscript.objects.create(session=session, transcript_text=note)
+
+        resp = self.client.get(reverse("documentation:master_history"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Manual Script Notes")
+        self.assertContains(resp, note)
+        self.assertEqual(
+            resp.context["transcripts"][session.session_id],
+            [note],
+        )
+
+    def test_history_exposes_manual_notes(self):
+        session = make_session(
+            user=self.user,
+            caller=make_caller(name="Marie"),
+            shift=self.shift,
+            on=date(2026, 3, 2),
+        )
+        note = "[Manual Notes] Asked for backup"
+        CallTranscript.objects.create(session=session, transcript_text=note)
+
+        resp = self.client.get(reverse("documentation:history"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Manual Script Notes")
+        self.assertContains(resp, note)
+        self.assertEqual(
+            resp.context["transcripts"][session.session_id],
+            [note],
+        )
+
+    def test_persistent_panel_summary_has_expand_control(self):
+        resp = self.client.get(reverse("documentation:history"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'id="summary-expand-btn"')
+        self.assertContains(resp, 'id="summary-expand-label"')
+        self.assertContains(resp, 'id="aiGeneratedSummary"')
+        self.assertContains(resp, 'resize-y')
 
     def test_history_view_paginates(self):
         caller = make_caller()

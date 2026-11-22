@@ -1,0 +1,232 @@
+{
+  "version": 3,
+  "description": "C-SSRS risk phrase rules for Cebuano/Bisaya, Taglish and English. Edit phrases, idioms and weights here without changing code.",
+  "settings": {
+    "negation_window": 6,
+    "severity_weights": {"HIGH_RISK": 100, "MODERATE_RISK": 45},
+    "trained_model_threshold": 0.65
+  },
+  "normalization": {
+    "repeated_char_max": 3,
+    "variants": [
+      ["gusto", "nahan", "ganahan", "gustohan", "gustoan", "want", "wants", "wanted"],
+      ["matulog", "natulog", "katulog", "sleep", "sleeping", "slept"],
+      ["mata", "momata", "kamata", "wake", "waking", "woken", "wake up"],
+      ["buhi", "mabuhi", "nabuhi", "buhay", "mabubuhay", "live", "living", "alive"],
+      ["hunahuna", "huna-huna", "huna huna", "hunahunaan", "thought", "thoughts", "thinking", "ideation"],
+      ["patay", "mamatay", "mamatey", "matay", "mamay", "namatay", "napatay", "die", "dies", "died", "dying", "dead", "death"],
+      ["plano", "plans", "planned", "planning", "plan", "planoan"],
+      ["pasakit", "pasakitan", "hurt", "harm", "injure", "injury"],
+      ["kaugalingon", "self", "myself", "himself", "herself", "themselves"]
+    ]
+  },
+  "idioms": [
+    "mamatay sa katawa", "mamatay ko sa katawa", "mamatay sa kapoy", "mamatay sa kakapoy",
+    "mamatay sa kagutom", "patay sa gutom", "patay sa kagutom", "patay sa katulog",
+    "die of laughter", "die laughing", "dying of laughter", "dead tired", "tired to death",
+    "die of hunger", "starving to death", "dying of hunger", "wish it were friday",
+    "i wish it were friday", "gusto ko matay na ang biyernes", "wish it was friday"
+  ],
+  "clear_denials": [
+    "wala gyud ko naghunahuna ana",
+    "wala gyud ko naghunahuna",
+    "dili ko naghunahuna ana",
+    "dili ko ganahan mamatay",
+    "dili nako ganahan mamatay",
+    "dili man ko ganahan mamatay",
+    "dili gyud ko ganahan mamatay",
+    "wala ko nagplano magpakamatay",
+    "wala koy plano mamatay",
+    "dili ko gusto mamatay",
+    "wala koy intensyon mamatay",
+    "wala koy hunahuna mamatay",
+    "wala koy huna huna mamatay",
+    "hadlok ko anang pasakitan ang kaugalingon",
+    "hadlok ko pasakitan ang kaugalingon",
+    "hadlok ko mamatay",
+    "i don't want to die",
+    "i do not want to die",
+    "i would never kill myself",
+    "i would never end my life",
+    "i am not going to kill myself",
+    "i am not suicidal",
+    "i'm not suicidal",
+    "not suicidal",
+    "no suicidal thoughts",
+    "no thoughts of suicide",
+    "denies suicide",
+    "denied suicide",
+    "afraid to hurt myself",
+    "scared to hurt myself",
+    "i would never hurt myself",
+    "i don't want to hurt myself",
+    "no i was not thinking about that",
+    "no i wasn't thinking about that"
+  ],
+  "negations": [
+    "dili", "di", "hindi", "wala", "wa", "ayaw", "not", "never", "no", "none", "nothing",
+    "neither", "nor", "without", "don't", "dont", "doesn't", "doesnt", "didn't", "didnt",
+    "isn't", "isnt", "wasn't", "wasnt", "won't", "wont", "can't", "cant", "couldn't",
+    "couldnt", "ain't", "aint", "hardly", "barely"
+  ],
+  "tiers": {
+    "HIGH_RISK": [
+      {
+        "category": "Ideation Level 3 - Method",
+        "phrases": [
+          "nahan nako mamatay", "ganahan nako mamatay", "gusto nako mamatay",
+          "nahan ko mamatay", "ganahan ko mamatay", "gusto ko mamatay",
+          "nahan siya mamatay", "ganahan siya mamatay", "gusto siya mamatay",
+          "ga plano ko e end ako kinabuhi", "ga plano ko i end akong kinabuhi",
+          "plano ko i end akong kinabuhi", "plano ko e end ako kinabuhi",
+          "plano nako i end akong kinabuhi", "plano nako e end ako kinabuhi",
+          "i end akong kinabuhi", "i end ako kinabuhi", "e end ako kinabuhi",
+          "end nako akong kinabuhi", "end nako ako kinabuhi", "end akong kinabuhi",
+          "end ako kinabuhi", "end my life", "end his life", "end her life",
+          "end their life", "take my life", "take his life", "take her life",
+          "kill myself", "kill himself", "kill herself", "kill themselves",
+          "killing myself", "killing himself", "killing herself",
+          "commit suicide", "committed suicide", "committing suicide", "suicide",
+          "self harm", "self harming", "self injury", "magpakamatay", "maghikog",
+          "pagpakamatay", "pagpapatay", "magpapatay", "hikog", "kamataray",
+          "want to die", "wants to die", "want to end my life", "want to kill myself",
+          "plan to die", "plans to die", "planning to die", "plan to kill",
+          "plans to kill", "planning to kill", "plan to end", "plans to end",
+          "planning to end", "have a plan", "has a plan", "specific plan",
+          "detailed plan", "how to do it", "how and when", "when i will do it",
+          "intent to act", "intent to die", "intent to kill", "intends to kill",
+          "going through with it", "go through with it", "follow through with it",
+          "ready to die", "determined to die", "tonight", "on my birthday"
+        ]
+      },
+      {
+        "category": "Ideation Level 4 - Intent",
+        "phrases": [
+          "i intend to die", "i intend to kill", "i intend to end", "he intends to die",
+          "she intends to die", "intends to act", "intends to die", "intends to kill",
+          "intending to end", "intent to die", "intent to kill", "intent to act",
+          "ready to die", "determined to die", "go through with it"
+        ]
+      },
+      {
+        "category": "Ideation Level 5 - Plan",
+        "phrases": [
+          "i have a plan", "he has a plan", "she has a plan", "they have a plan",
+          "specific plan", "detailed plan", "how to do it", "how and when",
+          "when i will do it", "when the time comes", "when everyone is asleep",
+          "i will do it", "he will do it", "she will do it", "tonight",
+          "on my birthday", "on his birthday", "on her birthday"
+        ]
+      },
+      {
+        "category": "Behavior - Attempt",
+        "phrases": [
+          "attempted suicide", "suicide attempt", "attempted to kill", "tried to kill",
+          "tried to end", "tried to die", "tried to hang", "tried to jump",
+          "tried to overdose", "tried to cut", "failed attempt", "unsuccessful attempt",
+          "interrupted attempt", "aborted attempt", "self interrupted attempt",
+          "gisulayan nako", "gisulayan niya", "nagsulay", "nag attempt", "nag-attempt",
+          "nagpakamatay", "nag hikog", "naghiwa", "nagputol", "nagbitay",
+          "gilumad", "nag overdose", "nag-overdose"
+        ]
+      },
+      {
+        "category": "Behavior - Preparatory Acts",
+        "phrases": [
+          "giving things away", "give things away", "gave things away", "gave away",
+          "giving away", "give away", "giving my things", "gave my things",
+          "wrote a note", "write a note", "writing a note", "wrote a goodbye note",
+          "write a goodbye note", "wrote a suicide note", "write a suicide note",
+          "goodbye note", "suicide note", "goodbye letter", "suicide letter",
+          "final note", "final letter", "final message", "goodbye video",
+          "said goodbye", "saying goodbye", "prepared", "preparing", "getting ready",
+          "gathered", "gathering", "bought pills", "bought a rope", "bought a knife",
+          "bought a gun", "got pills", "got a gun", "got a rope", "hoarded pills",
+          "stockpiled", "acquired a method", "obtained a method", "chose a method",
+          "selected a method", "chose a place", "set a time", "set a date",
+          "measured the dose", "sharpened the knife", "tied the rope", "loaded the gun",
+          "tested the method", "put my affairs in order", "settled my debts",
+          "made a will", "planned my funeral", "donated organs", "sent final messages",
+           "left instructions", "made final arrangements", "gisulat", "nagsulat",
+           "nag-andam", "giandam", "gihikay", "nagpalit", "gipalit", "naghatag"
+        ]
+      },
+      {
+        "category": "Method - Hanging",
+        "phrases": [
+          "hanging", "hang myself", "hang himself", "hang herself", "by hanging",
+          "tie a rope", "tied the rope", "pisi", "pagbitay", "nagbitay"
+        ]
+      },
+      {
+        "category": "Method - Firearm",
+        "phrases": ["gun", "firearm", "pistol", "revolver", "shoot myself", "shoot himself", "shoot herself", "use a gun", "loaded the gun", "ammunition"]
+      },
+      {
+        "category": "Method - Sharp Object",
+        "phrases": ["knife", "kutsilyo", "blade", "razor", "lehia", "cut myself", "cut himself", "cut herself", "cut my wrists", "slit my wrists", "hiwa", "putol", "naghiwa", "nagputol"]
+      },
+      {
+        "category": "Method - Ingestion/Poison",
+        "phrases": ["overdose", "overdosed", "overdosing", "pills", "tablets", "medicine", "poison", "hilo", "drink poison", "take pills", "took pills", "swallowed pills", "ingestion", "drink bleach", "nag overdose", "nag-overdose", "moinom og daghang tambal", "moinom og daghang tambal para makatulog", "daghang tambal para makatulog", "makatulog ug di na momata", "makatulog ug dili na momata", "matulog ug di na momata", "matulog ug dili na momata", "take a lot of pills", "take many pills", "swallow a lot of pills", "sleep and never wake up"]
+      },
+      {
+        "category": "Method - Jumping",
+        "phrases": ["jump off", "jumped off", "jump from", "jumped from", "jump in front", "jumped in front", "lumpad", "lumpad sa", "nag lumpad", "gilumad", "from the building", "from the bridge", "off the building", "off the bridge"]
+      },
+      {
+        "category": "Method - Other",
+        "phrases": ["method", "pamaagi", "paagi", "ways to", "how to", "plan to use", "plans to use", "intends to use"]
+      }
+    ],
+    "MODERATE_RISK": [
+      {
+        "category": "Ideation Level 1 - Wish to be Dead",
+        "phrases": [
+          "wish i were dead", "wish i was dead", "wish he were dead", "wish she were dead",
+          "wish i would die", "wishes to be dead", "want to be dead", "want to die",
+          "wants to be dead", "wants to die", "sana mamatay", "sana mamatay ko",
+          "sana dili na mabuhi", "sana di nako kamata", "sana dili ko momata",
+          "sana dili na ko momata", "sana matulog ug dili momata",
+          "kapoy na mabuhi", "kapoy na kaayo mabuhi", "kapoy na ang mabuhi",
+          "kapoy na mabuhi pa", "gikapoy na mabuhi", "tired of living", "tired of life",
+          "so tired of living", "tired of being alive", "i just want to die",
+          "i wish i would not wake up", "wish i would not wake up",
+          "wish to fall asleep and not wake up", "fall asleep and not wake up",
+          "sleep and never wake up", "never wake up", "not wanting to be alive",
+          "don't want to be alive", "doesn't want to be alive", "don't want to live",
+          "no reason to live", "no point in living", "nothing to live for",
+          "better off dead", "everyone would be better off without me",
+          "life is not worth living", "i wish i was never born", "sana wala na lang ko",
+          "sana di na ko mabuhi", "dili na ko gusto mabuhi", "dili nako gusto mabuhi",
+          "dili ko ganahan mabuhi", "di ko ganahan mabuhi", "di nako ganahan mabuhi",
+          "wala na koy rason mabuhi", "wala na koy rason nga mabuhi",
+          "walay rason mabuhi", "walay rason nga mabuhi",
+          "i don't want to go on",
+          "i don't want to live anymore", "i don't want to wake up anymore",
+          "i don't want to exist", "i wish i didn't exist", "i want to disappear",
+          "i want to sleep forever", "i can't go on", "i can't take it anymore",
+          "no hope", "hopeless", "life has no meaning", "i am a burden",
+          "everyone would be better off without me", "i should die", "i deserve to die",
+          "i hate my life", "sick of living", "wish it would all end"
+        ]
+      },
+      {
+        "category": "Ideation Level 2 - Non-Specific Active Suicidal Thoughts",
+        "phrases": [
+          "thoughts of suicide", "thoughts of killing myself", "thoughts of ending my life",
+          "thought about suicide", "thinking about suicide", "thinking about killing myself",
+          "suicidal thoughts", "suicidal ideation", "active suicidal thoughts",
+          "non specific suicidal thoughts", "hunahuna magpakamatay",
+          "hunahuna nga magpakamatay", "huna huna magpakamatay",
+          "huna huna nga magpakamatay", "hunahuna mamatay", "hunahuna nga mamatay",
+          "huna huna mamatay", "hunahuna maghikog", "hunahuna nga maghikog",
+          "hunahuna sa pagpakamatay", "huna huna sa pagpakamatay",
+          "naa koy hunahuna magpakamatay", "naa koy hunahuna nga magpakamatay",
+          "naa koy huna huna magpakamatay", "naa koy huna huna nga magpakamatay",
+          "adunay mga hunahuna sa pagpakamatay", "adunay hunahuna mamatay"
+        ]
+      }
+    ]
+  }
+}
