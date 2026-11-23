@@ -611,6 +611,9 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertIn("gusto lang nga mawala", lines[1])
         self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
         self.assertNotIn("feeling alone", result["summary"])
+        self.assertEqual(result["suicide_risk"]["risk_level"], "MODERATE_RISK")
+        self.assertIn("Wish to be Dead", result["suicide_risk"]["cssrs_category"])
+        self.assertNotIn("putol", result["suicide_risk"]["matched_phrases"])
 
     def test_summarizes_business_loss_as_financial_problem(self):
         text = (
@@ -943,6 +946,150 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
         self.assertIn("Given Referrals", categories)
         self.assertIn("Psychoeducation", categories)
+        self.assertEqual(
+            result["suicide_risk"]["risk_level"], "MODERATE_RISK"
+        )
+        self.assertIn(
+            "Wish to be Dead", result["suicide_risk"]["cssrs_category"]
+        )
+
+    def test_hanging_plan_with_rope_is_high_risk(self):
+        text = (
+            "Caller:\n"
+            "Gusto na nako tapuson tanan. Naa koy pisi diri sa akong tapad "
+            "karon sir. Ako na untang ihigot sa sagbayan sa kwarto.\n\n"
+            "Responder:\n"
+            "Pwede ka moadto sa ER sa Vicente Sotto kay naa silay 24/7 "
+            "nga psychiatric emergency response. Mag-breathing exercise ta.\n"
+        )
+
+        result = analyze(text)
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["suicide_risk"]["risk_level"], "HIGH_RISK")
+        self.assertIn("Hanging", result["suicide_risk"]["cssrs_category"])
+        self.assertIn("pisi", result["suicide_risk"]["matched_phrases"])
+        self.assertIn("Referred to Emergency Room", categories)
+
+    def test_trauma_help_seeking_with_generic_paagi_is_low_risk(self):
+        text = (
+            "Caller:\n"
+            "Naay mga time nga lami na i-give up kay gikapoy na ko sir, pero "
+            "dili man pud nako kaya pasakitan akong kaugalingon. Nangita lang "
+            "gyud ko og tambal o paagi nga ma-ayo ko ani, mao manawag ko ninyo.\n\n"
+            "Responder:\n"
+            "Pwede ka moadto sa Vicente Sotto para sa trauma counseling. "
+            "Mag-breathing exercise ta.\n"
+        )
+
+        result = analyze(text)
+
+        self.assertEqual(result["suicide_risk"]["risk_level"], "LOW")
+        self.assertNotIn("paagi", result["suicide_risk"]["matched_phrases"])
+
+    def test_burnout_disappearance_wish_with_explicit_denial_is_low(self):
+        text = (
+            "Caller:\n"
+            "Jenny ra ko, 28, single, naa ko sa Mandaue. Kapoy na kaayo ko sa "
+            "trabaho, wala koy motibo. Lisod ko makatulog, blangko akong utok, "
+            "sakit akong ulo. Usahay naghuna-huna ko unsa na lang unta kung "
+            "dili nako mag-report sa trabaho, o mawala na lang ko sa tanan. "
+            "Pero dili siya sa paagi nga gusto na kong magpakamatay o unsa, "
+            "mas sa paagi ra nga gikapoy na kaayo ko. Wala man gyud ko ganahan "
+            "mosakit sa akong kaugalingon. Kapoy ra gyud kaayo, dili ko "
+            "suicidal.\n\n"
+            "Responder:\n"
+            "Pwede siya matawag na burnout. Mag-breathing exercise ta. Gusto "
+            "ba nimo nga hatagan tika og impormasyon sa mga resources?\n"
+        )
+
+        result = analyze(text)
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Jenny")
+        self.assertEqual(result["fields"]["callerAge"], 28)
+        self.assertEqual(result["fields"]["callerLocation"], "Mandaue City")
+        self.assertEqual(
+            lines[0], "Nitawag ang caller tungod sa Work/Employment Problem."
+        )
+        self.assertNotIn("pagpakamatay", lines[1])
+        self.assertNotIn("naglaom nga dili na momata", lines[1])
+        self.assertIn("Psychoeducation", categories)
+        self.assertEqual(result["suicide_risk"]["risk_level"], "LOW")
+
+    def test_bipolar_seeking_referral_with_fear_of_suicide_is_low(self):
+        text = (
+            "Caller:\n"
+            "Ako diay si Leah. 26 na ko sir, single pa. Oo sir, female ko. "
+            "Wala nako gi-share ang location. Grabe akong mood swings, naay "
+            "times hyper kaayo ko nga dili ko matulog for three days unya "
+            "kalit lang ma-depress og maayo for weeks. Wala koy gana mokaon, "
+            "blangko akong utok, sige kog hilak, wala koy kalipay.\n\n"
+            "Responder:\n"
+            "Niabot ba sa punto nga nakahunahuna ka nga tapuson na lang ang "
+            "imong kinabuhi?\n\n"
+            "Caller:\n"
+            "Mo-cross siya sa akong huna-huna panagsa sir, pero dili man nako "
+            "buhaton. Nahadlok ko mo-suicide. Gusto lang gyud ko mamaayo.\n\n"
+            "Responder:\n"
+            "Pwede ka moadto sa Vicente Sotto Memorial Medical Center para sa "
+            "psychologist.\n"
+        )
+
+        result = analyze(text)
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Leah")
+        self.assertEqual(result["fields"]["callerAge"], 26)
+        self.assertEqual(result["fields"]["callerGender"], "Female")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "N/A")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Bipolar and OCD.")
+        self.assertIn("Given Referrals", categories)
+        self.assertEqual(result["suicide_risk"]["risk_level"], "LOW")
+        self.assertEqual(
+            result["suicide_risk"]["cssrs_category"],
+            "Explicit Denial of Suicidal Ideation",
+        )
+
+    def test_business_loss_with_passive_death_wish_stays_moderate(self):
+        text = (
+            "Caller:\n"
+            "Gio lang akong pangalan. 30 na ko, single. Dili nako isulti ang "
+            "location. Nag-close ang akong negosyo gahapon, gibuhos nako tanan "
+            "savings for three years, zero na ko. Nagsige kog hilak tibuok "
+            "adlaw, wala koy kusog, sige kog kurog, blangko akong utok.\n\n"
+            "Responder:\n"
+            "Niabot ba sa point nga nakahunahuna ka nga pasakitan ang imong "
+            "kaugalingon?\n\n"
+            "Caller:\n"
+            "Naa koy na-feel ganiha nga murag lami na lang matulog ug di na "
+            "momata kay kapoy na kayko mag-start from scratch. Pero nahadlok "
+            "man ko mamatay miss. Di man nako kaya buhaton.\n\n"
+            "Responder:\n"
+            "Mag-breathing exercise ta. Normal ra ang imong na-feel, "
+            "nag-grief ka.\n"
+        )
+
+        result = analyze(text)
+        lines = result["summary_bisaya"].splitlines()
+        categories = result["field_meta"]["intervention"]["categories"]
+
+        self.assertEqual(result["fields"]["callerName"], "Gio")
+        self.assertEqual(result["fields"]["callerAge"], 30)
+        self.assertEqual(result["fields"]["callerGender"], "N/A")
+        self.assertEqual(result["fields"]["callerStatus"], "Single")
+        self.assertEqual(result["fields"]["callerLocation"], "N/A")
+        self.assertEqual(lines[0], "Nitawag ang caller tungod sa Financial Problem.")
+        self.assertIn("naglaom nga dili na momata", lines[1])
+        self.assertNotIn("adunay mga hunahuna sa pagpakamatay", lines[1])
+        self.assertIn("Psychoeducation", categories)
+        self.assertEqual(result["suicide_risk"]["risk_level"], "MODERATE_RISK")
+        self.assertIn(
+            "Wish to be Dead", result["suicide_risk"]["cssrs_category"]
+        )
 
     def test_work_pressure_with_overthinking_and_no_active_si(self):
         text = (
@@ -1062,6 +1209,26 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertIn("Given Referrals", categories)
         self.assertIn("Psychoeducation", categories)
         self.assertNotIn("Refused Referrals", categories)
+
+    def test_relationship_sample_hopelessness_is_not_moderate_risk(self):
+        text = (
+            "Responder:\n"
+            "Christine, mangutana ko og something importante para makasiguro "
+            "lang ko sa imong safety. Nakaabot ba ka sa punto nga "
+            "nakahunahuna ka nga pasakitan imong kaugalingon?\n\n"
+            "Caller:\n"
+            "Wala. Naka-feel ko nga hopeless usahay, pero wala ko naghunahuna "
+            "nga pasakitan akong kaugalingon.\n\n"
+            "Responder:\n"
+            "Okay. Karon mismo, safe ra ka?\n\n"
+            "Caller:\n"
+            "Oo, safe ra ko. Naa ra ko sa among balay.\n"
+        )
+
+        result = analyze(text)
+
+        self.assertEqual(result["suicide_risk"]["risk_level"], "LOW")
+        self.assertNotIn("hopeless", result["suicide_risk"]["matched_phrases"])
 
     def test_stress_with_negated_disappear_wish_and_no_false_guidance(self):
         text = (
@@ -1219,6 +1386,33 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertNotIn("pagpakamatay", lines[1])
         self.assertIn("Given Referrals", categories)
         self.assertIn("Psychoeducation", categories)
+
+    def test_grief_sample_tonight_closure_is_not_high_risk(self):
+        text = (
+            "Responder:\n"
+            "Mariel, mangutana ko ug sensitive nga question. Nakaabot ba ka sa "
+            "point nga nakahunahuna ka nga dili na nimo gusto mabuhi o nga "
+            "pasakitan imong kaugalingon?\n\n"
+            "Caller:\n"
+            'Wala man ko naghuna-huna nga pasakitan akong kaugalingon. Pero naa '
+            'koy times nga moingon ko, "Kapoy na kaayo." Kanang emotional '
+            "exhaustion lang.\n\n"
+            "Responder:\n"
+            "Salamat sa pag-share. Karon mismo, safe ra ka?\n\n"
+            "Caller:\n"
+            "Oo, safe ra ko.\n\n"
+            "Responder:\n"
+            "Before ta mahuman, unsa man ang usa ka butang nga imong buhaton "
+            "after ani nga call?\n\n"
+            "Caller:\n"
+            "Siguro makigstorya ko sa akong igsoon. Murag mao gyud akong "
+            "na-realize tonight.\n"
+        )
+
+        result = analyze(text)
+
+        self.assertEqual(result["suicide_risk"]["risk_level"], "LOW")
+        self.assertNotIn("tonight", result["suicide_risk"]["matched_phrases"])
 
     def test_medicine_intake_is_not_alcohol_dependence(self):
         result = analyze(
@@ -2354,6 +2548,8 @@ class SummaryTemplateTests(SimpleTestCase):
         self.assertNotIn("gisagpa ug gitukmod", lines[1])
         self.assertEqual(lines[2], "Sa risk assessment, high risk.")
         self.assertIn("nag-refer sa guidance counselor", lines[3])
+        self.assertEqual(result["suicide_risk"]["risk_level"], "HIGH_RISK")
+        self.assertIn("Ingestion", result["suicide_risk"]["cssrs_category"])
         self.assertIn("psychoeducation", lines[3])
         self.assertNotIn("Right now, dako kaayo", caller_text)
         self.assertNotIn("Valid na nga kahadlok", caller_text)

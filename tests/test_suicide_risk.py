@@ -75,6 +75,13 @@ class BehaviorAndMethodTests(SimpleTestCase):
                     self.evaluator.evaluate(text)["risk_level"], "HIGH_RISK"
                 )
 
+    def test_putol_putol_sleep_is_not_a_sharp_object_method(self):
+        result = self.evaluator.evaluate(
+            "Tulo ka gabii na putol-putol akong tulog. Wala pa ko mokaon."
+        )
+        self.assertEqual(result["risk_level"], "LOW")
+        self.assertNotIn("putol", result["matched_phrases"])
+
     def test_cebuano_ingestion_method_is_high_risk(self):
         result = self.evaluator.evaluate(
             "Nakahunahuna ko nga moinom og daghang tambal para makatulog ug di na momata."
@@ -137,6 +144,40 @@ class ModerateRiskTests(SimpleTestCase):
         result = self.evaluator.evaluate("sana di nako kamata")
         self.assertEqual(result["risk_level"], "MODERATE_RISK")
 
+    def test_passive_death_wish_with_denied_plan_is_moderate(self):
+        text = (
+            "Wala man koy planong maghikog. Nahadlok ko ana. Pero naka-think ko "
+            "nga lami na kaayo mawala. Kanang matulog lang unya dili na momata "
+            "kay kapoy na gyud mabuhi. Pero wala ko nikuha sa bildo, nagpalayo ko."
+        )
+        result = self.evaluator.evaluate(text)
+        self.assertEqual(result["risk_level"], "MODERATE_RISK", msg=result)
+        self.assertIn("Wish to be Dead", result["cssrs_category"])
+        self.assertIn("lami na kaayo mawala", result["matched_phrases"])
+        self.assertIn(
+            "matulog lang unya dili na momata", result["matched_phrases"]
+        )
+
+    def test_mawala_lang_ko_kadali_is_moderate(self):
+        result = self.evaluator.evaluate(
+            "Nakahuna-huna ko ganina nga mas maayo siguro kung mawala lang ko "
+            "kadali. Pero wala ko nagplano nga pasakitan akong kaugalingon."
+        )
+        self.assertEqual(result["risk_level"], "MODERATE_RISK", msg=result)
+        self.assertIn("Wish to be Dead", result["cssrs_category"])
+        self.assertIn("mawala lang ko kadali", result["matched_phrases"])
+
+    def test_passive_death_wish_with_fear_of_death_stays_moderate(self):
+        text = (
+            "Naa koy na-feel ganiha nga murag lami na lang matulog ug di na "
+            "momata kay kapoy na kayko mag-start from scratch. Pero nahadlok "
+            "man ko mamatay miss. Di man nako kaya buhaton."
+        )
+        result = self.evaluator.evaluate(text)
+        self.assertEqual(result["risk_level"], "MODERATE_RISK", msg=result)
+        self.assertIn("Wish to be Dead", result["cssrs_category"])
+        self.assertIn("matulog ug di na momata", result["matched_phrases"])
+
     def test_dili_na_gyud_nako_kaya_is_distress_not_risk(self):
         result = self.evaluator.evaluate("Dili na gyud nako kaya.")
         self.assertEqual(result["risk_level"], "LOW")
@@ -180,6 +221,74 @@ class NegationAndIdiomTests(SimpleTestCase):
         self.assertEqual(result["risk_level"], "LOW")
         self.assertEqual(result["matched_phrases"], [])
 
+    def test_bare_temporal_marker_tonight_is_not_risk(self):
+        result = self.evaluator.evaluate(
+            "Murag mao gyud akong na-realize tonight."
+        )
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertNotIn("tonight", result["matched_phrases"])
+
+    def test_bare_birthday_marker_is_not_risk(self):
+        result = self.evaluator.evaluate(
+            "Plano namo mag-celebrate on my birthday."
+        )
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertNotIn("on my birthday", result["matched_phrases"])
+
+    def test_temporal_marker_still_flags_with_active_plan(self):
+        result = self.evaluator.evaluate(
+            "I have a specific plan and I intend to do it tonight"
+        )
+        self.assertEqual(result["risk_level"], "HIGH_RISK", msg=result)
+
+    def test_grief_with_negated_self_harm_and_tonight_closure_is_low(self):
+        text = (
+            "Caller:\n"
+            'Wala man ko naghuna-huna nga pasakitan akong kaugalingon. Pero naa '
+            'koy times nga moingon ko, "Kapoy na kaayo." Kanang emotional '
+            "exhaustion lang.\n\n"
+            "Responder:\n"
+            "Salamat sa pag-share. Karon mismo, safe ra ka?\n\n"
+            "Caller:\n"
+            "Oo, safe ra ko.\n\n"
+            "Responder:\n"
+            "Before ta mahuman, unsa man ang usa ka butang nga imong buhaton?\n\n"
+            "Caller:\n"
+            "Siguro makigstorya ko sa akong igsoon. Murag mao gyud akong "
+            "na-realize tonight.\n"
+        )
+        result = self.evaluator.evaluate(text)
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertNotIn("tonight", result["matched_phrases"])
+
+    def test_hopeless_with_denied_self_harm_is_low(self):
+        result = self.evaluator.evaluate(
+            "Naka-feel ko nga hopeless usahay, pero wala ko naghunahuna nga "
+            "pasakitan akong kaugalingon."
+        )
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertNotIn("hopeless", result["matched_phrases"])
+
+    def test_hopelessness_alone_is_not_cssrs_ideation(self):
+        result = self.evaluator.evaluate("Naka-feel ko nga hopeless usahay.")
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertEqual(result["matched_phrases"], [])
+
+    def test_generic_paagi_for_help_is_not_method_risk(self):
+        result = self.evaluator.evaluate(
+            "Nangita lang gyud ko og tambal o paagi nga ma-ayo ko ani, "
+            "mao manawag ko ninyo."
+        )
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+        self.assertNotIn("paagi", result["matched_phrases"])
+
+    def test_passive_give_up_with_self_harm_denial_is_low(self):
+        result = self.evaluator.evaluate(
+            "Naay mga time nga lami na i-give up kay gikapoy na ko sir, "
+            "pero dili man pud nako kaya pasakitan akong kaugalingon."
+        )
+        self.assertEqual(result["risk_level"], "LOW", msg=result)
+
     def test_wala_nakoy_ihatag_is_not_a_risk_indicator(self):
         result = self.evaluator.evaluate("Wala nakoy ihatag.")
         self.assertEqual(result["risk_level"], "LOW")
@@ -200,6 +309,32 @@ class NegationAndIdiomTests(SimpleTestCase):
             "nahan nako mamatay."
         )
         self.assertEqual(result["risk_level"], "HIGH_RISK")
+
+    def test_long_distance_negation_within_sentence_is_low(self):
+        result = self.evaluator.evaluate(
+            "Usahay naghuna-huna ko unsa na lang unta kung dili nako mag-report "
+            "sa trabaho, o mawala na lang ko sa tanan. Pero dili siya sa paagi "
+            "nga gusto na kong magpakamatay o unsa, mas sa paagi ra nga gikapoy "
+            "na kaayo ko. Wala man gyud ko ganahan mosakit sa akong kaugalingon."
+        )
+        self.assertEqual(result["risk_level"], "LOW")
+        self.assertIn("magpakamatay", result["matched_phrases"])
+
+    def test_contrast_after_negation_keeps_real_risk_high(self):
+        result = self.evaluator.evaluate(
+            "Dili ko ganahan mamatay, pero karon gusto kong magpakamatay."
+        )
+        self.assertEqual(result["risk_level"], "HIGH_RISK")
+
+    def test_afraid_to_suicide_is_explicit_denial(self):
+        result = self.evaluator.evaluate(
+            "Mo-cross siya sa akong huna-huna panagsa sir, pero dili man nako "
+            "buhaton. Nahadlok ko mo-suicide. Gusto lang gyud ko mamaayo."
+        )
+        self.assertEqual(result["risk_level"], "LOW")
+        self.assertEqual(
+            result["cssrs_category"], "Explicit Denial of Suicidal Ideation"
+        )
 
     def test_responder_risk_question_is_ignored(self):
         text = (

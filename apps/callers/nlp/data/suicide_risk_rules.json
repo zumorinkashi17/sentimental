@@ -44,6 +44,8 @@
     "hadlok ko anang pasakitan ang kaugalingon",
     "hadlok ko pasakitan ang kaugalingon",
     "hadlok ko mamatay",
+    "nahadlok ko mo suicide",
+    "nahadlok ko mamatay",
     "i don't want to die",
     "i do not want to die",
     "i would never kill myself",
@@ -67,7 +69,11 @@
     "dili", "di", "hindi", "wala", "wa", "ayaw", "not", "never", "no", "none", "nothing",
     "neither", "nor", "without", "don't", "dont", "doesn't", "doesnt", "didn't", "didnt",
     "isn't", "isnt", "wasn't", "wasnt", "won't", "wont", "can't", "cant", "couldn't",
-    "couldnt", "ain't", "aint", "hardly", "barely"
+    "couldnt", "ain't", "aint",     "hardly",
+    "barely",
+    "nahadlok",
+    "hadlok",
+    "mahadlok"
   ],
   "tiers": {
     "HIGH_RISK": [
@@ -96,7 +102,7 @@
           "detailed plan", "how to do it", "how and when", "when i will do it",
           "intent to act", "intent to die", "intent to kill", "intends to kill",
           "going through with it", "go through with it", "follow through with it",
-          "ready to die", "determined to die", "tonight", "on my birthday"
+          "ready to die", "determined to die"
         ]
       },
       {
@@ -114,8 +120,7 @@
           "i have a plan", "he has a plan", "she has a plan", "they have a plan",
           "specific plan", "detailed plan", "how to do it", "how and when",
           "when i will do it", "when the time comes", "when everyone is asleep",
-          "i will do it", "he will do it", "she will do it", "tonight",
-          "on my birthday", "on his birthday", "on her birthday"
+          "i will do it", "he will do it", "she will do it"
         ]
       },
       {
@@ -164,11 +169,12 @@
       },
       {
         "category": "Method - Sharp Object",
-        "phrases": ["knife", "kutsilyo", "blade", "razor", "lehia", "cut myself", "cut himself", "cut herself", "cut my wrists", "slit my wrists", "hiwa", "putol", "naghiwa", "nagputol"]
+        "phrases": ["knife", "kutsilyo", "blade", "razor", "lehia", "cut myself", "cut himself", "cut herself", "cut my wrists", "slit my wrists",                                       "hiwa",
+                                      "naghiwa", "nagputol"]
       },
       {
         "category": "Method - Ingestion/Poison",
-        "phrases": ["overdose", "overdosed", "overdosing", "pills", "tablets", "medicine", "poison", "hilo", "drink poison", "take pills", "took pills", "swallowed pills", "ingestion", "drink bleach", "nag overdose", "nag-overdose", "moinom og daghang tambal", "moinom og daghang tambal para makatulog", "daghang tambal para makatulog", "makatulog ug di na momata", "makatulog ug dili na momata", "matulog ug di na momata", "matulog ug dili na momata", "take a lot of pills", "take many pills", "swallow a lot of pills", "sleep and never wake up"]
+        "phrases": ["overdose", "overdosed", "overdosing", "pills", "tablets", "medicine", "poison", "hilo", "drink poison", "take pills", "took pills", "swallowed pills", "ingestion", "drink bleach", "nag overdose", "nag-overdose", "moinom og daghang tambal", "moinom og daghang tambal para makatulog", "daghang tambal para makatulog", "take a lot of pills", "take many pills", "swallow a lot of pills"]
       },
       {
         "category": "Method - Jumping",
@@ -176,7 +182,7 @@
       },
       {
         "category": "Method - Other",
-        "phrases": ["method", "pamaagi", "paagi", "ways to", "how to", "plan to use", "plans to use", "intends to use"]
+        "phrases": ["plan to use", "plans to use", "intends to use"]
       }
     ],
     "MODERATE_RISK": [
@@ -188,8 +194,25 @@
           "wants to be dead", "wants to die", "sana mamatay", "sana mamatay ko",
           "sana dili na mabuhi", "sana di nako kamata", "sana dili ko momata",
           "sana dili na ko momata", "sana matulog ug dili momata",
+          "matulog ug di na momata", "matulog ug dili na momata",
+          "makatulog ug di na momata", "makatulog ug dili na momata",
+          "matulog lang unya di na momata", "matulog lang unya dili na momata",
+          "matulog lang ug di na momata", "matulog lang ug dili na momata",
+          "lami na lang matulog ug di na momata",
+          "lami na lang matulog ug dili na momata",
+          "lami na lang matulog unya di na momata",
+          "lami na lang matulog unya dili na momata",
+                                          "lami mawala",
+                                          "lami na mawala",
+                                          "lami na kaayo mawala",
+                                          "mawala lang ko",
+                                          "mawala lang ko kadali",
+                                          "mawala lang unta ko",
+                                          "mawala ko kadali",
           "kapoy na mabuhi", "kapoy na kaayo mabuhi", "kapoy na ang mabuhi",
-          "kapoy na mabuhi pa", "gikapoy na mabuhi", "tired of living", "tired of life",
+          "kapoy na mabuhi pa", "kapoy na gyud mabuhi", "kapoy na gyud ko mabuhi",
+          "gikapoy na mabuhi", "gikapoy na gyud mabuhi", "gikapoy na kaayo mabuhi",
+          "gikapoy na gyud ko mabuhi", "tired of living", "tired of life",
           "so tired of living", "tired of being alive", "i just want to die",
           "i wish i would not wake up", "wish i would not wake up",
           "wish to fall asleep and not wake up", "fall asleep and not wake up",
@@ -199,6 +222,8 @@
           "better off dead", "everyone would be better off without me",
           "life is not worth living", "i wish i was never born", "sana wala na lang ko",
           "sana di na ko mabuhi", "dili na ko gusto mabuhi", "dili nako gusto mabuhi",
+          "dili na nako gusto mabuhi", "di na ko gusto mabuhi", "di nako gusto mabuhi",
+          "di na nako gusto mabuhi", "di na ko ganahan mabuhi",
           "dili ko ganahan mabuhi", "di ko ganahan mabuhi", "di nako ganahan mabuhi",
           "wala na koy rason mabuhi", "wala na koy rason nga mabuhi",
           "walay rason mabuhi", "walay rason nga mabuhi",
@@ -206,7 +231,7 @@
           "i don't want to live anymore", "i don't want to wake up anymore",
           "i don't want to exist", "i wish i didn't exist", "i want to disappear",
           "i want to sleep forever", "i can't go on", "i can't take it anymore",
-          "no hope", "hopeless", "life has no meaning", "i am a burden",
+          "no hope", "life has no meaning", "i am a burden",
           "everyone would be better off without me", "i should die", "i deserve to die",
           "i hate my life", "sick of living", "wish it would all end"
         ]

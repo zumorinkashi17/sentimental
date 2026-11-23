@@ -36,6 +36,13 @@ _SUICIDE_DENIAL = re.compile(
     r"(?:\s+(?:thoughts?|hunahuna|plano|intensyon))?"
     r"(?:\s+(?:nga|na))?\s+"
     r"pasakitan(?:\s+ang)?\s+akong kaugalingon"
+    r"|mawala na lang ko[^!?]{0,200}?dili siya sa paagi nga "
+    r"(?:gusto|ganahan)\s+(?:na\s+)?(?:kong|ko)\s+"
+    r"(?:magpakamatay|mamatay|hikog)"
+    r"|dili siya sa paagi nga (?:gusto|ganahan)\s+(?:na\s+)?"
+    r"(?:kong|ko)\s+(?:magpakamatay|mamatay|hikog)"
+    r"|wala(?: man)?(?:\s+gyud)?\s+ko ganahan mosakit sa akong kaugalingon"
+    r"|dili ko suicidal"
     r")\b",
     re.IGNORECASE,
 )

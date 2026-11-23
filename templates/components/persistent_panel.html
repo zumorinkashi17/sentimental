@@ -1026,9 +1026,7 @@
         box.innerHTML = '<p class="text-[11px] font-bold uppercase">Risk Flag: ' + level.replace(/_/g, ' ') + '</p>' +
             '<p class="text-[10px] mt-0.5">Category: ' + (risk.cssrs_category || '—') + '</p>' +
             '<p class="text-[10px] mt-0.5">Triggers: ' + triggerText + '</p>';
-        if (level === 'HIGH_RISK') {
             box.innerHTML += '<p class="text-[10px] font-bold mt-1">IMMEDIATE RESPONDER REVIEW REQUIRED</p>';
-        }
     }
 
     function fillField(id, value) {

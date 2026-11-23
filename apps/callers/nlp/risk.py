@@ -126,6 +126,33 @@ class SuicideRiskEvaluator:
         body = r"\s+".join(alternatives)
         return re.compile(r"(?<![a-z0-9])" + body + r"(?![a-z0-9])")
 
+    def _negation_context(self, normalized: str, tokens: list[str], match: re.Match) -> list[str]:
+        start_token = len(normalized[: match.start()].split())
+        sentence_start = (
+            max(
+                normalized.rfind(".", 0, match.start()),
+                normalized.rfind("!", 0, match.start()),
+                normalized.rfind("?", 0, match.start()),
+            )
+            + 1
+        )
+        segment_start = max(
+            0,
+            min(
+                start_token - self.negation_window,
+                len(normalized[:sentence_start].split()),
+            ),
+        )
+        segment = tokens[segment_start:start_token]
+        contrast = {"pero", "but", "karon", "tinuod", "gayud", "actually", "however"}
+        last_contrast = max(
+            (index for index, token in enumerate(segment) if token in contrast),
+            default=-1,
+        )
+        if last_contrast >= 0:
+            segment = segment[last_contrast + 1 :]
+        return segment
+
     def evaluate(self, text: object) -> dict:
         normalized = normalize_text(_caller_speech(text), self.rules)
         tokens = normalized.split()
@@ -136,8 +163,7 @@ class SuicideRiskEvaluator:
             for category, patterns in self._patterns.get(tier, {}).items():
                 for phrase, pattern in patterns:
                     for match in pattern.finditer(normalized):
-                        start_token = len(normalized[: match.start()].split())
-                        before = tokens[max(0, start_token - self.negation_window) : start_token]
+                        before = self._negation_context(normalized, tokens, match)
                         if any(token in self.negations for token in before):
                             hits.setdefault("LOW", {}).setdefault(
                                 "Negated Risk Language", []
