@@ -72,6 +72,10 @@
                         <i class="{% if request.resolver_match.view_name == 'dashboard:admin_index' %}ph-fill{% else %}ph{% endif %} ph-cards text-2xl"></i>
                         <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Dashboard</div>
                     </a>
+                    <a href="{% url 'escalations:queue' %}" class="nav-btn nav-admin {% if request.resolver_match.view_name == 'escalations:queue' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Caller Escalations">
+                        <i class="{% if request.resolver_match.view_name == 'escalations:queue' %}ph-fill{% else %}ph{% endif %} ph-arrow-square-up-right text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Caller Escalations</div>
+                    </a>
                     <a href="{% url 'forecast:prediction' %}" class="nav-btn nav-admin {% if request.resolver_match.view_name == 'forecast:prediction' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Call Volume Forecast">
                         <i class="{% if request.resolver_match.view_name == 'forecast:prediction' %}ph-fill{% else %}ph{% endif %} ph-chart-line-up text-2xl"></i>
                         <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Call Volume Forecast</div>
@@ -104,11 +108,29 @@
                         <i class="{% if request.resolver_match.view_name == 'reports:generate' %}ph-fill{% else %}ph{% endif %} ph-file-text text-2xl"></i>
                         <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Reports Generation</div>
                     </a>
+                {% elif request.session.user_role == 'Mental Health Professional' %}
+                    <!-- MENTAL HEALTH PROFESSIONAL SIDEBAR -->
+                    <a href="{% url 'dashboard:professional_index' %}" class="nav-btn nav-professional {% if request.resolver_match.view_name == 'dashboard:professional_index' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Professional Dashboard">
+                        <i class="{% if request.resolver_match.view_name == 'dashboard:professional_index' %}ph-fill{% else %}ph{% endif %} ph-stethoscope text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Dashboard</div>
+                    </a>
+                    <a href="{% url 'escalations:queue' %}" class="nav-btn nav-professional {% if request.resolver_match.view_name == 'escalations:queue' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Caller Escalations">
+                        <i class="{% if request.resolver_match.view_name == 'escalations:queue' %}ph-fill{% else %}ph{% endif %} ph-arrow-square-up-right text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Caller Escalations</div>
+                    </a>
+                    <a href="{% url 'accounts:profile' %}" class="nav-btn nav-professional {% if request.resolver_match.view_name == 'accounts:profile' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Profile">
+                        <i class="{% if request.resolver_match.view_name == 'accounts:profile' %}ph-fill{% else %}ph{% endif %} ph-user text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Profile</div>
+                    </a>
                 {% else %}
                     <!-- RESPONDER SIDEBAR -->
                     <a href="{% url 'dashboard:index' %}" class="nav-btn nav-responder {% if request.resolver_match.view_name == 'dashboard:index' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="Dashboard">
                         <i class="{% if request.resolver_match.view_name == 'dashboard:index' %}ph-fill{% else %}ph{% endif %} ph-cards text-2xl"></i>
                         <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Dashboard</div>
+                    </a>
+                    <a href="{% url 'escalations:queue' %}" class="nav-btn nav-responder {% if request.resolver_match.view_name == 'escalations:queue' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="My Escalations">
+                        <i class="{% if request.resolver_match.view_name == 'escalations:queue' %}ph-fill{% else %}ph{% endif %} ph-arrow-square-up-right text-2xl"></i>
+                        <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">My Escalations</div>
                     </a>
                     <a href="{% url 'schedules:calendar' %}" class="nav-btn nav-responder {% if request.resolver_match.view_name == 'schedules:calendar' %}text-brand{% else %}text-gray-400 hover:text-brand{% endif %} transition-colors relative group flex items-center justify-center" aria-label="My Shift Schedules">
                         <i class="{% if request.resolver_match.view_name == 'schedules:calendar' %}ph-fill{% else %}ph{% endif %} ph-calendar-blank text-2xl"></i>
@@ -134,12 +156,14 @@
             </nav>
 
             <!-- Call / Audio Icon -->
+            {% if request.session.user_role != 'Mental Health Professional' %}
             <div class="call-action-container mt-auto w-full flex justify-center mb-4">
                 <a href="{% url 'callers:call_setup' %}" class="call-btn w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors shadow-md group relative" aria-label="Start Call">
                     <i class="ph-bold ph-microphone text-xl"></i>
                     <div class="nav-tooltip hidden md:block absolute left-14 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">Start Call</div>
                 </a>
             </div>
+            {% endif %}
 
         </aside>
 
@@ -198,7 +222,7 @@
                                 {{ request.session.user_name|default:"Guest User" }}
                             </p>
                             <p class="text-[10px] font-bold tracking-wider text-brand uppercase">
-                                {% if request.session.user_role == 'Admin' %}Helpline Manager{% else %}Responder{% endif %}
+                                {% if request.session.user_role == 'Admin' %}Helpline Manager{% elif request.session.user_role == 'Mental Health Professional' %}Mental Health Professional{% else %}Responder{% endif %}
                             </p>
                         </div>
                     </a>
@@ -235,7 +259,9 @@
                 </div> 
 
                 <!-- Include Persistent Panel Component (For Documentation App Integration) -->
-                {% include 'components/persistent_panel.html' %}
+                {% if request.session.user_role != 'Mental Health Professional' %}
+                    {% include 'components/persistent_panel.html' %}
+                {% endif %}
             </div>
         </main>
     </div>
@@ -243,7 +269,7 @@
     {% include 'partials/modals.html' %}
 
     <!-- Script assets -->
-    <script src="{% static 'js/main.js' %}?v=27"></script>
+    <script src="{% static 'js/main.js' %}?v=29"></script>
     <!-- DJANGO MESSAGES HIDDEN DATA -->
     {% if messages %}
         <div id="django-messages" class="hidden">

@@ -6,6 +6,7 @@ class User(models.Model):
     class RoleChoices(models.TextChoices):
         ADMIN = 'Admin', 'Admin'
         RESPONDER = 'Responder', 'Responder'
+        MENTAL_HEALTH_PROFESSIONAL = 'Mental Health Professional', 'Mental Health Professional'
 
     class StatusChoices(models.TextChoices):
         ACTIVE = 'Active', 'Active'

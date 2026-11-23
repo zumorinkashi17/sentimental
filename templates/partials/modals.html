@@ -91,19 +91,49 @@
         </div>
     </div> {% endcomment %}
 
-<!-- Add Responder Modal (email only) -->
+<!-- Add User Modal -->
 <div id="modal-add-responder" class="modal-content hidden bg-white rounded-2xl w-full max-w-sm shadow-2xl">
     <div class="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="font-bold text-gray-800 text-lg">Add Responder</h3>
+        <h3 class="font-bold text-gray-800 text-lg">Add User</h3>
         <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close"><i class="ph-bold ph-x text-xl"></i></button>
     </div>
     <div class="p-4 sm:p-6">
         <form id="add-responder-form" class="space-y-4">
             {% csrf_token %}
-            <p class="text-xs text-gray-500">An invitation email will be sent to this address. The responder will use the secure link to set their password and complete their profile details.</p>
+            <p class="text-xs text-gray-500">An invitation email will be sent to this address. The user will use the secure link to set their password and complete their profile details.</p>
             <div>
                 <label class="form-label" for="add-email">Email Address *</label>
                 <input id="add-email" name="email" type="email" class="form-input" placeholder="email@tawagpaglaum.org" required>
+            </div>
+            <div>
+                <p class="form-label">System role</p>
+                <input type="hidden" id="add_user_role" name="user_role" value="Responder">
+                <div class="space-y-2">
+                    <button type="button" data-toggle="add_user_role" data-value="Responder" aria-pressed="true"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-brand bg-brand-light/50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Responder</span>
+                            <span class="block text-xs text-gray-500">Handles incoming calls and documentation.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" data-toggle="add_user_role" data-value="Mental Health Professional" aria-pressed="false"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Mental Health Professional</span>
+                            <span class="block text-xs text-gray-500">Reviews escalated cases and provides assessments.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0 hidden" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" data-toggle="add_user_role" data-value="Admin" aria-pressed="false"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Helpline Manager</span>
+                            <span class="block text-xs text-gray-500">Full access to reports, users, and settings.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0 hidden" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
             <button id="add-submit-btn" type="submit" class="w-full bg-brand text-white font-bold py-3 rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2">
                 Send Invitation
@@ -211,6 +241,15 @@
                             <span class="block text-xs text-gray-500">Handles incoming calls and documentation.</span>
                         </span>
                         <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0" aria-hidden="true"></i>
+                    </button>
+
+                    <button type="button" data-toggle="user_role" data-value="Mental Health Professional" aria-pressed="false"
+                        class="toggle-card w-full flex items-center gap-3 px-4 py-3 border rounded-lg text-left transition-colors border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50">
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-semibold text-gray-900">Mental Health Professional</span>
+                            <span class="block text-xs text-gray-500">Reviews escalated cases and provides assessments.</span>
+                        </span>
+                        <i class="ph-bold ph-check-circle-fill text-base text-brand flex-shrink-0 hidden" aria-hidden="true"></i>
                     </button>
                     
                     <!-- data-value is 'Admin' so it saves correctly to DB -->

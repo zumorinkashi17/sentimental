@@ -539,11 +539,13 @@ function skDefault() {
 // aligns exactly like the real content it stands in for.
 const SKELETON_ROUTES = [
     ['/dashboard/admin', skAdminDashboard, 'max-w-6xl'],
+    ['/dashboard/professional', skResponderDashboard, 'max-w-6xl'],
     ['/dashboard', skResponderDashboard, 'max-w-6xl'],
     ['/forecast', skForecast, 'max-w-6xl'],
     ['/heatmap', skHeatmap, 'max-w-6xl'],
     ['/schedules/admin-calendar', skAdminCalendar, 'max-w-6xl'],
     ['/schedules', skResponderCalendar, 'max-w-6xl'],
+    ['/escalations', skAccountsManage, 'max-w-6xl'],
     ['/accounts/manage', skAccountsManage, 'max-w-6xl'],
     ['/accounts/profile', skProfile, 'max-w-4xl'],
     ['/referrals/manage', skReferralsManage, 'max-w-6xl'],
@@ -1185,40 +1187,19 @@ function initCharts() {
         };
         const labels = attrArray('data-labels', ['Month 1', 'Month 2', 'Month 3']);
         const total = attrArray('data-values', [0, 0, 0]);
-        const lower = attrArray('data-lower', total);
-        const upper = attrArray('data-upper', total);
 
         chartsInstance.push(new Chart(ctxAdminForecast.getContext('2d'), {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: labels,
-                datasets: [
-                    {
-                        label: 'Expected total calls',
-                        data: total,
-                        borderColor: '#00a67e',
-                        backgroundColor: '#00a67e',
-                        tension: 0.35,
-                        borderWidth: 3,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#00a67e'
-                    },
-                    {
-                        label: 'Estimated range (lower)',
-                        data: lower,
-                        borderColor: 'transparent',
-                        pointRadius: 0,
-                        fill: false
-                    },
-                    {
-                        label: 'Estimated range',
-                        data: upper,
-                        borderColor: 'transparent',
-                        backgroundColor: 'rgba(0, 166, 126, 0.15)',
-                        pointRadius: 0,
-                        fill: '-1'
-                    }
-                ]
+                datasets: [{
+                    label: 'Expected total calls',
+                    data: total,
+                    backgroundColor: '#00a67e',
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    maxBarThickness: 48
+                }]
             },
             options: {
                 responsive: true,
@@ -1228,8 +1209,7 @@ function initCharts() {
                         position: 'bottom',
                         labels: {
                             usePointStyle: true,
-                            boxWidth: 6,
-                            filter: (item) => item.text !== 'Estimated range (lower)'
+                            boxWidth: 6
                         }
                     },
                     tooltip: {
@@ -1238,22 +1218,7 @@ function initCharts() {
                             label: (item) => {
                                 const value = item.parsed.y;
                                 if (value === null || value === undefined) return '';
-                                const lowerValue = lower[item.dataIndex];
-                                const upperValue = upper[item.dataIndex];
-                                if (item.dataset.label === 'Estimated range (lower)') return '';
-                                if (item.dataset.label === 'Estimated range') {
-                                    if (lowerValue === null || lowerValue === undefined) return '';
-                                    return `Estimated range: ${Math.round(lowerValue).toLocaleString()}–${Math.round(upperValue).toLocaleString()} calls`;
-                                }
                                 return `${Math.round(value).toLocaleString()} calls`;
-                            },
-                            afterBody: (items) => {
-                                const first = items[0];
-                                if (!first) return '';
-                                const lowerValue = lower[first.dataIndex];
-                                const upperValue = upper[first.dataIndex];
-                                if (lowerValue === null || lowerValue === undefined) return '';
-                                return 'Actual call volume may fall outside this estimated range.';
                             }
                         }
                     }

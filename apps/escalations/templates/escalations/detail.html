@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+            <div>
+                <a href="{% url 'escalations:queue' %}" class="text-xs font-bold text-brand hover:underline">&larr; Back to escalations</a>
+                <h1 class="text-2xl font-bold text-gray-800 mt-1">Escalation <span class="font-mono text-brand">{{ escalation.display_id }}</span></h1>
+                <p class="text-sm text-gray-500">{{ session.session_id }} &middot; Requested {{ escalation.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-bold {% if escalation.status == 'Completed' %}bg-green-100 text-green-700{% elif escalation.status == 'Cancelled' %}bg-gray-200 text-gray-600{% elif escalation.status == 'Needs Info' %}bg-orange-100 text-orange-700{% elif escalation.status == 'Under Review' %}bg-purple-100 text-purple-700{% elif escalation.status == 'Assigned' %}bg-blue-100 text-blue-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ escalation.status }}</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold {% if escalation.urgency == 'Urgent' %}bg-red-100 text-red-700{% elif escalation.urgency == 'Priority' %}bg-amber-100 text-amber-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ escalation.urgency }} urgency</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Requested by</p>
+                    <p class="font-bold text-gray-800">{{ escalation.requested_by.user_first_name }} {{ escalation.requested_by.user_last_name }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Assigned to</p>
+                    <p class="font-bold text-gray-800">
+                        {% if escalation.assigned_to %}
+                            {{ escalation.assigned_to.user_first_name }} {{ escalation.assigned_to.user_last_name }}
+                        {% else %}
+                            <span class="text-gray-400">Unassigned</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Responder judgment</p>
+                    <p class="text-gray-700 whitespace-pre-line">{{ escalation.observations }}</p>
+                </div>
+            </div>
+
+            {% if can_assign or can_acknowledge or can_request_info or can_complete or can_provide_info or can_cancel %}
+            <div class="border-t border-gray-100 pt-4 space-y-4">
+                <p class="text-xs font-bold uppercase tracking-wide text-gray-500">Actions</p>
+
+                {% if can_assign %}
+                <form method="post" action="{% url 'escalations:assign' escalation.escalation_id %}" class="flex flex-col sm:flex-row gap-2 sm:items-end">
+                    {% csrf_token %}
+                    <div class="flex-1">
+                        <label class="form-label" for="id_assigned_to">{{ assignment_form.assigned_to.label }}</label>
+                        {{ assignment_form.assigned_to }}
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">Assign</button>
+                </form>
+                {% endif %}
+
+                {% if can_acknowledge %}
+                <form method="post" action="{% url 'escalations:acknowledge' escalation.escalation_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-purple-700 transition-colors">Start Review</button>
+                </form>
+                {% endif %}
+
+                {% if can_request_info %}
+                <form method="post" action="{% url 'escalations:request_info' escalation.escalation_id %}" class="space-y-2">
+                    {% csrf_token %}
+                    <label class="form-label" for="id_request_note">Request information from responder</label>
+                    <textarea id="id_request_note" name="note" rows="3" class="form-input" required></textarea>
+                    <button type="submit" class="bg-orange-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-orange-700 transition-colors">Request Info</button>
+                </form>
+                {% endif %}
+
+                {% if can_complete %}
+                <form method="post" action="{% url 'escalations:complete' escalation.escalation_id %}" class="space-y-3">
+                    {% csrf_token %}
+                    <p class="text-sm font-bold text-gray-800">Professional assessment</p>
+                    <div>
+                        <label class="form-label" for="id_findings">Findings</label>
+                        <textarea id="id_findings" name="findings" rows="4" class="form-input" required></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_recommendations">Recommendations</label>
+                        <textarea id="id_recommendations" name="recommendations" rows="4" class="form-input" required></textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_follow_up">Follow-up</label>
+                        <select id="id_follow_up" name="follow_up" class="form-input">
+                            {% for value, label in assessment_form.follow_up.field.choices %}
+                            <option value="{{ value }}" {% if value == assessment_form.follow_up.value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-brand text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-brand-dark transition-colors">Save Assessment</button>
+                </form>
+                {% endif %}
+
+                {% if can_provide_info %}
+                <form method="post" action="{% url 'escalations:provide_info' escalation.escalation_id %}" class="space-y-2">
+                    {% csrf_token %}
+                    <label class="form-label" for="id_provide_note">Response to information request</label>
+                    <textarea id="id_provide_note" name="note" rows="3" class="form-input" required></textarea>
+                    <button type="submit" class="bg-brand text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-brand-dark transition-colors">Send Information</button>
+                </form>
+                {% endif %}
+
+                {% if can_cancel %}
+                <form method="post" action="{% url 'escalations:cancel' escalation.escalation_id %}" class="space-y-2">
+                    {% csrf_token %}
+                    <label class="form-label" for="id_cancel_note">Reason for cancellation (optional)</label>
+                    <textarea id="id_cancel_note" name="note" rows="2" class="form-input"></textarea>
+                    <button type="submit" class="bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors">Cancel Escalation</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div class="lg:col-span-2 space-y-4">
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Call information</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Caller</p>
+                            <p class="font-bold text-gray-800">{{ caller.caller_name }}</p>
+                            <p class="text-xs text-gray-500">{{ masked_phone }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Date &amp; time</p>
+                            <p class="font-bold text-gray-800">{{ session.session_call_date|date:"M d, Y" }}</p>
+                            <p class="text-xs text-gray-500">{{ session.session_time_called|time:"H:i" }}{% if session.session_time_ended %} – {{ session.session_time_ended|time:"H:i" }}{% endif %}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Responder</p>
+                            <p class="font-bold text-gray-800">
+                                {% if session.user %}{{ session.user.user_first_name }} {{ session.user.user_last_name }}{% else %}—{% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Risk</p>
+                            <p class="font-bold {% if session.session_risk_assessment == 'High' %}text-red-600{% elif session.session_risk_assessment == 'Medium' %}text-amber-600{% else %}text-green-600{% endif %}">{{ session.session_risk_assessment }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-4">
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Reason for calling</p>
+                            <p class="text-gray-700 bg-gray-50 p-3 rounded-lg text-sm whitespace-pre-line">{{ session.session_reason_for_calling|default:"—" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Intervention</p>
+                            <p class="text-gray-700 bg-gray-50 p-3 rounded-lg text-sm whitespace-pre-line">{{ session.session_intervention|default:"—" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Summary</p>
+                            <p class="text-gray-700 bg-gray-50 p-3 rounded-lg text-sm whitespace-pre-line">{{ session.session_summarization }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Additional comments</p>
+                            <p class="text-gray-700 bg-gray-50 p-3 rounded-lg text-sm whitespace-pre-line">{{ session.session_additional_comments|default:"—" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Transcript &amp; notes</h2>
+                    <div class="space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar">
+                        {% for text in transcripts %}
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm whitespace-pre-wrap">{{ text }}</div>
+                        {% empty %}
+                        <p class="text-sm text-gray-400">No transcript available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if prior_sessions %}
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Prior sessions for this caller</h2>
+                    <div class="table-scroll">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="text-[10px] uppercase text-gray-500">
+                                <tr><th class="p-2">Session</th><th class="p-2">Date</th><th class="p-2">Risk</th><th class="p-2">Summary</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for prior in prior_sessions %}
+                                <tr>
+                                    <td class="p-2 font-bold">{{ prior.session_id }}</td>
+                                    <td class="p-2">{{ prior.session_call_date|date:"M d, Y" }}</td>
+                                    <td class="p-2">{{ prior.session_risk_assessment }}</td>
+                                    <td class="p-2 text-gray-500">{{ prior.session_summarization|truncatechars:120 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Existing referral</h2>
+                    {% if referral %}
+                    <div class="space-y-2 text-sm">
+                        <p class="font-bold text-gray-800">{{ referral.professional }}</p>
+                        <p class="text-gray-500">{{ referral.specialization }}</p>
+                        <p class="text-gray-500">{{ referral.institution }}</p>
+                        <p class="text-gray-500">{{ referral.location }}</p>
+                        <p class="text-brand font-bold break-all">{{ referral.contact }}</p>
+                    </div>
+                    {% else %}
+                    <p class="text-sm text-gray-400">No referral on file for this session.</p>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Assessments</h2>
+                    <div class="space-y-4">
+                        {% for assessment in assessments %}
+                        <div class="border border-gray-100 rounded-xl p-3 space-y-2">
+                            <div class="flex justify-between gap-2">
+                                <p class="text-xs font-bold text-gray-800">{{ assessment.assessed_by.user_first_name }} {{ assessment.assessed_by.user_last_name }}</p>
+                                <p class="text-[10px] text-gray-400">{{ assessment.created_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Findings</p>
+                                <p class="text-sm text-gray-700 whitespace-pre-line">{{ assessment.findings }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Recommendations</p>
+                                <p class="text-sm text-gray-700 whitespace-pre-line">{{ assessment.recommendations }}</p>
+                            </div>
+                            <p class="text-xs font-bold text-brand">{{ assessment.follow_up }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-gray-400">No professional assessment yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <h2 class="text-sm font-bold text-gray-700 uppercase mb-4">Activity</h2>
+                    <ol class="space-y-3">
+                        {% for event in events %}
+                        <li class="flex gap-3">
+                            <span class="mt-1 w-2 h-2 rounded-full bg-brand flex-shrink-0"></span>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">{{ event.event_type }}</p>
+                                <p class="text-xs text-gray-500">{{ event.actor.user_first_name }} {{ event.actor.user_last_name }} &middot; {{ event.created_at|date:"M d, Y H:i" }}</p>
+                                {% if event.from_status or event.to_status %}
+                                <p class="text-xs text-gray-400">{{ event.from_status|default:"—" }} &rarr; {{ event.to_status|default:"—" }}</p>
+                                {% endif %}
+                                {% if event.note %}
+                                <p class="text-xs text-gray-600 bg-gray-50 p-2 rounded-lg mt-1 whitespace-pre-line">{{ event.note }}</p>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="text-sm text-gray-400">No activity recorded.</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
