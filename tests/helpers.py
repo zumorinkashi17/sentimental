@@ -8,6 +8,7 @@ from datetime import date, time
 
 from apps.accounts.models import DayOffRequest, User
 from apps.callers.models import Caller, CallSession
+from apps.escalations.models import CallerEscalation, EscalationAssessment, EscalationEvent
 from apps.reports.models import Report
 from apps.referrals.models import Institution, Professional
 from apps.schedules.models import ShiftCatalog, ShiftSchedule
@@ -104,6 +105,63 @@ def make_day_off(user, status=DayOffRequest.StatusChoices.PENDING, is_read=False
         requested_reason=reason,
         requested_status=status,
         is_read=is_read,
+    )
+
+
+def make_escalation(
+    session=None,
+    requested_by=None,
+    assigned_to=None,
+    status=CallerEscalation.StatusChoices.PENDING,
+    urgency=CallerEscalation.UrgencyChoices.ROUTINE,
+    observations="Requires professional assessment.",
+):
+    return CallerEscalation.objects.create(
+        session=session or make_session(),
+        requested_by=requested_by or make_user(email="escalation-responder@example.com"),
+        assigned_to=assigned_to,
+        status=status,
+        urgency=urgency,
+        observations=observations,
+    )
+
+
+def make_assessment(
+    escalation=None,
+    assessed_by=None,
+    findings="No immediate safety concern identified.",
+    recommendations="Continue supportive counseling and schedule follow-up.",
+    follow_up=EscalationAssessment.FollowUpChoices.SCHEDULED_FOLLOW_UP,
+):
+    return EscalationAssessment.objects.create(
+        escalation=escalation or make_escalation(),
+        assessed_by=assessed_by or make_user(
+            email="escalation-mhp@example.com",
+            role=User.RoleChoices.MENTAL_HEALTH_PROFESSIONAL,
+            first="Mental",
+            last="Health Professional",
+        ),
+        findings=findings,
+        recommendations=recommendations,
+        follow_up=follow_up,
+    )
+
+
+def make_escalation_event(
+    escalation=None,
+    actor=None,
+    event_type=EscalationEvent.EventTypeChoices.CREATED,
+    from_status=None,
+    to_status=None,
+    note=None,
+):
+    return EscalationEvent.objects.create(
+        escalation=escalation or make_escalation(),
+        actor=actor or make_user(email="escalation-actor@example.com"),
+        event_type=event_type,
+        from_status=from_status,
+        to_status=to_status,
+        note=note,
     )
 
 

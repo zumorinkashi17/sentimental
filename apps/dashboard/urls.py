@@ -6,6 +6,7 @@ app_name = "dashboard"
 urlpatterns = [
     # Main dashboards
     path("admin/index/",    views.admin_index,       name="admin_index"),
+    path("professional/index/", views.professional_index, name="professional_index"),
 
     # Other pages
     path("",                views.index,             name="index"),

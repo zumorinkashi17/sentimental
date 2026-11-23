@@ -6,7 +6,7 @@
 <div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
     <div class="max-w-4xl mx-auto w-full space-y-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">{% if session_role == 'Admin' %}Manager Profile{% else %}Responder Profile{% endif %}</h1>
+            <h1 class="text-2xl font-bold text-gray-800">{% if session_role == 'Admin' %}Manager Profile{% elif session_role == 'Mental Health Professional' %}Professional Profile{% else %}Responder Profile{% endif %}</h1>
             <p class="text-gray-500">Manage personal information and system settings.</p>
         </div>
         
@@ -28,13 +28,18 @@
 
                 <div class="text-center">
                     <h2 class="text-lg font-bold text-gray-800">{{ user.user_first_name }} {{ user.user_last_name }}</h2>
-                    <p class="text-xs text-brand font-bold uppercase tracking-wider">{% if session_role == 'Admin' %}Manager{% else %}Responder{% endif %}</p>
+                    <p class="text-xs text-brand font-bold uppercase tracking-wider">{% if session_role == 'Admin' %}Manager{% elif session_role == 'Mental Health Professional' %}Mental Health Professional{% else %}Responder{% endif %}</p>
                 </div>
                 <div class="w-full h-px bg-gray-100 my-1"></div>
                 <div class="w-full text-center space-y-3">
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Calls Handled</p>
-                        <p class="text-2xl font-bold text-gray-700">{{ calls_count|intcomma }}</p>
+                        {% if session_role == 'Mental Health Professional' %}
+                            <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Escalations</p>
+                            <p class="text-2xl font-bold text-gray-700">{{ escalations_count|intcomma }}</p>
+                        {% else %}
+                            <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Calls Handled</p>
+                            <p class="text-2xl font-bold text-gray-700">{{ calls_count|intcomma }}</p>
+                        {% endif %}
                     </div>
                     <div>
                         <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Status</p>

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="view-section lg:h-full h-auto flex flex-col p-4 sm:p-8 overflow-y-auto custom-scrollbar">
+    <div class="max-w-6xl mx-auto w-full space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Caller Escalations</h1>
+                <p class="text-gray-500">Review cases referred for professional assessment.</p>
+            </div>
+            {% if user.user_role != 'Mental Health Professional' %}
+            <a href="{% url 'documentation:master_history' %}" class="bg-brand text-white text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-brand-dark transition-colors flex items-center justify-center gap-2">
+                <i class="ph-bold ph-plus text-lg"></i> Escalate a Call
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">All</p>
+                <p class="text-xl font-bold text-gray-800">{{ counts.all }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Active</p>
+                <p class="text-xl font-bold text-brand">{{ counts.active }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Pending</p>
+                <p class="text-xl font-bold text-amber-600">{{ counts.pending }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Assigned</p>
+                <p class="text-xl font-bold text-blue-600">{{ counts.assigned }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Under Review</p>
+                <p class="text-xl font-bold text-purple-600">{{ counts.under_review }}</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-gray-400">Needs Info</p>
+                <p class="text-xl font-bold text-orange-600">{{ counts.needs_info }}</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <form method="get" class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-5">
+                <input type="text" name="search" value="{{ filters.search }}" placeholder="Search session or caller" class="form-input text-sm">
+                <select name="status" class="form-input bg-white text-sm">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="urgency" class="form-input bg-white text-sm">
+                    <option value="">All urgencies</option>
+                    {% for value, label in urgency_choices %}
+                    <option value="{{ value }}" {% if filters.urgency == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="bg-slate-800 text-white text-sm font-bold rounded-lg hover:bg-slate-900 transition-colors">Apply Filters</button>
+            </form>
+
+            <div class="table-scroll">
+                <table class="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <th class="p-3 font-bold">Escalation</th>
+                            <th class="p-3 font-bold">Caller / Session</th>
+                            <th class="p-3 font-bold">Urgency</th>
+                            <th class="p-3 font-bold">Status</th>
+                            <th class="p-3 font-bold">Requested By</th>
+                            <th class="p-3 font-bold">Assigned To</th>
+                            <th class="p-3 font-bold">Created</th>
+                            <th class="p-3 font-bold text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                        {% for escalation in page_obj.object_list %}
+                        <tr>
+                            <td class="p-3 font-bold font-mono text-xs">{{ escalation.display_id }}</td>
+                            <td class="p-3">
+                                {{ escalation.session.caller.caller_name }}
+                                <span class="block text-[10px] text-gray-400">{{ escalation.session.session_id }}</span>
+                            </td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold {% if escalation.urgency == 'Urgent' %}bg-red-100 text-red-700{% elif escalation.urgency == 'Priority' %}bg-amber-100 text-amber-700{% else %}bg-gray-100 text-gray-600{% endif %}">{{ escalation.urgency }}</span>
+                            </td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded-full text-[10px] font-bold {% if escalation.status == 'Completed' %}bg-green-100 text-green-700{% elif escalation.status == 'Cancelled' %}bg-gray-200 text-gray-600{% elif escalation.status == 'Needs Info' %}bg-orange-100 text-orange-700{% elif escalation.status == 'Under Review' %}bg-purple-100 text-purple-700{% elif escalation.status == 'Assigned' %}bg-blue-100 text-blue-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ escalation.status }}</span>
+                            </td>
+                            <td class="p-3">{{ escalation.requested_by.user_first_name }} {{ escalation.requested_by.user_last_name }}</td>
+                            <td class="p-3">
+                                {% if escalation.assigned_to %}
+                                    {{ escalation.assigned_to.user_first_name }} {{ escalation.assigned_to.user_last_name }}
+                                {% else %}
+                                    <span class="text-gray-400">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-xs text-gray-500">{{ escalation.created_at|date:"M d, Y H:i" }}</td>
+                            <td class="p-3 text-right">
+                                <a href="{% url 'escalations:detail' escalation.escalation_id %}" class="text-brand font-bold text-xs hover:underline">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="p-8 text-center text-gray-400">No escalations found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include 'components/pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

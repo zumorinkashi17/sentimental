@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from apps.accounts.models import User
 from apps.dashboard import services
+from apps.escalations import services as escalation_services
 
 def _get_session_user(request, required_role=None):
     """Return (user, None) or (None, redirect_response).
@@ -32,6 +33,8 @@ def _get_session_user(request, required_role=None):
             return None, redirect("dashboard:admin_index")
         elif user.user_role == User.RoleChoices.RESPONDER:
             return None, redirect("dashboard:index")
+        elif user.user_role == User.RoleChoices.MENTAL_HEALTH_PROFESSIONAL:
+            return None, redirect("dashboard:professional_index")
         else:
             request.session.flush()
             return None, redirect("accounts:login")
@@ -61,6 +64,20 @@ def admin_index(request):
         return redirect_response
         
     return render(request, "dashboard/admin_index.html", services.admin_context(request, user))
+
+def professional_index(request):
+    user, redirect_response = _get_session_user(
+        request,
+        required_role=User.RoleChoices.MENTAL_HEALTH_PROFESSIONAL,
+    )
+    if redirect_response:
+        return redirect_response
+
+    return render(request, "dashboard/professional_index.html", {
+        "user": user,
+        "counts": escalation_services.escalation_counts(user),
+        "escalations": escalation_services.list_escalations(user)[:8],
+    })
 
 def call_logs(request):
     user, redirect_response = _get_session_user(request)

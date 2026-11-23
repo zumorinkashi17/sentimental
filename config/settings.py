@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.callers',
     'apps.dashboard',
     'apps.documentation',
+    'apps.escalations',
     'apps.forecast',
     'apps.heatmap',
     'apps.notifications',

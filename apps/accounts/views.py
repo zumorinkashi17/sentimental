@@ -11,6 +11,7 @@ from django.db.models import Q
 from supabase import create_client, Client
 from .models import User, UserLog
 from apps.callers.models import CallSession
+from apps.escalations.models import CallerEscalation
 from apps.pagination import paginate
 from django.utils import timezone
 
@@ -19,6 +20,16 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 BUCKET_NAME = "image-bucket"
+
+
+def _json_admin_guard(request):
+    if request.session.get('user_role') != User.RoleChoices.ADMIN:
+        return JsonResponse({
+            "success": False,
+            "message": "You do not have permission to manage users."
+        }, status=403)
+    return None
+
 
 @require_http_methods(["GET", "POST"])
 def login_view(request):
@@ -82,7 +93,7 @@ def _upload_to_supabase(file_obj, file_name):
         return None
 
 def manage_users(request):
-    if request.session.get('user_role') != 'Admin':
+    if request.session.get('user_role') != User.RoleChoices.ADMIN:
         return redirect('dashboard:index')
         
     search_query = request.GET.get('search', '')
@@ -115,7 +126,14 @@ def manage_users(request):
 
 @require_http_methods(["POST"])
 def add_responder(request):
+    guard_response = _json_admin_guard(request)
+    if guard_response:
+        return guard_response
+
     email = request.POST.get("email", "").strip().lower()
+    requested_role = request.POST.get("user_role", User.RoleChoices.RESPONDER)
+    if requested_role not in User.RoleChoices.values:
+        return JsonResponse({"success": False, "message": "Invalid user role."}, status=400)
     
     logo_url = "https://svvqtysxursbauiqepbg.supabase.co/storage/v1/object/public/image-bucket/Sentimental-logo.png"
     
@@ -197,6 +215,7 @@ def add_responder(request):
         # Generate a NEW token and resend the email
         token = secrets.token_urlsafe(32)
         user.user_setup_token = token
+        user.user_role = requested_role
         user.save()
         
         setup_url = request.build_absolute_uri(f"/accounts/setup/?token={token}")
@@ -224,7 +243,7 @@ def add_responder(request):
     
     user = User(
         user_email=email,
-        user_role=User.RoleChoices.RESPONDER,
+        user_role=requested_role,
         user_status=User.StatusChoices.INACTIVE,
         user_setup_token=token
     )
@@ -295,6 +314,10 @@ def process_setup_view(request):
     return JsonResponse({"success": True, "redirect_url": "/accounts/login/"})
 
 def get_responder(request, user_id):
+    guard_response = _json_admin_guard(request)
+    if guard_response:
+        return guard_response
+
     user = get_object_or_404(User, user_id=user_id)
     data = {
         "success": True,
@@ -314,16 +337,27 @@ def get_responder(request, user_id):
 
 @require_http_methods(["POST"])
 def edit_responder(request, user_id):
+    guard_response = _json_admin_guard(request)
+    if guard_response:
+        return guard_response
+
     user = get_object_or_404(User, user_id=user_id)
     
+    requested_role = request.POST.get("user_role", user.user_role)
+    requested_status = request.POST.get("user_status", user.user_status)
+    if requested_role not in User.RoleChoices.values:
+        return JsonResponse({"success": False, "message": "Invalid user role."}, status=400)
+    if requested_status not in User.StatusChoices.values:
+        return JsonResponse({"success": False, "message": "Invalid user status."}, status=400)
+
     user.user_first_name = request.POST.get("first_name", user.user_first_name).strip()
     user.user_last_name = request.POST.get("last_name", user.user_last_name).strip()
     user.user_email = request.POST.get("email", user.user_email).strip().lower()
     user.user_number = request.POST.get("user_number", user.user_number).strip()
     user.user_location = request.POST.get("user_location", user.user_location).strip()
     
-    user.user_role = request.POST.get("user_role", user.user_role)
-    user.user_status = request.POST.get("user_status", user.user_status)
+    user.user_role = requested_role
+    user.user_status = requested_status
     
     if 'user_image' in request.FILES:
         user_image_file = request.FILES.get("user_image")
@@ -376,12 +410,19 @@ def profile_view(request):
             'user_image': user.user_image or ''
         })
 
+    session_role = request.session.get('user_role', user.user_role)
     calls_count = CallSession.objects.filter(user=user).count()
+    escalations_count = (
+        CallerEscalation.objects.filter(assigned_to=user).count()
+        if session_role == User.RoleChoices.MENTAL_HEALTH_PROFESSIONAL
+        else 0
+    )
 
     return render(request, 'accounts/profile.html', {
         'user': user,
-        'session_role': request.session.get('user_role', 'Responder'),
-        'calls_count': calls_count
+        'session_role': session_role,
+        'calls_count': calls_count,
+        'escalations_count': escalations_count
     })
 
 @require_http_methods(["POST"])
@@ -524,6 +565,8 @@ def process_reset_password_view(request):
 def _redirect_by_role(role):
     if role == User.RoleChoices.ADMIN:
         return redirect("dashboard:admin_index")
+    if role == User.RoleChoices.MENTAL_HEALTH_PROFESSIONAL:
+        return redirect("dashboard:professional_index")
     return redirect("dashboard:index")
 
 

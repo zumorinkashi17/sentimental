@@ -1,6 +1,6 @@
 # SentiMental
 
-SentiMental is a comprehensive web application designed to streamline mental health helpline operations. It provides role-based dashboards for Helpline Managers (Admins) and Responders, real-time call documentation, AI-assisted summarization, geographic heatmapping, analytics, and shift scheduling.
+SentiMental is a comprehensive web application designed to streamline mental health helpline operations. It provides role-based dashboards for Helpline Managers (Admins), Responders, and Mental Health Professionals, real-time call documentation, AI-assisted summarization, geographic heatmapping, analytics, shift scheduling, and internal caller escalation.
 
 ---
 
@@ -109,12 +109,13 @@ Log in using the **Admin credentials** provided in the Google Drive folder.
 
 ### 🔐 Role-Based Access Control
 
-- Dedicated dashboards for Helpline Managers and Responders
+- Dedicated dashboards for Helpline Managers (Admins), Responders, and Mental Health Professionals
 - Secure authentication and authorization
+- Role-scoped escalation permissions: responders request, managers assign, and professionals assess
 
 ### 👥 User Management
 
-- Invite responders through email
+- Invite responders, managers, or mental health professionals through email
 - Secure token-based account activation
 - Password validation and reset functionality
 
@@ -132,6 +133,14 @@ Log in using the **Admin credentials** provided in the Google Drive folder.
 - Multi-label intervention classification
 - Manual responder review of Risk Assessment and Reason for Calling
 - Comprehensive documentation interface
+
+### ⬆️ Caller Escalation
+
+- Escalate a saved call session from the session history modal
+- Managers assign escalations to active mental health professionals
+- Professionals acknowledge, request information from responders, and record assessments
+- Full audit trail of created, assigned, acknowledged, information, assessment, and cancellation events
+- Caller phone numbers are masked in the professional review view
 
 ### 📊 Analytics Dashboard
 
@@ -192,6 +201,14 @@ Valid labels are `LOW`, `MODERATE_RISK`, and `HIGH_RISK`. Restart the server aft
 ```bash
 python manage.py test apps.callers.tests
 ```
+
+## Run Application Tests
+
+```bash
+python manage.py test tests
+```
+
+Role and escalation behavior is covered by `tests/test_escalations.py`.
 
 ---
 

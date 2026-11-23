@@ -29,6 +29,7 @@ urlpatterns = [
     path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
     path('callers/', include('apps.callers.urls', namespace='callers')),
     path('documentation/', include('apps.documentation.urls', namespace='documentation')),
+    path('escalations/', include('apps.escalations.urls', namespace='escalations')),
     path('forecast/', include('apps.forecast.urls', namespace='forecast')),
     path('referrals/', include('apps.referrals.urls', namespace='referrals')),
     path('schedules/', include('apps.schedules.urls', namespace='schedules')),
